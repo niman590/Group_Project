@@ -1,0 +1,132 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #111;
+}
+
+.container {
+    width: 95%;
+    margin: 20px auto;
+    background: #222;
+    padding: 10px;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #ddd;
+    padding: 10px 20px;
+}
+
+.logo {
+    font-weight: bold;
+}
+
+.nav-buttons a {
+    margin-right: 15px;
+    text-decoration: none;
+    color: black;
+}
+
+.nav-buttons button {
+    padding: 5px 10px;
+    background: black;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+/* Main Layout */
+.main {
+    display: flex;
+    height: 500px;
+}
+
+/* Left Card */
+.login-card {
+    width: 40%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    margin: 40px;
+    color: white;
+}
+
+.login-card h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-card label {
+    display: block;
+    margin-top: 15px;
+}
+
+.login-card input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 20px;
+    border: none;
+    outline: none;
+}
+
+.password-box {
+    display: flex;
+    align-items: center;
+}
+
+.password-box span {
+    margin-left: -30px;
+    cursor: pointer;
+}
+
+.remember {
+    margin-top: 10px;
+}
+
+.sign-in {
+    width: 100%;
+    padding: 10px;
+    margin-top: 20px;
+    border-radius: 20px;
+    border: none;
+    background: #ccc;
+    cursor: pointer;
+}
+
+.links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.links a {
+    color: white;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+/* Right Section */
+.right-section {
+    width: 60%;
+    background: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab') no-repeat center/cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 20px;
+}
+
+.right-section h1 {
+    font-size: 32px;
+    text-align: center;
+}
