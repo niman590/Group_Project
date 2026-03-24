@@ -109,7 +109,7 @@ a {
 
 /* HERO */
 .hero-section {
-    background: linear-gradient(rgba(6, 26, 55, 0.659), rgba(18, 63, 130, 0.92)),
+    background: linear-gradient(rgba(6, 26, 55, 0.659), rgba(15, 45, 91, 0.92)),
         url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat;
     padding: 90px 0;
 }
