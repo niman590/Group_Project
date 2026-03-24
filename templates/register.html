@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Civic Plan - Registration</title>
-  <link rel="stylesheet" href="register.css" />
+<link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
 </head>
 
 <body>
@@ -34,7 +34,7 @@
     <div class="right-side">
       <div class="form-container">
         <div class="logo-box">
-          <img src="../images/logo_2-removebackground.png" alt="Civic Plan Logo" />
+          <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
         </div>
 
         <h2 class="brand-title">CIVIC PLAN</h2>
@@ -102,10 +102,10 @@
 
           <p class="login-text">
             Already have an account?
-            <a href="../login/login.html">Login here</a>
+            <a href="{{ url_for('login') }}">Login here</a>
           </p>
 
-          <a href="../login/login.html" class="back-btn">Back</a>
+          <a href="{{ url_for('login') }}" class="back-btn">Back</a>
         </form>
       </div>
     </div>
