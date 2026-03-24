@@ -28,7 +28,7 @@ a {
 
 /* HEADER */
 .site-header {
-    background: #123f82;
+    background: #0a2d63;
     padding: 20px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -48,7 +48,7 @@ a {
 }
 
 .brand-logo {
-    width: 64px;
+    width: 100px;
     height: auto;
 }
 
@@ -95,7 +95,7 @@ a {
 
 .signin-btn {
     background: #ffffff;
-    color: #123f82;
+    color: #0a2d63;
     padding: 13px 26px;
     border-radius: 6px;
     font-weight: 700;
@@ -168,7 +168,7 @@ a {
 
 .btn-primary {
     background: #ffffff;
-    color: #123f82;
+    color: #0a2d63;
 }
 
 .btn-secondary {
@@ -218,7 +218,7 @@ a {
 }
 
 .section-header.light h2 {
-    color: #123f82;
+    color: #0a2d63;
 }
 
 .section-tag {
@@ -233,7 +233,7 @@ a {
 .section-header h2 {
     font-size: 2.8rem;
     font-weight: 800;
-    color: #123f82;
+    color: #0a2d63;
 }
 
 /* QUICK LINKS */
@@ -265,7 +265,7 @@ a {
     width: 58px;
     height: 58px;
     border-radius: 50%;
-    background: #123f82;
+    background: #0a2d63;
     color: #ffffff;
     display: flex;
     align-items: center;
@@ -275,7 +275,7 @@ a {
 }
 
 .quick-card h3 {
-    color: #123f82;
+    color: #0a2d63;
     font-size: 1.45rem;
     margin-bottom: 12px;
 }
@@ -320,7 +320,7 @@ a {
 }
 
 .info-content h3 {
-    color: #123f82;
+    color: #0a2d63;
     font-size: 1.45rem;
     margin-bottom: 12px;
 }
@@ -342,7 +342,7 @@ a {
 }
 
 .benefit-box {
-    background: #123f82;
+    background: #082e66;
     color: #ffffff;
     padding: 32px;
     border-radius: 12px;
@@ -404,7 +404,7 @@ a {
 
 /* FOOTER */
 .site-footer {
-    background: #0c2348;
+    background: #0a2d63;
     color: #ffffff;
     padding: 60px 0 20px;
 }
@@ -424,7 +424,7 @@ a {
 }
 
 .footer-brand img {
-    width: 62px;
+    width: 150px;
     height: auto;
 }
 
