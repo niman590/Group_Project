@@ -44,24 +44,27 @@ a {
 .brand {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 18px;
 }
 
 .brand-logo {
-    width: 100px;
+    width: 110px;
     height: auto;
+    object-fit: contain;
+    display: block;
 }
 
 .brand-text h1 {
     color: #ffffff;
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 800;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
+    line-height: 1;
 }
 
 .brand-text p {
-    color: #cfe0ff;
-    font-size: 0.95rem;
+    color: #d9e7ff;
+    font-size: 1rem;
 }
 
 .nav-links {
@@ -404,7 +407,7 @@ a {
 
 /* FOOTER */
 .site-footer {
-    background: #0a2d63;
+    background: #082146;
     color: #ffffff;
     padding: 60px 0 20px;
 }
