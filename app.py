@@ -93,6 +93,7 @@ def login_post():
 
     if user:
         return redirect(url_for("dashboard"))
+
     return "Invalid NIC or password"
 
 

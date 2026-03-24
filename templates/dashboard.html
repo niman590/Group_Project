@@ -12,9 +12,9 @@
 <body>
 
     <!-- HEADER -->
-    <header class="top-header">
-        <div class="container nav-wrapper">
-            <div class="brand-area">
+    <header class="site-header">
+        <div class="container header-wrapper">
+            <div class="brand">
                 <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo"
                     class="brand-logo" />
                 <div class="brand-text">
@@ -23,209 +23,196 @@
                 </div>
             </div>
 
-            <nav class="main-nav">
+            <nav class="nav-links">
                 <a href="{{ url_for('dashboard') }}">Home</a>
                 <a href="#">Services</a>
                 <a href="#">Public Notices</a>
                 <a href="#">Help</a>
-                <a href="#" class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></a>
+                <a href="#" class="nav-search"><i class="fa-solid fa-magnifying-glass"></i></a>
+            </nav>
+
+            <div class="header-actions">
+                <a href="{{ url_for('register') }}" class="register-link">Create account</a>
                 <a href="{{ url_for('login') }}" class="signin-btn">
                     Sign in <i class="fa-solid fa-arrow-right-to-bracket"></i>
                 </a>
-            </nav>
-        </div>
-
-        <div class="container sub-nav">
-            <a href="{{ url_for('register') }}">Create account</a>
-            <a href="#">Contact support</a>
+            </div>
         </div>
     </header>
 
     <!-- HERO -->
     <section class="hero-section">
         <div class="container hero-grid">
-            <div class="hero-left">
-                <h2>We’re here to help</h2>
+            <div class="hero-content">
+                <span class="hero-badge">SMART DIGITAL LAND SERVICES</span>
+                <h2>Land services made simpler and faster</h2>
                 <p>
-                    Access land management and planning approval services from one secure place.
-                    Explore property services, planning submissions, approvals, records, and updates.
+                    Access land management and planning approval services in one secure portal.
+                    Register, submit requests, track approvals, and receive official updates online.
                 </p>
 
-                <div class="hero-actions">
-                    <a href="{{ url_for('login') }}" class="primary-btn">Sign in</a>
-                    <span>or</span>
-                    <a href="{{ url_for('register') }}" class="text-link">Create account</a>
+                <div class="hero-buttons">
+                    <a href="{{ url_for('login') }}" class="btn-primary">Sign in</a>
+                    <a href="{{ url_for('register') }}" class="btn-secondary">Create account</a>
                 </div>
+            </div>
 
-                <div class="hero-note">
+            <div class="hero-card">
+                <div class="hero-card-overlay"></div>
+                <div class="hero-card-content">
+                    <h3>Public access to essential services</h3>
                     <p>
-                        If you already have a Civic Plan account, you don’t need to create a new one.
+                        Explore planning approvals, land records, permit tracking,
+                        and helpful citizen guidance from the Civic Plan portal.
                     </p>
                 </div>
             </div>
-
-            <div class="hero-right">
-                <div class="support-card">
-                    <div class="support-content">
-                        <h3>Find support</h3>
-                        <p>
-                            Explore guidance for planning approvals, land ownership records,
-                            applications, and citizen support services.
-                        </p>
-                        <a href="#" class="outline-btn">Explore</a>
-                    </div>
-                    <div class="support-image">
-                        <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=900&q=80"
-                            alt="Support" />
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 
-    <!-- POPULAR SERVICES -->
-    <section class="quick-services-section">
+    <!-- QUICK LINKS -->
+    <section class="quick-links-section">
         <div class="container">
-            <h2 class="section-title">Popular services</h2>
+            <div class="section-header">
+                <span class="section-tag">PUBLIC ACCESS</span>
+                <h2>Popular services</h2>
+            </div>
 
-            <div class="services-grid">
-                <div class="service-card">
-                    <div class="service-icon"><i class="fa-solid fa-file-signature"></i></div>
-                    <h3>Apply for planning approval</h3>
-                    <p>Start a new planning application and track its progress online.</p>
-                    <a href="#">Learn more <i class="fa-solid fa-angle-right"></i></a>
+            <div class="quick-links-grid">
+                <div class="quick-card">
+                    <div class="card-icon"><i class="fa-solid fa-file-circle-check"></i></div>
+                    <h3>Planning approval applications</h3>
+                    <p>Start a new application and review required details before submission.</p>
+                    <a href="#">Read more <i class="fa-solid fa-angle-right"></i></a>
                 </div>
 
-                <div class="service-card">
-                    <div class="service-icon"><i class="fa-solid fa-map-location-dot"></i></div>
-                    <h3>Check land records</h3>
-                    <p>Search available land and property-related records and information.</p>
-                    <a href="#">Learn more <i class="fa-solid fa-angle-right"></i></a>
+                <div class="quick-card">
+                    <div class="card-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+                    <h3>Land record search</h3>
+                    <p>Find public land-related information and review available property records.</p>
+                    <a href="#">Read more <i class="fa-solid fa-angle-right"></i></a>
                 </div>
 
-                <div class="service-card">
-                    <div class="service-icon"><i class="fa-solid fa-building-circle-check"></i></div>
-                    <h3>Building permit status</h3>
-                    <p>Check application progress, approvals, and current permit details.</p>
-                    <a href="#">Learn more <i class="fa-solid fa-angle-right"></i></a>
+                <div class="quick-card">
+                    <div class="card-icon"><i class="fa-solid fa-building-circle-check"></i></div>
+                    <h3>Permit and approval status</h3>
+                    <p>Track the latest updates on submitted planning and permit requests.</p>
+                    <a href="#">Read more <i class="fa-solid fa-angle-right"></i></a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- USEFUL INFORMATION -->
+    <!-- INFORMATION -->
     <section class="info-section">
         <div class="container">
-            <h2 class="section-title">Useful information</h2>
+            <div class="section-header light">
+                <span class="section-tag">GUIDANCE</span>
+                <h2>Useful information</h2>
+            </div>
 
             <div class="info-grid">
                 <div class="info-card">
                     <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80"
-                        alt="Ownership help" />
-                    <div class="info-card-content">
-                        <h3>How to verify land ownership details</h3>
-                        <p>
-                            Find out what information is needed before verifying land ownership and legal record
-                            details.
-                        </p>
-                        <a href="#"><i class="fa-solid fa-angle-right"></i></a>
+                        alt="Ownership help">
+                    <div class="info-content">
+                        <h3>How to prepare for land ownership verification</h3>
+                        <p>Learn the details and documents commonly needed before you begin a verification request.</p>
                     </div>
                 </div>
 
                 <div class="info-card">
                     <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80"
-                        alt="Planning checklist" />
-                    <div class="info-card-content">
-                        <h3>Preparing for a planning application</h3>
-                        <p>
-                            Understand the documents and information you may need before submitting a planning request.
-                        </p>
-                        <a href="#"><i class="fa-solid fa-angle-right"></i></a>
+                        alt="Checklist">
+                    <div class="info-content">
+                        <h3>Preparing for planning approval submissions</h3>
+                        <p>Understand what supporting information may be needed before submitting an application.</p>
                     </div>
                 </div>
 
                 <div class="info-card">
                     <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80"
-                        alt="Notifications" />
-                    <div class="info-card-content">
-                        <h3>Stay alert for system notifications</h3>
-                        <p>
-                            Learn how official updates, submission notices, and account alerts will be delivered to you.
-                        </p>
-                        <a href="#"><i class="fa-solid fa-angle-right"></i></a>
+                        alt="Notifications">
+                    <div class="info-content">
+                        <h3>Official portal notifications and updates</h3>
+                        <p>Find out how important notices, status updates, and submission alerts are communicated.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- HIGHLIGHTS -->
-    <section class="highlight-section">
-        <div class="container">
-            <div class="highlight-grid">
-                <div class="highlight-box">
-                    <h3>Why use Civic Plan?</h3>
-                    <ul>
-                        <li>Secure online access to public land services</li>
-                        <li>Track approvals and submissions in one place</li>
-                        <li>Get updates and notices faster</li>
-                        <li>Reduce paperwork and in-person visits</li>
-                    </ul>
-                </div>
+    <!-- BENEFITS -->
+    <section class="benefits-section">
+        <div class="container benefits-grid">
+            <div class="benefit-box">
+                <h3>Why use Civic Plan?</h3>
+                <ul>
+                    <li>One secure portal for land and planning services</li>
+                    <li>Faster access to records and application status</li>
+                    <li>Reduced paperwork and manual processing</li>
+                    <li>Clear updates and digital communication</li>
+                </ul>
+            </div>
 
-                <div class="highlight-box">
-                    <h3>Before you begin</h3>
-                    <ul>
-                        <li>Have your NIC or personal identification ready</li>
-                        <li>Prepare property and location details</li>
-                        <li>Keep relevant supporting documents available</li>
-                        <li>Create an account for full online access</li>
-                    </ul>
-                </div>
+            <div class="benefit-box">
+                <h3>Before you begin</h3>
+                <ul>
+                    <li>Keep your NIC ready for account registration</li>
+                    <li>Prepare relevant property and location details</li>
+                    <li>Collect required supporting documents</li>
+                    <li>Create an account to access protected services</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container cta-box">
+            <div>
+                <h2>Ready to access Civic Plan services?</h2>
+                <p>Sign in to continue or create a new account to access digital land services.</p>
+            </div>
+
+            <div class="cta-actions">
+                <a href="{{ url_for('login') }}" class="btn-primary">Sign in</a>
+                <a href="{{ url_for('register') }}" class="btn-secondary light-btn">Create account</a>
             </div>
         </div>
     </section>
 
     <!-- FOOTER -->
-    <footer class="main-footer">
+    <footer class="site-footer">
         <div class="container footer-grid">
-            <div class="footer-column">
-                <h4>About this portal</h4>
-                <a href="#">About Civic Plan</a>
-                <a href="#">How to use the portal</a>
-                <a href="#">Contact us</a>
-                <a href="#">Feedback</a>
-            </div>
-
-            <div class="footer-column">
-                <h4>Browse</h4>
-                <a href="#">Planning approvals</a>
-                <a href="#">Land records</a>
-                <a href="#">Property services</a>
-                <a href="#">Public notices</a>
-                <a href="#">Citizen support</a>
-            </div>
-
-            <div class="footer-column">
-                <h4>Legal</h4>
-                <a href="#">Terms of use</a>
-                <a href="#">Privacy and security</a>
-                <a href="#">Accessibility</a>
-                <a href="#">Cookies policy</a>
-            </div>
-        </div>
-
-        <div class="container footer-bottom">
             <div class="footer-brand">
                 <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}"
                     alt="Civic Plan Logo" />
                 <div>
-                    <strong>CIVIC PLAN</strong>
+                    <h3>CIVIC PLAN</h3>
                     <p>Smart Digital Land Management and Planning Approval System</p>
                 </div>
             </div>
 
-            <p class="footer-copy">© 2026 Civic Plan. All rights reserved.</p>
+            <div class="footer-links">
+                <h4>Portal</h4>
+                <a href="{{ url_for('dashboard') }}">Home</a>
+                <a href="#">Services</a>
+                <a href="#">Public Notices</a>
+                <a href="#">Help</a>
+            </div>
+
+            <div class="footer-links">
+                <h4>Account</h4>
+                <a href="{{ url_for('login') }}">Sign in</a>
+                <a href="{{ url_for('register') }}">Create account</a>
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>© 2026 Civic Plan. All rights reserved.</p>
         </div>
     </footer>
 
