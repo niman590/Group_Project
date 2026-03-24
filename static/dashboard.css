@@ -109,9 +109,9 @@ a {
 
 /* HERO */
 .hero-section {
-    background: linear-gradient(rgba(18, 63, 130, 0.9), rgba(18, 63, 130, 0.88)),
+    background: linear-gradient(rgba(6, 26, 55, 0.659), rgba(18, 63, 130, 0.92)),
         url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80") center/cover no-repeat;
-    padding: 80px 0;
+    padding: 90px 0;
 }
 
 .hero-grid {
@@ -289,7 +289,7 @@ a {
 }
 
 .quick-card a {
-    color: #1c4a87;
+    color: #0a2d63;
     font-weight: 700;
 }
 
@@ -345,7 +345,7 @@ a {
 }
 
 .benefit-box {
-    background: #082e66;
+    background:#0a2d63;
     color: #ffffff;
     padding: 32px;
     border-radius: 12px;
@@ -373,7 +373,7 @@ a {
 }
 
 .cta-box {
-    background: linear-gradient(135deg, #123f82, #1c4a87);
+    background: linear-gradient(135deg, #0a2d63, #1c4a87);
     color: #ffffff;
     border-radius: 16px;
     padding: 40px;
