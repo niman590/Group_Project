@@ -16,7 +16,20 @@ CREATE TABLE IF NOT EXISTS users (
     address TEXT,
     city TEXT,
     nic TEXT UNIQUE NOT NULL,
+    is_admin BOOLEAN DEFAULT FALSE,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+""")
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS property (
+    property_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_id INTEGER NOT NULL,
+    current_value FLOAT NOT NULL,
+    property_size FLOAT NOT NULL,
+    property_address TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_id) REFERENCES users(user_id)
+    
 );
 """)
 connection.commit()
