@@ -1,9 +1,12 @@
 import sqlite3
+import os
 
-connection = sqlite3.connect("land_management_system.db")
+base_dir = os.path.dirname(os.path.abspath(__file__))
+db_path = os.path.join(base_dir, "land_management_system.db")
+
+connection = sqlite3.connect(db_path)
 cursor = connection.cursor()
 
-# USERS TABLE
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
     user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,27 +23,34 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 """)
+
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS property (
     property_id INTEGER PRIMARY KEY AUTOINCREMENT,
     owner_id INTEGER NOT NULL,
-    current_value FLOAT NOT NULL,
-    property_size FLOAT NOT NULL,
+    current_value REAL NOT NULL,
+    property_size REAL NOT NULL,
     property_address TEXT NOT NULL,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (owner_id) REFERENCES users(user_id)
-    
 );
 """)
+
+cursor.execute("DROP TABLE IF EXISTS transaction_history;")
+
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS transaction_history (
     transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
     property_id INTEGER NOT NULL,
-    transaction_date, TEXT DEFAULT CURRENT_TIMESTAMP,
-    transaction_amount FLOAT NOT NULL,
-    FOREIGN KEY (property_id) REFERENCES property(property_id)   
+    transaction_date TEXT DEFAULT CURRENT_TIMESTAMP,
+    transaction_amount REAL NOT NULL,
+    FOREIGN KEY (property_id) REFERENCES property(property_id)
 );
 """)
+
+cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+print(cursor.fetchall())
+
 connection.commit()
 connection.close()
 
