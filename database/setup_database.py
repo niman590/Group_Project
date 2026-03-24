@@ -36,14 +36,22 @@ CREATE TABLE IF NOT EXISTS property (
 );
 """)
 
-cursor.execute("DROP TABLE IF EXISTS transaction_history;")
-
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS transaction_history (
     transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
     property_id INTEGER NOT NULL,
     transaction_date TEXT DEFAULT CURRENT_TIMESTAMP,
     transaction_amount REAL NOT NULL,
+    FOREIGN KEY (property_id) REFERENCES property(property_id)
+);
+""")
+
+cursor.execute(""" 
+CREATE TABLE IF NOT EXISTS value_prediction (
+    prediction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    property_id INTEGER NOT NULL,
+    predicted_value REAL NOT NULL,
+    prediction_date TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (property_id) REFERENCES property(property_id)
 );
 """)
