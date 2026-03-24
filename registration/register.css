@@ -53,7 +53,6 @@ body {
   max-width: 390px;
 }
 
-/* RIGHT SIDE */
 .right-side {
   flex: 1;
   background: #f7f7f7;
@@ -61,6 +60,7 @@ body {
   justify-content: center;
   align-items: center;
   padding: 28px 36px;
+  position: relative;
 }
 
 .form-container {
