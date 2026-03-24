@@ -8,152 +8,148 @@
 body {
   min-height: 100vh;
   background: linear-gradient(135deg, #0a2d63, #1d4f91);
-}
-
-.main-wrapper {
-  width: 100%;
-  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 24px;
+  padding: 25px;
+}
+
+.page-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .login-container {
   width: 100%;
-  max-width: 1120px;
+  max-width: 1100px;
   min-height: 620px;
   display: flex;
   background: #ffffff;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
   overflow: hidden;
 }
 
-/* LEFT SIDE */
+/* LEFT */
 .left-panel {
   position: relative;
   flex: 1;
   background: url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80") center/cover no-repeat;
   display: flex;
-  align-items: flex-end;
-  padding: 42px;
+  align-items: center;
+  padding: 40px;
 }
 
 .overlay {
   position: absolute;
   inset: 0;
-  background: rgba(8, 39, 87, 0.64);
+  background: rgba(8, 39, 87, 0.65);
 }
 
 .left-content {
   position: relative;
   z-index: 2;
-  color: #ffffff;
-  max-width: 430px;
+  color: #fff;
+  max-width: 420px;
 }
 
 .left-content h1 {
-  font-size: 3.1rem;
-  line-height: 1.15;
+  font-size: 2.8rem;
+  line-height: 1.2;
   font-weight: 800;
-  margin-bottom: 28px;
+  margin-bottom: 25px;
 }
 
 .left-content p {
   font-size: 1rem;
-  line-height: 1.8;
+  line-height: 1.7;
   font-weight: 600;
-  max-width: 390px;
 }
 
-/* RIGHT SIDE */
+/* RIGHT */
 .right-panel {
   flex: 1;
   background: #f7f7f7;
-  padding: 34px 42px;
+  padding: 30px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
+/* LOGO */
 .top-logo {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .top-logo img {
-  width: 58px;
+  width: 60px;
   height: auto;
   display: block;
-  object-fit: contain;
 }
 
+/* TEXT */
 .brand-title {
   text-align: center;
-  font-size: 3rem;
+  font-size: 2.5rem;
   font-weight: 800;
   color: #315ea8;
-  letter-spacing: 1px;
   margin-bottom: 4px;
 }
 
 .brand-subtitle {
   text-align: center;
-  color: #9d9d9d;
-  font-size: 1rem;
-  margin-bottom: 36px;
+  color: #999;
+  margin-bottom: 30px;
+  font-size: 1.05rem;
 }
 
-.login-form {
-  width: 100%;
-}
-
+/* FORM */
 .login-form label {
   display: block;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #2f58a0;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .login-form input[type="text"],
 .login-form input[type="password"] {
   width: 100%;
-  height: 46px;
+  height: 42px;
   border: 1px solid #d6d6d6;
   border-radius: 6px;
-  background: #ffffff;
-  padding: 0 12px;
+  padding: 10px 12px;
   font-size: 0.95rem;
-  margin-bottom: 16px;
+  margin-bottom: 15px;
   outline: none;
+  background: #fff;
 }
 
 .login-form input[type="text"]:focus,
 .login-form input[type="password"]:focus {
   border-color: #315ea8;
-  box-shadow: 0 0 0 2px rgba(49, 94, 168, 0.1);
 }
 
 .form-options {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 2px 0 22px;
-  gap: 16px;
+  margin: 8px 0 18px;
 }
 
 .remember-me {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #4f4f4f;
   font-size: 0.9rem;
+  color: #555;
 }
 
 .form-options a {
-  color: #315ea8;
+  color: #1c4a87;
   text-decoration: none;
   font-size: 0.9rem;
 }
@@ -164,11 +160,11 @@ body {
 
 button {
   width: 100%;
-  height: 46px;
+  height: 45px;
   border: none;
   border-radius: 5px;
   background: #1c4a87;
-  color: #ffffff;
+  color: #fff;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
@@ -180,9 +176,9 @@ button:hover {
 
 .register-text {
   text-align: center;
-  margin-top: 22px;
-  color: #777777;
-  font-size: 0.95rem;
+  margin-top: 18px;
+  color: #777;
+  font-size: 0.92rem;
 }
 
 .register-text a {
@@ -196,54 +192,27 @@ button:hover {
 }
 
 /* RESPONSIVE */
-@media (max-width: 950px) {
+@media (max-width: 900px) {
   .login-container {
     flex-direction: column;
-    max-width: 760px;
-  }
-
-  .left-panel {
-    min-height: 340px;
-    align-items: flex-end;
-  }
-
-  .left-content h1 {
-    font-size: 2.3rem;
-  }
-
-  .brand-title {
-    font-size: 2.4rem;
   }
 }
 
-@media (max-width: 600px) {
-  .main-wrapper {
-    padding: 14px;
+@media (max-width: 500px) {
+  body {
+    padding: 15px;
   }
 
   .left-panel,
   .right-panel {
-    padding: 24px 20px;
+    padding: 22px;
   }
 
   .left-content h1 {
-    font-size: 1.9rem;
-  }
-
-  .left-content p {
-    font-size: 0.92rem;
+    font-size: 2rem;
   }
 
   .brand-title {
     font-size: 2rem;
-  }
-
-  .brand-subtitle {
-    font-size: 0.95rem;
-  }
-
-  .form-options {
-    flex-direction: column;
-    align-items: flex-start;
   }
 }
