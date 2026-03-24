@@ -32,6 +32,15 @@ CREATE TABLE IF NOT EXISTS property (
     
 );
 """)
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS transaction_history (
+    transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    property_id INTEGER NOT NULL,
+    transaction_date, TEXT DEFAULT CURRENT_TIMESTAMP,
+    transaction_amount FLOAT NOT NULL,
+    FOREIGN KEY (property_id) REFERENCES property(property_id)   
+);
+""")
 connection.commit()
 connection.close()
 
