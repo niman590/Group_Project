@@ -28,6 +28,28 @@ def login():
     return render_template("login.html")
 
 
+@app.route("/login", methods=["POST"])
+def login_post():
+    nic = request.form.get("nic")
+    password = request.form.get("password")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT * FROM users
+        WHERE nic = ? AND password = ?
+    """, (nic, password))
+
+    user = cursor.fetchone()
+    conn.close()
+
+    if user:
+        return redirect(url_for("dashboard"))
+
+    return "Invalid NIC or password"
+
+
 @app.route("/register", methods=["GET"])
 def register():
     return render_template("register.html")
@@ -35,7 +57,8 @@ def register():
 
 @app.route("/register", methods=["POST"])
 def register_post():
-    full_name = request.form.get("full_name")
+    first_name = request.form.get("first_name")
+    last_name = request.form.get("last_name")
     nic = request.form.get("nic")
     address = request.form.get("address")
     email = request.form.get("email")
@@ -45,6 +68,8 @@ def register_post():
 
     if password != confirm_password:
         return "Passwords do not match"
+
+    full_name = f"{first_name} {last_name}"
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -75,26 +100,38 @@ def register_post():
     return redirect(url_for("login"))
 
 
-@app.route("/login", methods=["POST"])
-def login_post():
-    nic = request.form.get("nic")
-    password = request.form.get("password")
+@app.route("/password_reset", methods=["GET"])
+def password_reset():
+    return render_template("password_reset.html")
+
+
+@app.route("/password_reset", methods=["POST"])
+def password_reset_post():
+    email = request.form.get("email")
+    otp = request.form.get("otp")
+    new_password = request.form.get("new_password")
+    confirm_password = request.form.get("confirm_password")
+
+    if new_password != confirm_password:
+        return "Passwords do not match"
+
+    # frontend development stage:
+    # OTP verification is not implemented yet
+    # so this just simulates password reset by email
 
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT * FROM users
-        WHERE nic = ? AND password = ?
-    """, (nic, password))
+        UPDATE users
+        SET password = ?
+        WHERE email = ?
+    """, (new_password, email))
 
-    user = cursor.fetchone()
+    conn.commit()
     conn.close()
 
-    if user:
-        return redirect(url_for("dashboard"))
-
-    return "Invalid NIC or password"
+    return redirect(url_for("login"))
 
 
 if __name__ == "__main__":

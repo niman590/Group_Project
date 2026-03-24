@@ -37,19 +37,19 @@
         <h2 class="brand-title">CIVIC PLAN</h2>
         <p class="brand-subtitle">Land Management Portal</p>
 
-        <form class="login-form">
-          <label for="username">NIC / Username</label>
-          <input type="text" id="username" name="username" />
+        <form class="login-form" method="POST" action="{{ url_for('login_post') }}">
+          <label for="nic">NIC / Username</label>
+          <input type="text" id="nic" name="nic" required />
 
           <label for="password">Password</label>
-          <input type="password" id="password" name="password" />
+          <input type="password" id="password" name="password" required />
 
           <div class="form-options">
             <label class="remember-me">
               <input type="checkbox" />
               <span>Remember me</span>
             </label>
-            <a href="#">Forgot Password?</a>
+            <a href="{{ url_for('password_reset') }}">Forgot Password?</a>
           </div>
 
           <button type="submit">Login</button>
