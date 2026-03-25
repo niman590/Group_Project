@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Civic Plan - My Account</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='account.css') }}" />
+</head>
+<body>
+  <div class="account-page">
+
+    <!-- LEFT SIDE -->
+    <div class="left-side">
+      <div class="overlay"></div>
+
+      <div class="left-content">
+        <h1>
+          Manage
+          Your Account
+          Details
+          Securely
+        </h1>
+
+        <p>
+          View and manage your personal details for secure access to land records,
+          approvals, and related digital services.
+        </p>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="right-side">
+      <div class="form-container">
+        <div class="logo-box">
+          <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
+        </div>
+
+        <h2 class="brand-title">CIVIC PLAN</h2>
+        <p class="brand-subtitle">Land Management Portal</p>
+
+        <p class="section-title">My Account</p>
+
+        <div class="account-card">
+          <div class="detail-group">
+            <label>Full Name</label>
+            <div class="detail-value">{{ user.full_name }}</div>
+          </div>
+
+          <div class="detail-group">
+            <label>Email Address</label>
+            <div class="detail-value">{{ user.email }}</div>
+          </div>
+
+          <div class="detail-group">
+            <label>Phone Number</label>
+            <div class="detail-value">{{ user.phone }}</div>
+          </div>
+
+          <div class="detail-group">
+            <label>NIC Number</label>
+            <div class="detail-value">{{ user.nic }}</div>
+          </div>
+
+          <div class="detail-group">
+            <label>Residential Address</label>
+            <div class="detail-value address-box">{{ user.address }}</div>
+          </div>
+
+          <div class="button-group">
+            <a href="#" class="edit-btn">Edit My Details</a>
+            <a href="#" class="delete-btn">Delete My Account</a>
+          </div>
+
+          <p class="back-text">
+            <a href="{{ url_for('user_dashboard') }}">Back to Dashboard</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

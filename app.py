@@ -33,6 +33,24 @@ def user_dashboard():
     return render_template("user_dashboard.html", user=fake_user)
 
 
+# MY ACCOUNT PAGE
+@app.route("/account")
+def account():
+    if "user_id" not in session:
+        return redirect(url_for("login"))
+
+    user = {
+        "id": session.get("user_id", 1),
+        "full_name": session.get("user_name", "Akash Randeniya"),
+        "nic": session.get("user_nic", "200012345678"),
+        "email": session.get("user_email", "akash@example.com"),
+        "phone": session.get("user_phone", "+94 71 234 5678"),
+        "address": session.get("user_address", "Colombo, Sri Lanka")
+    }
+
+    return render_template("account.html", user=user)
+
+
 # LOGIN PAGE
 @app.route("/login", methods=["GET"])
 def login():

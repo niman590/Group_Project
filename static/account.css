@@ -1,0 +1,251 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: #123f82;
+}
+
+.account-page {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+}
+
+/* LEFT SIDE */
+.left-side {
+  flex: 1;
+  position: relative;
+  background: url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80") center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  padding: 48px 40px;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 39, 87, 0.62);
+}
+
+.left-content {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  max-width: 430px;
+  margin-bottom: 40px;
+}
+
+.left-content h1 {
+  font-size: 3rem;
+  line-height: 1.12;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+
+.left-content p {
+  font-size: 1rem;
+  line-height: 1.8;
+  font-weight: 600;
+  max-width: 390px;
+}
+
+/* RIGHT SIDE */
+.right-side {
+  flex: 1;
+  background: #f7f7f7;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 50px 36px 28px;
+}
+
+.form-container {
+  width: 100%;
+  max-width: 500px;
+}
+
+.logo-box {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.logo-box img {
+  width: 180px;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.brand-title {
+  text-align: center;
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #315ea8;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.brand-subtitle {
+  text-align: center;
+  color: #9d9d9d;
+  font-size: 1rem;
+  margin-bottom: 18px;
+}
+
+.section-title {
+  color: #2f58a0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.account-card {
+  background: #ffffff;
+  border: 1px solid #e3e3e3;
+  border-radius: 10px;
+  padding: 22px;
+  box-shadow: 0 8px 18px rgba(18, 63, 130, 0.06);
+}
+
+.detail-group {
+  margin-bottom: 16px;
+}
+
+.detail-group label {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #2f58a0;
+  margin-bottom: 6px;
+}
+
+.detail-value {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #d6d6d6;
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 12px;
+  font-size: 0.95rem;
+  color: #444444;
+  display: flex;
+  align-items: center;
+}
+
+.address-box {
+  min-height: 90px;
+  align-items: flex-start;
+  line-height: 1.6;
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  margin-bottom: 14px;
+}
+
+.edit-btn,
+.delete-btn {
+  flex: 1;
+  height: 46px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn {
+  background: #1c4a87;
+  color: #ffffff;
+}
+
+.edit-btn:hover {
+  background: #14396a;
+}
+
+.delete-btn {
+  background: #c0392b;
+  color: #ffffff;
+}
+
+.delete-btn:hover {
+  background: #9f2f24;
+}
+
+.back-text {
+  text-align: center;
+  color: #777777;
+  font-size: 0.95rem;
+}
+
+.back-text a {
+  color: #1c4a87;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.back-text a:hover {
+  text-decoration: underline;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1100px) {
+  .left-content h1 {
+    font-size: 2.4rem;
+  }
+
+  .logo-box img {
+    width: 150px;
+  }
+
+  .brand-title {
+    font-size: 2.3rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .account-page {
+    flex-direction: column;
+  }
+
+  .left-side {
+    min-height: 340px;
+    align-items: center;
+  }
+
+  .right-side {
+    padding: 24px 20px;
+  }
+
+  .form-container {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .button-group {
+    flex-direction: column;
+  }
+
+  .left-content h1 {
+    font-size: 2rem;
+  }
+
+  .logo-box img {
+    width: 130px;
+  }
+
+  .brand-title {
+    font-size: 2rem;
+  }
+}

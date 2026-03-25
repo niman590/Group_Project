@@ -23,8 +23,8 @@
             </div>
 
             <nav class="sidebar-nav">
-                <a href="#" class="active"><i class="fa-solid fa-table-columns"></i> Dashboard</a>
-                <a href="#"><i class="fa-solid fa-user"></i> My Profile</a>
+                <a href="{{ url_for('user_dashboard') }}" class="active"><i class="fa-solid fa-table-columns"></i> Dashboard</a>
+                <a href="{{ url_for('account') }}"><i class="fa-solid fa-user"></i> My Profile</a>
                 <a href="#"><i class="fa-solid fa-file-arrow-up"></i> Submit Documents</a>
                 <a href="#"><i class="fa-solid fa-folder-open"></i> My Applications</a>
                 <a href="#"><i class="fa-solid fa-landmark"></i> Property Records</a>
@@ -34,7 +34,7 @@
                 <a href="#"><i class="fa-solid fa-book"></i> Support Documents</a>
                 <a href="#"><i class="fa-solid fa-bell"></i> Notifications</a>
                 <a href="{{ url_for('dashboard') }}"><i class="fa-solid fa-house"></i> Public Site</a>
-                <a href="{{ url_for('login') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
             </nav>
         </aside>
 
@@ -44,7 +44,7 @@
             <!-- TOP BAR -->
             <header class="topbar">
                 <div>
-                    <h1>Welcome back, Akash</h1>
+                    <h1>Welcome back, {{ user.full_name.split()[0] if user and user.full_name else 'User' }}</h1>
                     <p>Manage your land records, planning approvals, and citizen services.</p>
                 </div>
 
@@ -52,10 +52,12 @@
                     <button class="icon-btn"><i class="fa-solid fa-bell"></i></button>
                     <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
                     <div class="user-chip">
-                        <div class="avatar">AR</div>
+                        <div class="avatar">
+                            {{ user.full_name[:1] if user and user.full_name else 'U' }}
+                        </div>
                         <div>
-                            <strong>Citizen User</strong>
-                            <span>NIC: 200012345678</span>
+                            <strong>{{ user.full_name if user else 'Citizen User' }}</strong>
+                            <span>NIC: {{ user.nic if user else '200012345678' }}</span>
                         </div>
                     </div>
                 </div>
@@ -244,16 +246,18 @@
                     <div class="panel">
                         <div class="panel-header">
                             <h2>Profile Summary</h2>
-                            <a href="#">Edit</a>
+                            <a href="{{ url_for('account') }}">Edit</a>
                         </div>
 
                         <div class="profile-card">
-                            <div class="profile-avatar">AR</div>
+                            <div class="profile-avatar">
+                                {{ user.full_name[:1] if user and user.full_name else 'U' }}
+                            </div>
                             <div class="profile-meta">
-                                <h3>R.A.D. Akash Randeniya</h3>
-                                <p>Email: akash@example.com</p>
-                                <p>Phone: +94 71 234 5678</p>
-                                <p>City: Colombo</p>
+                                <h3>{{ user.full_name if user else 'R.A.D. Akash Randeniya' }}</h3>
+                                <p>Email: {{ user.email if user else 'akash@example.com' }}</p>
+                                <p>Phone: {{ user.phone if user else '+94 71 234 5678' }}</p>
+                                <p>Address: {{ user.address if user else 'Colombo, Sri Lanka' }}</p>
                             </div>
                         </div>
                     </div>
