@@ -134,7 +134,7 @@ a {
     border: 1px solid var(--theme-border);
     background: var(--white);
     border-radius: 12px;
-    color: var(--theme-blue);
+    color: var(--theme-blue-dark);
     cursor: pointer;
 }
 
@@ -191,7 +191,7 @@ a {
 
 .stat-card h3 {
     font-size: 1.9rem;
-    color: var(--theme-blue);
+    color: var(--theme-blue-dark);
     margin-bottom: 4px;
 }
 
@@ -235,7 +235,7 @@ a {
 }
 
 .action-card {
-    background: linear-gradient(135deg, var(--theme-blue), var(--theme-blue-light));
+    background: linear-gradient(135deg, var(--theme-blue), var(--theme-blue-dark));
     color: var(--white);
     border-radius: 18px;
     padding: 24px 20px;
@@ -295,7 +295,7 @@ a {
 }
 
 .panel-header a {
-    color: var(--theme-blue-light);
+    color: var(--theme-blue-dark);
     font-weight: 700;
     font-size: 0.92rem;
 }
@@ -425,7 +425,7 @@ tbody td {
 
 /* VALUATION */
 .valuation-card {
-    background: linear-gradient(135deg, #123f82, #255aa1);
+    background: linear-gradient(135deg, #0b2245, #255aa1);
     border-radius: 16px;
     padding: 22px;
     color: var(--white);
@@ -475,13 +475,13 @@ tbody td {
     min-height: 230px;
     border-radius: 16px;
     background:
-        linear-gradient(rgba(18, 63, 130, 0.88), rgba(18, 63, 130, 0.88)),
+        linear-gradient(rgba(10, 25, 56, 0.9),rgba(10, 25, 56, 0.35)), 
         url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=100") center/cover no-repeat;
     color: var(--white);
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: center; 
     text-align: center;
     padding: 24px;
 }
@@ -512,7 +512,7 @@ tbody td {
     padding: 13px 14px;
     background: var(--theme-soft);
     border-radius: 12px;
-    color: var(--theme-blue);
+    color: var(--theme-blue-dark);
     font-weight: 600;
     display: flex;
     align-items: center;
