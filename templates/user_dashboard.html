@@ -23,9 +23,12 @@
             </div>
 
             <nav class="sidebar-nav">
-                <a href="{{ url_for('user_dashboard') }}" class="active"><i class="fa-solid fa-table-columns"></i>
-                    Dashboard</a>
-                <a href="{{ url_for('account') }}"><i class="fa-solid fa-user"></i> My Profile</a>
+                <a href="{{ url_for('user.user_dashboard') }}" class="active">
+                    <i class="fa-solid fa-table-columns"></i> Dashboard
+                </a>
+                <a href="{{ url_for('user.account') }}">
+                    <i class="fa-solid fa-user"></i> My Profile
+                </a>
                 <a href="#"><i class="fa-solid fa-file-arrow-up"></i> Submit Documents</a>
                 <a href="#"><i class="fa-solid fa-folder-open"></i> My Applications</a>
                 <a href="#"><i class="fa-solid fa-landmark"></i> Property Records</a>
@@ -34,8 +37,12 @@
                 <a href="#"><i class="fa-solid fa-chart-line"></i> Land Valuation</a>
                 <a href="#"><i class="fa-solid fa-book"></i> Support Documents</a>
                 <a href="#"><i class="fa-solid fa-bell"></i> Notifications</a>
-                <a href="{{ url_for('dashboard') }}"><i class="fa-solid fa-house"></i> Public Site</a>
-                <a href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                <a href="{{ url_for('main.dashboard') }}">
+                    <i class="fa-solid fa-house"></i> Public Site
+                </a>
+                <a href="{{ url_for('auth.logout') }}">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
             </nav>
         </aside>
 
@@ -248,7 +255,7 @@
                     <div class="panel">
                         <div class="panel-header">
                             <h2>Profile Summary</h2>
-                            <a href="{{ url_for('account') }}">Edit</a>
+                            <a href="{{ url_for('user.account') }}">Edit</a>
                         </div>
 
                         <div class="profile-card">

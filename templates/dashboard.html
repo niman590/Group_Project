@@ -1,26 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Civic Plan - Public Dashboard</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}" />
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-  />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
+
 <body>
 
   <!-- HEADER -->
   <header class="site-header">
     <div class="container header-wrapper">
       <div class="brand">
-        <img
-          src="{{ url_for('static', filename='images/logo-removebackground.png') }}"
-          alt="Civic Plan Logo"
-          class="brand-logo"
-        />
+        <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo"
+          class="brand-logo" />
         <div class="brand-text">
           <h1>CIVIC PLAN</h1>
           <p>Land Management Portal</p>
@@ -28,7 +24,7 @@
       </div>
 
       <nav class="nav-links">
-        <a href="{{ url_for('dashboard') }}">Home</a>
+        <a href="{{ url_for('main.dashboard') }}">Home</a>
         <a href="#">Services</a>
         <a href="#">Public Notices</a>
         <a href="#">Help</a>
@@ -36,8 +32,8 @@
       </nav>
 
       <div class="header-actions">
-        <a href="{{ url_for('register') }}" class="register-link">Create account</a>
-        <a href="{{ url_for('login') }}" class="signin-btn">
+        <a href="{{ url_for('auth.register') }}" class="register-link">Create account</a>
+        <a href="{{ url_for('auth.login') }}" class="signin-btn">
           Sign in <i class="fa-solid fa-arrow-right-to-bracket"></i>
         </a>
       </div>
@@ -56,8 +52,8 @@
         </p>
 
         <div class="hero-buttons">
-          <a href="{{ url_for('login') }}" class="btn-primary">Sign in</a>
-          <a href="{{ url_for('register') }}" class="btn-secondary">Create account</a>
+          <a href="{{ url_for('auth.login') }}" class="btn-primary">Sign in</a>
+          <a href="{{ url_for('auth.register') }}" class="btn-secondary">Create account</a>
         </div>
       </div>
 
@@ -117,7 +113,8 @@
 
       <div class="info-grid">
         <div class="info-card">
-          <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80" alt="Ownership help">
+          <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80"
+            alt="Ownership help" />
           <div class="info-content">
             <h3>How to prepare for land ownership verification</h3>
             <p>Learn the details and documents commonly needed before you begin a verification request.</p>
@@ -125,7 +122,8 @@
         </div>
 
         <div class="info-card">
-          <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80" alt="Checklist">
+          <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80"
+            alt="Checklist" />
           <div class="info-content">
             <h3>Preparing for planning approval submissions</h3>
             <p>Understand what supporting information may be needed before submitting an application.</p>
@@ -133,7 +131,8 @@
         </div>
 
         <div class="info-card">
-          <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80" alt="Notifications">
+          <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80"
+            alt="Notifications" />
           <div class="info-content">
             <h3>Official portal notifications and updates</h3>
             <p>Find out how important notices, status updates, and submission alerts are communicated.</p>
@@ -177,8 +176,8 @@
       </div>
 
       <div class="cta-actions">
-        <a href="{{ url_for('login') }}" class="btn-primary">Sign in</a>
-        <a href="{{ url_for('register') }}" class="btn-secondary light-btn">Create account</a>
+        <a href="{{ url_for('auth.login') }}" class="btn-primary">Sign in</a>
+        <a href="{{ url_for('auth.register') }}" class="btn-secondary light-btn">Create account</a>
       </div>
     </div>
   </section>
@@ -187,10 +186,7 @@
   <footer class="site-footer">
     <div class="container footer-grid">
       <div class="footer-brand">
-        <img
-          src="{{ url_for('static', filename='images/logo-removebackground.png') }}"
-          alt="Civic Plan Logo"
-        />
+        <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo" />
         <div>
           <h3>CIVIC PLAN</h3>
           <p>Smart Digital Land Management and Planning Approval System</p>
@@ -199,7 +195,7 @@
 
       <div class="footer-links">
         <h4>Portal</h4>
-        <a href="{{ url_for('dashboard') }}">Home</a>
+        <a href="{{ url_for('main.dashboard') }}">Home</a>
         <a href="#">Services</a>
         <a href="#">Public Notices</a>
         <a href="#">Help</a>
@@ -207,8 +203,8 @@
 
       <div class="footer-links">
         <h4>Account</h4>
-        <a href="{{ url_for('login') }}">Sign in</a>
-        <a href="{{ url_for('register') }}">Create account</a>
+        <a href="{{ url_for('auth.login') }}">Sign in</a>
+        <a href="{{ url_for('auth.register') }}">Create account</a>
         <a href="#">Privacy</a>
         <a href="#">Terms</a>
       </div>
@@ -220,4 +216,5 @@
   </footer>
 
 </body>
+
 </html>
