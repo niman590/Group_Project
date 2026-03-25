@@ -44,8 +44,10 @@
             <!-- TOP BAR -->
             <header class="topbar">
                 <div>
-                    <h1>Welcome back, {{ user.full_name.split()[0] if user and user.full_name else 'User' }}</h1>
-                    <p>Manage your land records, planning approvals, and citizen services.</p>
+                    <header class="topbar">
+                        <div>
+                            <h1>Welcome back, {{ user['first_name'] }}</h1>
+                            <p>Manage your land records, planning approvals, and citizen services.</p>
                 </div>
 
                 <div class="topbar-actions">
