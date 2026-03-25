@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civic Plan - User Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body>
+    <div class="dashboard-shell">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo" />
+                <div>
+                    <h2>CIVIC PLAN</h2>
+                    <p>Citizen Portal</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="active"><i class="fa-solid fa-table-columns"></i> Dashboard</a>
+                <a href="#"><i class="fa-solid fa-user"></i> My Profile</a>
+                <a href="#"><i class="fa-solid fa-file-arrow-up"></i> Submit Documents</a>
+                <a href="#"><i class="fa-solid fa-folder-open"></i> My Applications</a>
+                <a href="#"><i class="fa-solid fa-landmark"></i> Property Records</a>
+                <a href="#"><i class="fa-solid fa-clock-rotate-left"></i> Transaction History</a>
+                <a href="#"><i class="fa-solid fa-map-location-dot"></i> GIS Map</a>
+                <a href="#"><i class="fa-solid fa-chart-line"></i> Land Valuation</a>
+                <a href="#"><i class="fa-solid fa-book"></i> Support Documents</a>
+                <a href="#"><i class="fa-solid fa-bell"></i> Notifications</a>
+                <a href="{{ url_for('dashboard') }}"><i class="fa-solid fa-house"></i> Public Site</a>
+                <a href="{{ url_for('login') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main-content">
+
+            <!-- TOP BAR -->
+            <header class="topbar">
+                <div>
+                    <h1>Welcome back, Akash</h1>
+                    <p>Manage your land records, planning approvals, and citizen services.</p>
+                </div>
+
+                <div class="topbar-actions">
+                    <button class="icon-btn"><i class="fa-solid fa-bell"></i></button>
+                    <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
+                    <div class="user-chip">
+                        <div class="avatar">AR</div>
+                        <div>
+                            <strong>Citizen User</strong>
+                            <span>NIC: 200012345678</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- QUICK STATS -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fa-solid fa-file-circle-check"></i></div>
+                    <div>
+                        <h3>04</h3>
+                        <p>Total Applications</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <h3>02</h3>
+                        <p>Approved Cases</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fa-solid fa-hourglass-half"></i></div>
+                    <div>
+                        <h3>02</h3>
+                        <p>Pending Reviews</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon red"><i class="fa-solid fa-bell"></i></div>
+                    <div>
+                        <h3>03</h3>
+                        <p>Alerts & Notifications</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRIMARY ACTIONS -->
+            <section class="action-grid">
+                <a href="#" class="action-card">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                    <h3>Submit Planning Documents</h3>
+                    <p>Upload new planning approval files and supporting documents.</p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <h3>Track My Applications</h3>
+                    <p>Monitor review progress, approvals, rejections, and updates.</p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <h3>View Land on Map</h3>
+                    <p>See parcel location and related geographic information.</p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <h3>Check Land Value</h3>
+                    <p>View current land value and estimated future trends.</p>
+                </a>
+            </section>
+
+            <!-- TWO COLUMN -->
+            <section class="content-grid">
+
+                <!-- LEFT -->
+                <div class="left-column">
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Pending Requests & Alerts</h2>
+                            <a href="#">View all</a>
+                        </div>
+
+                        <div class="alert-list">
+                            <div class="alert-item warning">
+                                <div>
+                                    <h4>Additional document requested</h4>
+                                    <p>Your planning file CP-PLN-2026-014 requires a revised site plan.</p>
+                                </div>
+                                <span>Today</span>
+                            </div>
+
+                            <div class="alert-item info">
+                                <div>
+                                    <h4>Application under review</h4>
+                                    <p>Case CP-PLN-2026-012 is currently being reviewed by the planning officer.</p>
+                                </div>
+                                <span>1 day ago</span>
+                            </div>
+
+                            <div class="alert-item success">
+                                <div>
+                                    <h4>Property record verified</h4>
+                                    <p>Land record LR-9082 has been verified successfully.</p>
+                                </div>
+                                <span>3 days ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>My Property Records</h2>
+                            <a href="#">Open records</a>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Land ID</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Owner Since</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>LR-9082</td>
+                                        <td>Maharagama</td>
+                                        <td><span class="badge ok">Verified</span></td>
+                                        <td>2019</td>
+                                    </tr>
+                                    <tr>
+                                        <td>LR-7741</td>
+                                        <td>Kaduwela</td>
+                                        <td><span class="badge pending">Pending Update</span></td>
+                                        <td>2021</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Application History</h2>
+                            <a href="#">Full history</a>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Case ID</th>
+                                        <th>Type</th>
+                                        <th>Submitted</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>CP-PLN-2026-014</td>
+                                        <td>Planning Approval</td>
+                                        <td>2026-03-20</td>
+                                        <td><span class="badge pending">Need Documents</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>CP-PLN-2026-012</td>
+                                        <td>Building Permit</td>
+                                        <td>2026-03-12</td>
+                                        <td><span class="badge review">Under Review</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>CP-PLN-2026-007</td>
+                                        <td>Land Clearance</td>
+                                        <td>2026-02-26</td>
+                                        <td><span class="badge ok">Approved</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT -->
+                <div class="right-column">
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Profile Summary</h2>
+                            <a href="#">Edit</a>
+                        </div>
+
+                        <div class="profile-card">
+                            <div class="profile-avatar">AR</div>
+                            <div class="profile-meta">
+                                <h3>R.A.D. Akash Randeniya</h3>
+                                <p>Email: akash@example.com</p>
+                                <p>Phone: +94 71 234 5678</p>
+                                <p>City: Colombo</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Land Valuation</h2>
+                            <a href="#">Open module</a>
+                        </div>
+
+                        <div class="valuation-card">
+                            <h3>Estimated Current Value</h3>
+                            <div class="value-number">LKR 8.4M</div>
+                            <p>Property: LR-9082</p>
+
+                            <div class="mini-stats">
+                                <div>
+                                    <span>Future Estimate</span>
+                                    <strong>LKR 9.1M</strong>
+                                </div>
+                                <div>
+                                    <span>Trend</span>
+                                    <strong>+8.3%</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>GIS Map Preview</h2>
+                            <a href="#">Expand</a>
+                        </div>
+
+                        <div class="map-placeholder">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <h3>Land Parcel Map</h3>
+                            <p>OpenStreetMap / Google Maps integration area</p>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Support Documents</h2>
+                            <a href="#">All files</a>
+                        </div>
+
+                        <ul class="doc-list">
+                            <li><i class="fa-solid fa-file-pdf"></i> Planning Approval Guidelines</li>
+                            <li><i class="fa-solid fa-file-lines"></i> Required Documents Checklist</li>
+                            <li><i class="fa-solid fa-book-open"></i> Gazettes and Rules</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+</body>
+
+</html>
