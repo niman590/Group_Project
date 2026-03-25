@@ -23,7 +23,8 @@
             </div>
 
             <nav class="sidebar-nav">
-                <a href="{{ url_for('user_dashboard') }}" class="active"><i class="fa-solid fa-table-columns"></i> Dashboard</a>
+                <a href="{{ url_for('user_dashboard') }}" class="active"><i class="fa-solid fa-table-columns"></i>
+                    Dashboard</a>
                 <a href="{{ url_for('account') }}"><i class="fa-solid fa-user"></i> My Profile</a>
                 <a href="#"><i class="fa-solid fa-file-arrow-up"></i> Submit Documents</a>
                 <a href="#"><i class="fa-solid fa-folder-open"></i> My Applications</a>
@@ -44,10 +45,8 @@
             <!-- TOP BAR -->
             <header class="topbar">
                 <div>
-                    <header class="topbar">
-                        <div>
-                            <h1>Welcome back, {{ user['first_name'] }}</h1>
-                            <p>Manage your land records, planning approvals, and citizen services.</p>
+                    <h1>Welcome back, {{ user['first_name'] if user and user['first_name'] else 'User' }}</h1>
+                    <p>Manage your land records, planning approvals, and citizen services.</p>
                 </div>
 
                 <div class="topbar-actions">
@@ -55,11 +54,12 @@
                     <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
                     <div class="user-chip">
                         <div class="avatar">
-                            {{ user.full_name[:1] if user and user.full_name else 'U' }}
+                            {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                         </div>
                         <div>
-                            <strong>{{ user.full_name if user else 'Citizen User' }}</strong>
-                            <span>NIC: {{ user.nic if user else '200012345678' }}</span>
+                            <strong>{{ user['first_name'] }} {{ user['last_name'] if user else 'Citizen User'
+                                }}</strong>
+                            <span>NIC: {{ user['nic'] if user else '200012345678' }}</span>
                         </div>
                     </div>
                 </div>
@@ -253,13 +253,16 @@
 
                         <div class="profile-card">
                             <div class="profile-avatar">
-                                {{ user.full_name[:1] if user and user.full_name else 'U' }}
+                                {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                             </div>
                             <div class="profile-meta">
-                                <h3>{{ user.full_name if user else 'R.A.D. Akash Randeniya' }}</h3>
-                                <p>Email: {{ user.email if user else 'akash@example.com' }}</p>
-                                <p>Phone: {{ user.phone if user else '+94 71 234 5678' }}</p>
-                                <p>Address: {{ user.address if user else 'Colombo, Sri Lanka' }}</p>
+                                <h3>{{ user['first_name'] }} {{ user['last_name'] if user else 'R.A.D. Akash Randeniya'
+                                    }}</h3>
+                                <p>Email: {{ user['email'] if user else 'akash@example.com' }}</p>
+                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234
+                                    5678' }}</p>
+                                <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}
+                                </p>
                             </div>
                         </div>
                     </div>
