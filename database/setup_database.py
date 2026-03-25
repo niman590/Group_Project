@@ -9,6 +9,8 @@ def init_db():
     connection = sqlite3.connect(db_path)
     cursor = connection.cursor()
 
+    cursor.execute("PRAGMA foreign_keys = ON")
+
     # USERS TABLE
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
@@ -36,7 +38,7 @@ def init_db():
         property_size REAL NOT NULL,
         property_address TEXT NOT NULL,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (owner_id) REFERENCES users(user_id)
+        FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE
     );
     """)
 
@@ -47,7 +49,7 @@ def init_db():
         property_id INTEGER NOT NULL,
         transaction_date TEXT DEFAULT CURRENT_TIMESTAMP,
         transaction_amount REAL NOT NULL,
-        FOREIGN KEY (property_id) REFERENCES property(property_id)
+        FOREIGN KEY (property_id) REFERENCES property(property_id) ON DELETE CASCADE
     );
     """)
 
@@ -58,7 +60,7 @@ def init_db():
         property_id INTEGER NOT NULL,
         predicted_value REAL NOT NULL,
         prediction_date TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (property_id) REFERENCES property(property_id)
+        FOREIGN KEY (property_id) REFERENCES property(property_id) ON DELETE CASCADE
     );
     """)
 
@@ -70,7 +72,7 @@ def init_db():
         postal_code TEXT NOT NULL,
         gnd TEXT NOT NULL,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(user_id)
+        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
     );
     """)
 
@@ -78,13 +80,13 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS document (
         document_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        property_id INTEGER NOT NULL,
+        property_id INTEGER,
         user_id INTEGER NOT NULL,
         submission_date TEXT DEFAULT CURRENT_TIMESTAMP,
         result_date TEXT,
         comment TEXT,
-        FOREIGN KEY (property_id) REFERENCES property(property_id),
-        FOREIGN KEY (user_id) REFERENCES users(user_id)
+        FOREIGN KEY (property_id) REFERENCES property(property_id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
     );
     """)
 
@@ -95,7 +97,7 @@ def init_db():
         document_id INTEGER NOT NULL,
         case_opendate DATETIME,
         case_closedate DATETIME,
-        FOREIGN KEY (document_id) REFERENCES document(document_id)
+        FOREIGN KEY (document_id) REFERENCES document(document_id) ON DELETE CASCADE
     );
     """)
 

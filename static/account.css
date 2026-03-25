@@ -105,6 +105,30 @@ body {
   margin-bottom: 14px;
 }
 
+.flash-messages {
+  margin-bottom: 14px;
+}
+
+.flash-message {
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.flash-message.success {
+  background: #e9f8ef;
+  color: #1c6b39;
+  border: 1px solid #b9e7c8;
+}
+
+.flash-message.error {
+  background: #fdecec;
+  color: #a12828;
+  border: 1px solid #f1b8b8;
+}
+
 .account-card {
   background: #ffffff;
   border: 1px solid #e3e3e3;
@@ -125,7 +149,8 @@ body {
   margin-bottom: 6px;
 }
 
-.detail-value {
+.detail-group input,
+.detail-group textarea {
   width: 100%;
   min-height: 44px;
   border: 1px solid #d6d6d6;
@@ -134,13 +159,24 @@ body {
   padding: 12px;
   font-size: 0.95rem;
   color: #444444;
-  display: flex;
-  align-items: center;
 }
 
-.address-box {
+.detail-group input:focus,
+.detail-group textarea:focus {
+  outline: none;
+  border-color: #1c4a87;
+  box-shadow: 0 0 0 3px rgba(28, 74, 135, 0.12);
+}
+
+.detail-group input[readonly] {
+  background: #f3f5f8;
+  color: #666666;
+  cursor: not-allowed;
+}
+
+.detail-group textarea {
+  resize: vertical;
   min-height: 90px;
-  align-items: flex-start;
   line-height: 1.6;
 }
 
@@ -153,15 +189,17 @@ body {
 
 .edit-btn,
 .delete-btn {
-  flex: 1;
+  width: 100%;
   height: 46px;
   border-radius: 5px;
   text-decoration: none;
   font-size: 1rem;
   font-weight: 700;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  border: none;
+  cursor: pointer;
 }
 
 .edit-btn {
@@ -171,6 +209,10 @@ body {
 
 .edit-btn:hover {
   background: #14396a;
+}
+
+.delete-form {
+  margin-bottom: 14px;
 }
 
 .delete-btn {
