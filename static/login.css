@@ -107,6 +107,31 @@ body {
   font-size: 1.05rem;
 }
 
+/* FLASH MESSAGES */
+.flash-messages {
+  margin-bottom: 18px;
+}
+
+.flash {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.flash.error {
+  background: #ffe5e5;
+  color: #b30000;
+  border: 1px solid #ffb3b3;
+}
+
+.flash.success {
+  background: #e7f8ec;
+  color: #157347;
+  border: 1px solid #b7e4c7;
+}
+
 /* FORM */
 .login-form label {
   display: block;

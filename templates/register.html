@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Civic Plan - Registration</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
 </head>
 
 <body>
@@ -42,23 +42,33 @@
 
         <p class="section-title">Registration</p>
 
-        <form class="register-form">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form class="register-form" method="POST" action="{{ url_for('register_post') }}">
           <div class="form-row">
             <div class="form-group">
-              <label for="firstName">First Name</label>
-              <input type="text" id="firstName" name="firstName" />
+              <label for="first_name">First Name</label>
+              <input type="text" id="first_name" name="first_name" required />
             </div>
 
             <div class="form-group">
-              <label for="lastName">Last Name</label>
-              <input type="text" id="lastName" name="lastName" />
+              <label for="last_name">Last Name</label>
+              <input type="text" id="last_name" name="last_name" required />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label for="nic">NIC Number</label>
-              <input type="text" id="nic" name="nic" />
+              <input type="text" id="nic" name="nic" required />
             </div>
 
             <div class="form-group">
@@ -74,20 +84,32 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label for="email">Email Address</label>
-              <input type="email" id="email" name="email" />
+              <label for="city">City</label>
+              <input type="text" id="city" name="city" />
             </div>
 
             <div class="form-group">
-              <label for="password">Password</label>
-              <input type="password" id="password" name="password" />
+              <label for="date_of_birth">Date of Birth</label>
+              <input type="date" id="date_of_birth" name="date_of_birth" />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label for="confirmPassword">Confirm Password</label>
-              <input type="password" id="confirmPassword" name="confirmPassword" />
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" required />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="confirm_password">Confirm Password</label>
+              <input type="password" id="confirm_password" name="confirm_password" required />
             </div>
           </div>
 

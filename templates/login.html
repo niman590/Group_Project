@@ -37,6 +37,16 @@
         <h2 class="brand-title">CIVIC PLAN</h2>
         <p class="brand-subtitle">Land Management Portal</p>
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
         <form class="login-form" method="POST" action="{{ url_for('login_post') }}">
           <label for="nic">NIC / Username</label>
           <input type="text" id="nic" name="nic" required />
