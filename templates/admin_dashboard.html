@@ -22,13 +22,16 @@
                 </div>
             </div>
 
+            <!-- ✅ UPDATED SIDEBAR -->
             <nav class="sidebar-nav">
                 <a href="{{ url_for('admin.admin_dashboard') }}" class="active">
                     <i class="fa-solid fa-gauge"></i> Admin Dashboard
                 </a>
-                <a href="{{ url_for('main.dashboard') }}">
-                    <i class="fa-solid fa-house"></i> Public Site
+
+                <a href="{{ url_for('user.account') }}">
+                    <i class="fa-solid fa-user"></i> My Profile
                 </a>
+
                 <a href="{{ url_for('auth.logout') }}">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
