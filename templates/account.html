@@ -97,7 +97,7 @@
           </form>
 
           <p class="back-text">
-            <a href="{{ url_for('user.user_dashboard') }}">Back to Dashboard</a>
+            <a href="{% if user['is_admin'] %}{{ url_for('admin.admin_dashboard') }}{% else %}{{ url_for('user.user_dashboard') }}{% endif %}">Back to Dashboard</a>
           </p>
         </div>
       </div>
