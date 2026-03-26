@@ -242,3 +242,28 @@ button:hover {
     font-size: 2rem;
   }
 }
+
+/* BACK ARROW (TOP LEFT CORNER) */
+.login-container {
+  position: relative;
+  /* IMPORTANT */
+}
+
+.back-arrow {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  text-decoration: none;
+  font-size: 22px;
+  font-weight: bold;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px 12px;
+  border-radius: 50%;
+  transition: 0.3s ease;
+  z-index: 10;
+}
+
+.back-arrow:hover {
+  background: rgba(0, 0, 0, 0.6);
+}

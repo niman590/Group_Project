@@ -32,6 +32,14 @@ def admin_required():
     return user, None
 
 
+def is_protected_system_admin(user):
+    return (
+        user is not None
+        and user["email"] == "admin@civicplan.local"
+        and user["nic"] == "ADMIN000000V"
+    )
+
+
 @admin_bp.route("/admin/dashboard")
 def admin_dashboard():
     admin_user, redirect_response = admin_required()
@@ -122,6 +130,11 @@ def toggle_user_status(user_id):
         flash("User not found.", "error")
         return redirect(url_for("admin.admin_dashboard"))
 
+    if is_protected_system_admin(target_user):
+        conn.close()
+        flash("System Admin account cannot be deactivated or changed.", "error")
+        return redirect(url_for("admin.admin_dashboard"))
+
     new_status = 0 if target_user["is_active"] else 1
 
     cursor.execute("""
@@ -158,6 +171,11 @@ def make_admin(user_id):
         flash("User not found.", "error")
         return redirect(url_for("admin.admin_dashboard"))
 
+    if is_protected_system_admin(target_user):
+        conn.close()
+        flash("System Admin account is already protected.", "error")
+        return redirect(url_for("admin.admin_dashboard"))
+
     cursor.execute("""
         UPDATE users
         SET is_admin = 1
@@ -192,6 +210,11 @@ def remove_admin(user_id):
         flash("User not found.", "error")
         return redirect(url_for("admin.admin_dashboard"))
 
+    if is_protected_system_admin(target_user):
+        conn.close()
+        flash("System Admin admin rights cannot be removed.", "error")
+        return redirect(url_for("admin.admin_dashboard"))
+
     cursor.execute("""
         UPDATE users
         SET is_admin = 0
@@ -217,6 +240,19 @@ def delete_user(user_id):
 
     conn = get_connection()
     cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+    target_user = cursor.fetchone()
+
+    if not target_user:
+        conn.close()
+        flash("User not found.", "error")
+        return redirect(url_for("admin.admin_dashboard"))
+
+    if is_protected_system_admin(target_user):
+        conn.close()
+        flash("System Admin account cannot be deleted.", "error")
+        return redirect(url_for("admin.admin_dashboard"))
 
     cursor.execute("SELECT property_id FROM property WHERE owner_id = ?", (user_id,))
     property_ids = [row["property_id"] for row in cursor.fetchall()]

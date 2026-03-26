@@ -23,10 +23,15 @@
             </div>
 
             <nav class="sidebar-nav">
-                <a href="{{ url_for('admin.admin_dashboard') }}" class="active"><i class="fa-solid fa-gauge"></i> Admin
-                    Dashboard</a>
-                <a href="{{ url_for('main.dashboard') }}"><i class="fa-solid fa-house"></i> Public Site</a>
-                <a href="{{ url_for('auth.logout') }}"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="active">
+                    <i class="fa-solid fa-gauge"></i> Admin Dashboard
+                </a>
+                <a href="{{ url_for('main.dashboard') }}">
+                    <i class="fa-solid fa-house"></i> Public Site
+                </a>
+                <a href="{{ url_for('auth.logout') }}">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
             </nav>
         </aside>
 
@@ -41,7 +46,7 @@
                     <div class="avatar">{{ user['first_name'][0] | upper }}</div>
                     <div>
                         <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
-                        <span>Employee ID: {{ user['employee_id'] if user['employee_id'] else 'ADMIN' }}</span>
+                        <span>User ID: USER-{{ user['user_id'] }}</span>
                     </div>
                 </div>
             </header>
@@ -84,12 +89,8 @@
                 <form class="search-form" method="GET" action="{{ url_for('admin.admin_dashboard') }}">
                     <div class="search-input-group">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input
-                            type="text"
-                            name="search"
-                            placeholder="Search by name, NIC, or email"
-                            value="{{ search_query if search_query else '' }}"
-                        />
+                        <input type="text" name="search" placeholder="Search by name, NIC, or email"
+                            value="{{ search_query if search_query else '' }}" />
                     </div>
                     <button type="submit" class="btn primary">Search</button>
                     {% if search_query %}
@@ -116,7 +117,7 @@
                                 <th>Email</th>
                                 <th>Role</th>
                                 <th>Status</th>
-                                <th>Employee ID</th>
+                                <th>User ID</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -142,10 +143,16 @@
                                     <span class="badge inactive">Inactive</span>
                                     {% endif %}
                                 </td>
+                                <td>USER-{{ u['user_id'] }}</td>
                                 <td>
-                                    {{ u['employee_id'] if u['employee_id'] else 'USER-' ~ u['user_id'] }}
-                                </td>
-                                <td>
+                                    {% set is_system_admin = (u['email'] == 'admin@civicplan.local' and u['nic'] ==
+                                    'ADMIN000000V') %}
+
+                                    {% if is_system_admin %}
+                                    <div class="action-buttons">
+                                        <span class="badge admin">Protected System Admin</span>
+                                    </div>
+                                    {% else %}
                                     <div class="action-buttons">
                                         <form action="{{ url_for('admin.toggle_user_status', user_id=u['user_id']) }}"
                                             method="POST">
@@ -172,6 +179,7 @@
                                             <button type="submit" class="btn small danger">Delete</button>
                                         </form>
                                     </div>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
