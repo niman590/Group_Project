@@ -38,6 +38,8 @@ def admin_dashboard():
     if redirect_response:
         return redirect_response
 
+    search_query = request.args.get("search", "").strip()
+
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -53,13 +55,33 @@ def admin_dashboard():
     cursor.execute("SELECT COUNT(*) AS inactive_users FROM users WHERE is_active = 0")
     inactive_users = cursor.fetchone()["inactive_users"]
 
-    cursor.execute("""
-        SELECT *
-        FROM users
-        ORDER BY created_at DESC, user_id DESC
-    """)
-    users = cursor.fetchall()
+    if search_query:
+        like_term = f"%{search_query}%"
+        cursor.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE (
+                first_name || ' ' || last_name LIKE ?
+                OR first_name LIKE ?
+                OR last_name LIKE ?
+                OR nic LIKE ?
+                OR email LIKE ?
+            )
+            ORDER BY created_at DESC, user_id DESC
+            """,
+            (like_term, like_term, like_term, like_term, like_term),
+        )
+    else:
+        cursor.execute(
+            """
+            SELECT *
+            FROM users
+            ORDER BY created_at DESC, user_id DESC
+            """
+        )
 
+    users = cursor.fetchall()
     conn.close()
 
     return render_template(
@@ -70,6 +92,7 @@ def admin_dashboard():
         total_admins=total_admins,
         active_users=active_users,
         inactive_users=inactive_users,
+        search_query=search_query,
     )
 
 

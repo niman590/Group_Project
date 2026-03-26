@@ -190,6 +190,57 @@ body {
     color: #6c7a92;
 }
 
+.search-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.search-input-group {
+    flex: 1;
+    min-width: 280px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f7faff;
+    border: 1px solid #d8e3f3;
+    border-radius: 12px;
+    padding: 0 14px;
+}
+
+.search-input-group i {
+    color: #6c7a92;
+}
+
+.search-input-group input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 13px 0;
+    font-size: 0.95rem;
+    color: #1e2f4d;
+}
+
+.search-input-group input::placeholder {
+    color: #8a97ac;
+}
+
+.clear-search {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.search-result-info {
+    margin-bottom: 14px;
+    color: #5f6f89;
+    font-size: 0.93rem;
+}
+
 .table-wrap {
     overflow-x: auto;
 }
@@ -211,6 +262,13 @@ tbody td {
     padding: 14px 12px;
     border-top: 1px solid #e4ebf5;
     font-size: 0.94rem;
+}
+
+.no-results {
+    text-align: center;
+    color: #6c7a92;
+    padding: 24px 12px;
+    font-weight: 600;
 }
 
 .badge {
@@ -254,6 +312,7 @@ tbody td {
     color: white;
     cursor: pointer;
     font-weight: 700;
+    text-decoration: none;
 }
 
 .btn.small {
@@ -299,5 +358,15 @@ tbody td {
 
     .stats-grid {
         grid-template-columns: 1fr;
+    }
+
+    .search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-input-group {
+        width: 100%;
+        min-width: 100%;
     }
 }

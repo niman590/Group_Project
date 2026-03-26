@@ -81,6 +81,31 @@
                     <p>Promote users, remove admin rights, activate/deactivate, or delete accounts.</p>
                 </div>
 
+                <form class="search-form" method="GET" action="{{ url_for('admin.admin_dashboard') }}">
+                    <div class="search-input-group">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input
+                            type="text"
+                            name="search"
+                            placeholder="Search by name, NIC, or email"
+                            value="{{ search_query if search_query else '' }}"
+                        />
+                    </div>
+                    <button type="submit" class="btn primary">Search</button>
+                    {% if search_query %}
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="btn secondary clear-search">Clear</a>
+                    {% endif %}
+                </form>
+
+                {% if search_query %}
+                <div class="search-result-info">
+                    <p>
+                        Showing {{ users|length }} result{{ '' if users|length == 1 else 's' }} for
+                        "<strong>{{ search_query }}</strong>"
+                    </p>
+                </div>
+                {% endif %}
+
                 <div class="table-wrap">
                     <table>
                         <thead>
@@ -96,6 +121,7 @@
                             </tr>
                         </thead>
                         <tbody>
+                            {% if users %}
                             {% for u in users %}
                             <tr>
                                 <td>{{ u['user_id'] }}</td>
@@ -149,6 +175,11 @@
                                 </td>
                             </tr>
                             {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="no-results">No users found.</td>
+                            </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
