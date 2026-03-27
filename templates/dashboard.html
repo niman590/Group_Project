@@ -25,9 +25,9 @@
 
       <nav class="nav-links">
         <a href="{{ url_for('main.dashboard') }}">Home</a>
-        <a href="#">Services</a>
-        <a href="#">Public Notices</a>
-        <a href="#">Help</a>
+        <a href="#popular-services">Services</a>
+        <a href="#useful-information">Public Notices</a>
+        <a href="#help-section">Help</a>
         <a href="#" class="nav-search"><i class="fa-solid fa-magnifying-glass"></i></a>
       </nav>
 
@@ -71,7 +71,7 @@
   </section>
 
   <!-- QUICK LINKS -->
-  <section class="quick-links-section">
+  <section class="quick-links-section" id="popular-services">
     <div class="container">
       <div class="section-header">
         <span class="section-tag">PUBLIC ACCESS</span>
@@ -83,28 +83,34 @@
           <div class="card-icon"><i class="fa-solid fa-file-circle-check"></i></div>
           <h3>Planning approval applications</h3>
           <p>Start a new application and review required details before submission.</p>
-          <a href="#">Read more <i class="fa-solid fa-angle-right"></i></a>
+          <button class="read-more-btn" data-modal="planningModal">
+            Read more <i class="fa-solid fa-angle-right"></i>
+          </button>
         </div>
 
         <div class="quick-card">
           <div class="card-icon"><i class="fa-solid fa-map-location-dot"></i></div>
           <h3>Land record search</h3>
           <p>Find public land-related information and review available property records.</p>
-          <a href="#">Read more <i class="fa-solid fa-angle-right"></i></a>
+          <button class="read-more-btn" data-modal="landModal">
+            Read more <i class="fa-solid fa-angle-right"></i>
+          </button>
         </div>
 
         <div class="quick-card">
           <div class="card-icon"><i class="fa-solid fa-building-circle-check"></i></div>
           <h3>Permit and approval status</h3>
           <p>Track the latest updates on submitted planning and permit requests.</p>
-          <a href="#">Read more <i class="fa-solid fa-angle-right"></i></a>
+          <button class="read-more-btn" data-modal="permitModal">
+            Read more <i class="fa-solid fa-angle-right"></i>
+          </button>
         </div>
       </div>
     </div>
   </section>
 
   <!-- INFORMATION -->
-  <section class="info-section">
+  <section class="info-section" id="useful-information">
     <div class="container">
       <div class="section-header light">
         <span class="section-tag">GUIDANCE</span>
@@ -143,7 +149,7 @@
   </section>
 
   <!-- BENEFITS -->
-  <section class="benefits-section">
+  <section class="benefits-section" id="help-section">
     <div class="container benefits-grid">
       <div class="benefit-box">
         <h3>Why use Civic Plan?</h3>
@@ -196,9 +202,9 @@
       <div class="footer-links">
         <h4>Portal</h4>
         <a href="{{ url_for('main.dashboard') }}">Home</a>
-        <a href="#">Services</a>
-        <a href="#">Public Notices</a>
-        <a href="#">Help</a>
+        <a href="#popular-services">Services</a>
+        <a href="#useful-information">Public Notices</a>
+        <a href="#help-section">Help</a>
       </div>
 
       <div class="footer-links">
@@ -214,6 +220,106 @@
       <p>© 2026 Civic Plan. All rights reserved.</p>
     </div>
   </footer>
+
+  <!-- MODAL OVERLAY -->
+  <div class="modal-overlay" id="modalOverlay"></div>
+
+  <!-- PLANNING APPROVAL MODAL -->
+  <div class="service-modal" id="planningModal">
+    <button class="close-modal" data-close>&times;</button>
+    <div class="modal-icon">
+      <i class="fa-solid fa-file-circle-check"></i>
+    </div>
+    <h3>Planning approval applications</h3>
+    <p>
+      This service helps citizens and property owners understand how to begin a planning approval request
+      before submitting through the portal.
+    </p>
+    <ul>
+      <li>Understand the approval submission process</li>
+      <li>Review required details and supporting documents</li>
+      <li>Prepare property and location information</li>
+      <li>Access full submission features after signing in</li>
+    </ul>
+  </div>
+
+  <!-- LAND RECORD MODAL -->
+  <div class="service-modal" id="landModal">
+    <button class="close-modal" data-close>&times;</button>
+    <div class="modal-icon">
+      <i class="fa-solid fa-map-location-dot"></i>
+    </div>
+    <h3>Land record search</h3>
+    <p>
+      This service allows the public to explore available land-related information and review accessible
+      property records through the Civic Plan portal.
+    </p>
+    <ul>
+      <li>Review public land-related information</li>
+      <li>Understand available property record access</li>
+      <li>Support land verification and inquiry preparation</li>
+      <li>Use registered access for deeper searches</li>
+    </ul>
+  </div>
+
+  <!-- PERMIT STATUS MODAL -->
+  <div class="service-modal" id="permitModal">
+    <button class="close-modal" data-close>&times;</button>
+    <div class="modal-icon">
+      <i class="fa-solid fa-building-circle-check"></i>
+    </div>
+    <h3>Permit and approval status</h3>
+    <p>
+      This service explains how applicants can monitor submitted permit and planning approval requests
+      and receive progress updates through the portal.
+    </p>
+    <ul>
+      <li>Track submitted planning and permit requests</li>
+      <li>Review approval progress updates</li>
+      <li>Understand status stages of submitted cases</li>
+      <li>Receive clearer service workflow visibility</li>
+    </ul>
+  </div>
+
+  <script>
+    const modalButtons = document.querySelectorAll(".read-more-btn");
+    const modals = document.querySelectorAll(".service-modal");
+    const overlay = document.getElementById("modalOverlay");
+    const closeButtons = document.querySelectorAll("[data-close]");
+
+    function closeAllModals() {
+      modals.forEach(modal => modal.classList.remove("active"));
+      overlay.classList.remove("active");
+      document.body.classList.remove("modal-open");
+    }
+
+    modalButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const modalId = button.getAttribute("data-modal");
+        const targetModal = document.getElementById(modalId);
+
+        closeAllModals();
+
+        if (targetModal) {
+          targetModal.classList.add("active");
+          overlay.classList.add("active");
+          document.body.classList.add("modal-open");
+        }
+      });
+    });
+
+    closeButtons.forEach(button => {
+      button.addEventListener("click", closeAllModals);
+    });
+
+    overlay.addEventListener("click", closeAllModals);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeAllModals();
+      }
+    });
+  </script>
 
 </body>
 

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Planning Approval Applications</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="info-page">
+        <h1>Planning Approval Applications</h1>
+        <p>
+            This service allows citizens and applicants to start a new planning approval application,
+            review the required submission details, and prepare the relevant documents before submission.
+        </p>
+
+        <h3>Main Features</h3>
+        <ul>
+            <li>Submit new planning approval requests</li>
+            <li>Review required documents and conditions</li>
+            <li>Track submitted planning applications</li>
+            <li>Receive updates on approval progress</li>
+        </ul>
+
+        <a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a>
+    </div>
+</body>
+
+</html>

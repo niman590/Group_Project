@@ -288,9 +288,24 @@ a {
     margin-bottom: 18px;
 }
 
-.quick-card a {
+.read-more-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: 6px;
     color: #0a2d63;
     font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: 0.3s ease;
+}
+
+.read-more-btn:hover {
+    color: #1c4a87;
+    transform: translateX(4px);
 }
 
 /* INFO */
@@ -345,7 +360,7 @@ a {
 }
 
 .benefit-box {
-    background:#0a2d63;
+    background: #0a2d63;
     color: #ffffff;
     padding: 32px;
     border-radius: 12px;
@@ -459,6 +474,108 @@ a {
     font-size: 0.95rem;
 }
 
+/* MODALS */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(7, 24, 52, 0.58);
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.3s ease;
+    z-index: 999;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.service-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 92%;
+    max-width: 500px;
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 30px 28px 26px;
+    box-shadow: 0 28px 70px rgba(10, 45, 99, 0.24);
+    border: 1px solid #dbe7fb;
+    transform: translate(-50%, -50%) scale(0.88);
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.3s ease;
+    z-index: 1000;
+}
+
+.service-modal.active {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-icon {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #0a2d63, #1c4a87);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 18px;
+    box-shadow: 0 12px 24px rgba(10, 45, 99, 0.18);
+}
+
+.service-modal h3 {
+    font-size: 1.6rem;
+    color: #0a2d63;
+    margin-bottom: 12px;
+}
+
+.service-modal p {
+    color: #46556d;
+    line-height: 1.75;
+    margin-bottom: 16px;
+}
+
+.service-modal ul {
+    padding-left: 18px;
+    margin: 0;
+}
+
+.service-modal li {
+    color: #223959;
+    line-height: 1.65;
+    margin-bottom: 10px;
+}
+
+.close-modal {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 50%;
+    background: #eef4fd;
+    color: #0a2d63;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.close-modal:hover {
+    background: #dce8fb;
+    transform: rotate(90deg);
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1100px) {
 
@@ -501,5 +618,14 @@ a {
 
     .cta-box h2 {
         font-size: 1.8rem;
+    }
+
+    .service-modal {
+        padding: 26px 20px 22px;
+        border-radius: 18px;
+    }
+
+    .service-modal h3 {
+        font-size: 1.35rem;
     }
 }
