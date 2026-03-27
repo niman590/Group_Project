@@ -1,4 +1,4 @@
-Year of Publication, Land Size (Perches), Price (LKR), Access Road Size (ft), Location, Distance to Nearest City (km), Zone Type, Electricity, Water, Flood Risk
+Year_of_Publication, Land_Size_(Perches), Price_(LKR), Access_Road_Size_(ft), Location, Distance_to_Nearest_City_(km), Zone_Type, Electricity, Water, Flood_Risk
 2017, 38.61, 14925892, 10, Ragama, 16.56, Commercial, 0, 1, 1
 2021, 29.45, 18094492, 15, Rajagiriya, 13.23, Residential, 0, 1, 0
 2018, 6.75, 4571829, 10, Rajagiriya, 3.96, Residential, 0, 0, 0
