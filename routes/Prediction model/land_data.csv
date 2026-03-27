@@ -1,1 +1,1 @@
-publication_year, land_size, full_amount, price_per_perch, access_road_size, location, distance_to_city, zone, electricity, water_supply
+publication_year, land_size, full_price, price_per_acre, access_road_size, city, distance_to_city_center, zone_type, electricity, water_supply,flood_risk
