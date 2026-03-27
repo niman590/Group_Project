@@ -76,7 +76,7 @@ def admin_dashboard():
                 OR nic LIKE ?
                 OR email LIKE ?
             )
-            ORDER BY created_at DESC, user_id DESC
+            ORDER BY user_id ASC
             """,
             (like_term, like_term, like_term, like_term, like_term),
         )
@@ -85,7 +85,7 @@ def admin_dashboard():
             """
             SELECT *
             FROM users
-            ORDER BY created_at DESC, user_id DESC
+            ORDER BY user_id ASC
             """
         )
 
