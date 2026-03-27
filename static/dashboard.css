@@ -327,6 +327,25 @@ a {
     box-shadow: 0 8px 20px rgba(18, 63, 130, 0.08);
 }
 
+.info-card-btn {
+    border: none;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    transition: 0.3s ease;
+    padding: 0;
+}
+
+.info-card-btn:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 28px rgba(18, 63, 130, 0.14);
+}
+
+.info-card-btn:focus {
+    outline: 2px solid #1c4a87;
+    outline-offset: 4px;
+}
+
 .info-card img {
     width: 100%;
     height: 220px;
@@ -515,6 +534,25 @@ a {
     visibility: visible;
 }
 
+.large-modal {
+    max-width: 760px;
+    padding: 34px 34px 30px;
+}
+
+.large-modal h4 {
+    color: #0a2d63;
+    font-size: 1.05rem;
+    margin: 18px 0 10px;
+}
+
+.large-modal p {
+    margin-bottom: 14px;
+}
+
+.large-modal ul {
+    margin-bottom: 12px;
+}
+
 .modal-icon {
     width: 62px;
     height: 62px;
@@ -623,6 +661,11 @@ body.modal-open {
     .service-modal {
         padding: 26px 20px 22px;
         border-radius: 18px;
+    }
+
+    .large-modal {
+        width: 94%;
+        padding: 24px 18px 20px;
     }
 
     .service-modal h3 {

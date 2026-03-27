@@ -83,7 +83,7 @@
           <div class="card-icon"><i class="fa-solid fa-file-circle-check"></i></div>
           <h3>Planning approval applications</h3>
           <p>Start a new application, review required details, and manage approval progress.</p>
-          <button class="read-more-btn" data-modal="planningModal">
+          <button class="read-more-btn" data-modal="planningModal" type="button">
             Read more <i class="fa-solid fa-angle-right"></i>
           </button>
         </div>
@@ -92,7 +92,7 @@
           <div class="card-icon"><i class="fa-solid fa-chart-line"></i></div>
           <h3>Land Value Prediction</h3>
           <p>Estimate land value trends using available property-related information.</p>
-          <button class="read-more-btn" data-modal="valueModal">
+          <button class="read-more-btn" data-modal="valueModal" type="button">
             Read more <i class="fa-solid fa-angle-right"></i>
           </button>
         </div>
@@ -101,7 +101,7 @@
           <div class="card-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
           <h3>Land Transaction History Records</h3>
           <p>Review past land transaction records and historical activity information.</p>
-          <button class="read-more-btn" data-modal="historyModal">
+          <button class="read-more-btn" data-modal="historyModal" type="button">
             Read more <i class="fa-solid fa-angle-right"></i>
           </button>
         </div>
@@ -118,32 +118,32 @@
       </div>
 
       <div class="info-grid">
-        <div class="info-card">
+        <button class="info-card info-card-btn" data-modal="ownershipInfoModal" type="button">
           <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80"
             alt="Ownership help" />
           <div class="info-content">
             <h3>How to prepare for land ownership verification</h3>
             <p>Learn the details and documents commonly needed before you begin a verification request.</p>
           </div>
-        </div>
+        </button>
 
-        <div class="info-card">
+        <button class="info-card info-card-btn" data-modal="planningInfoModal" type="button">
           <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80"
             alt="Checklist" />
           <div class="info-content">
             <h3>Preparing for planning approval submissions</h3>
             <p>Understand what supporting information may be needed before submitting an application.</p>
           </div>
-        </div>
+        </button>
 
-        <div class="info-card">
+        <button class="info-card info-card-btn" data-modal="notificationInfoModal" type="button">
           <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80"
             alt="Notifications" />
           <div class="info-content">
             <h3>Official portal notifications and updates</h3>
             <p>Find out how important notices, status updates, and submission alerts are communicated.</p>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   </section>
@@ -226,7 +226,7 @@
 
   <!-- PLANNING APPROVAL MODAL -->
   <div class="service-modal" id="planningModal">
-    <button class="close-modal" data-close>&times;</button>
+    <button class="close-modal" data-close type="button">&times;</button>
     <div class="modal-icon">
       <i class="fa-solid fa-file-circle-check"></i>
     </div>
@@ -248,7 +248,7 @@
 
   <!-- LAND VALUE PREDICTION MODAL -->
   <div class="service-modal" id="valueModal">
-    <button class="close-modal" data-close>&times;</button>
+    <button class="close-modal" data-close type="button">&times;</button>
     <div class="modal-icon">
       <i class="fa-solid fa-chart-line"></i>
     </div>
@@ -267,7 +267,7 @@
 
   <!-- LAND TRANSACTION HISTORY MODAL -->
   <div class="service-modal" id="historyModal">
-    <button class="close-modal" data-close>&times;</button>
+    <button class="close-modal" data-close type="button">&times;</button>
     <div class="modal-icon">
       <i class="fa-solid fa-clock-rotate-left"></i>
     </div>
@@ -284,8 +284,105 @@
     </ul>
   </div>
 
+  <!-- OWNERSHIP VERIFICATION INFO MODAL -->
+  <div class="service-modal large-modal" id="ownershipInfoModal">
+    <button class="close-modal" data-close type="button">&times;</button>
+    <div class="modal-icon">
+      <i class="fa-solid fa-file-signature"></i>
+    </div>
+    <h3>How to prepare for land ownership verification</h3>
+    <p>
+      Land ownership verification is the process of confirming that a property legally belongs to a person
+      or organization based on official records and supporting documents. Before starting a verification
+      request, it is important to collect the correct documents and ensure the property details are accurate.
+    </p>
+    <p>
+      Preparing in advance helps reduce delays, prevents incomplete submissions, and makes the verification
+      process easier for both the applicant and the reviewing authority.
+    </p>
+    <h4>What you should prepare</h4>
+    <ul>
+      <li>National Identity Card or another valid identification document</li>
+      <li>Copy of the deed or ownership certificate related to the land</li>
+      <li>Survey plan or land parcel reference information, if available</li>
+      <li>Property address, district, or local area details</li>
+      <li>Any previous land-related approvals or supporting legal documents</li>
+    </ul>
+    <h4>Before submitting</h4>
+    <ul>
+      <li>Check that the owner name matches the submitted legal documents</li>
+      <li>Make sure land references and parcel details are clearly written</li>
+      <li>Confirm that uploaded copies are readable and complete</li>
+      <li>Keep additional supporting documents ready in case verification is requested</li>
+    </ul>
+  </div>
+
+  <!-- PLANNING SUBMISSION INFO MODAL -->
+  <div class="service-modal large-modal" id="planningInfoModal">
+    <button class="close-modal" data-close type="button">&times;</button>
+    <div class="modal-icon">
+      <i class="fa-solid fa-clipboard-list"></i>
+    </div>
+    <h3>Preparing for planning approval submissions</h3>
+    <p>
+      Planning approval submissions usually require accurate property details, applicant information,
+      and supporting documents related to the proposed land use or development activity.
+    </p>
+    <p>
+      Before submission, applicants should make sure all required information is available and organized.
+      This improves the quality of the application and helps reduce delays caused by missing details.
+    </p>
+    <h4>Common preparation steps</h4>
+    <ul>
+      <li>Identify the property correctly using land or parcel details</li>
+      <li>Prepare site-related drawings, plans, or descriptions if needed</li>
+      <li>Collect owner and applicant identification information</li>
+      <li>Review whether additional permits or supporting approvals may be required</li>
+      <li>Ensure contact details are correct for future updates</li>
+    </ul>
+    <h4>Helpful advice</h4>
+    <ul>
+      <li>Double-check all uploaded documents before submission</li>
+      <li>Use clear file names and readable document scans</li>
+      <li>Keep original versions of documents for later verification</li>
+      <li>Be prepared to provide more documents if requested by the authority</li>
+    </ul>
+  </div>
+
+  <!-- NOTIFICATION INFO MODAL -->
+  <div class="service-modal large-modal" id="notificationInfoModal">
+    <button class="close-modal" data-close type="button">&times;</button>
+    <div class="modal-icon">
+      <i class="fa-solid fa-bell"></i>
+    </div>
+    <h3>Official portal notifications and updates</h3>
+    <p>
+      The Civic Plan portal uses notifications and status updates to keep applicants informed about
+      important activity related to their requests, submissions, and account actions.
+    </p>
+    <p>
+      These updates help users understand what is happening in the approval process and whether any
+      further action is needed.
+    </p>
+    <h4>Types of updates you may receive</h4>
+    <ul>
+      <li>Submission confirmations after a request is successfully sent</li>
+      <li>Status changes for permits, approvals, or verification requests</li>
+      <li>Requests for additional documents or corrections</li>
+      <li>Approval, rejection, or review progress notifications</li>
+      <li>System announcements related to portal activity</li>
+    </ul>
+    <h4>Why notifications matter</h4>
+    <ul>
+      <li>They help users respond quickly to pending requirements</li>
+      <li>They reduce uncertainty during the review process</li>
+      <li>They make digital communication clearer and more transparent</li>
+      <li>They improve user awareness of official portal actions</li>
+    </ul>
+  </div>
+
   <script>
-    const modalButtons = document.querySelectorAll(".read-more-btn");
+    const modalButtons = document.querySelectorAll(".read-more-btn, .info-card-btn");
     const modals = document.querySelectorAll(".service-modal");
     const overlay = document.getElementById("modalOverlay");
     const closeButtons = document.querySelectorAll("[data-close]");
