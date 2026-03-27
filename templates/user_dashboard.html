@@ -34,7 +34,9 @@
                 <a href="#"><i class="fa-solid fa-landmark"></i> Property Records</a>
                 <a href="#"><i class="fa-solid fa-clock-rotate-left"></i> Transaction History</a>
                 <a href="#"><i class="fa-solid fa-map-location-dot"></i> GIS Map</a>
-                <a href="#"><i class="fa-solid fa-chart-line"></i> Land Valuation</a>
+                <a href="{{ url_for('prediction.land_valuation_page') }}">
+                    <i class="fa-solid fa-chart-line"></i> Land Valuation
+                </a>
                 <a href="#"><i class="fa-solid fa-book"></i> Support Documents</a>
                 <a href="#"><i class="fa-solid fa-bell"></i> Notifications</a>
                 <a href="{{ url_for('main.dashboard') }}">
@@ -127,7 +129,7 @@
                     <p>See parcel location and related geographic information.</p>
                 </a>
 
-                <a href="#" class="action-card">
+                <a href="{{ url_for('prediction.land_valuation_page') }}" class="action-card">
                     <i class="fa-solid fa-chart-line"></i>
                     <h3>Check Land Value</h3>
                     <p>View current land value and estimated future trends.</p>
@@ -277,7 +279,7 @@
                     <div class="panel">
                         <div class="panel-header">
                             <h2>Land Valuation</h2>
-                            <a href="#">Open module</a>
+                            <a href="{{ url_for('prediction.land_valuation_page') }}">Open module</a>
                         </div>
 
                         <div class="valuation-card">

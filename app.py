@@ -4,7 +4,8 @@ from routes.main_routes import main_bp
 from routes.auth_routes import auth_bp
 from routes.user_routes import user_bp
 from routes.admin_routes import admin_bp
-from routes.password_reset_routes import password_reset_bp 
+from routes.password_reset_routes import password_reset_bp
+from routes.prediction_routes import prediction_bp
 
 app = Flask(__name__)
 app.secret_key = "civic_plan_secret_key"
@@ -16,7 +17,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(password_reset_bp)
-
+app.register_blueprint(prediction_bp)
 
 if __name__ == "__main__":
     app.run(debug=True)
