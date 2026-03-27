@@ -80,6 +80,26 @@ a {
     font-size: 1rem;
 }
 
+.nav-help-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.nav-help-btn:hover {
+    color: #d9e7ff;
+}
+
+.nav-help-btn:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: 4px;
+}
+
 .nav-search {
     font-size: 1.05rem;
 }
@@ -486,11 +506,20 @@ a {
     margin-bottom: 12px;
 }
 
-.footer-bottom {
-    padding-top: 20px;
-    text-align: center;
-    color: #cfe0ff;
-    font-size: 0.95rem;
+.footer-help-btn {
+    background: none;
+    border: none;
+    color: #dce8ff;
+    margin-bottom: 12px;
+    padding: 0;
+    font-size: 1rem;
+    cursor: pointer;
+    text-align: left;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.footer-help-btn:hover {
+    color: #ffffff;
 }
 
 /* MODALS */
