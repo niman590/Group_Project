@@ -1,0 +1,142 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    color: #1a1a1a;
+}
+
+.valuation-page {
+    padding: 40px 20px;
+}
+
+.valuation-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-header {
+    margin-bottom: 30px;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 36px;
+    color: #123f88;
+}
+
+.page-header p {
+    margin-top: 10px;
+    color: #5f6b7a;
+    font-size: 16px;
+}
+
+.valuation-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 24px;
+}
+
+.form-card,
+.result-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+.form-card h2,
+.result-card h2 {
+    margin-top: 0;
+    color: #123f88;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #24364d;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d5dce5;
+    border-radius: 10px;
+    font-size: 15px;
+    box-sizing: border-box;
+}
+
+.predict-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 14px;
+    background: #123f88;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.predict-btn:hover {
+    background: #0f3470;
+}
+
+.result-box {
+    background: #f7f9fc;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 16px;
+    border: 1px solid #e4ebf3;
+}
+
+.result-box.primary {
+    background: linear-gradient(135deg, #123f88, #1b5cb8);
+    color: white;
+}
+
+.result-box .label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 8px;
+    opacity: 0.9;
+}
+
+.result-box .value {
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.note-box {
+    margin-top: 20px;
+    padding: 16px;
+    background: #fff7e8;
+    border-left: 5px solid #f0a500;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #5f4a1b;
+}
+
+@media (max-width: 900px) {
+    .valuation-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
