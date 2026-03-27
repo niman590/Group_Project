@@ -21,13 +21,12 @@ publication_year, land_size, full_price, price_per_acre, city, distance_to_city_
 2015, 25.43, 4752078, 12, Kadana, 8.06, Commercial, 0, 1, 0
 2014, 7.85, 2837500, 10, Kadawatha, 15.78, Commercial, 1, 0, 0
 2022, 18.01, 6506418, 10, Ja-Ela, 24.38, Commercial, 1, 1, 1
-
 2018, 22.39, 5364173, 12, Kelaniya, 9.2, Agricultural, 0, 0, 1
 2024, 40.87, 13098916, 10, Rajagiriya, 10.77, Commercial, 1, 1, 0
 2015, 40.37, 24442622, 25, Ragama, 5.54, Residential, 0, 0, 0
 2017, 16.18, 2461511, 20, Kadana, 7.06, Agricultural, 0, 1, 0
 2022, 33.26, 15690039, 15, Kadana, 6.07, Commercial, 1, 1, 1
-2018, 28.81, 2868870, 20, Kaduwela, 11.88, Agricultural, 1, 1, 1
+2018, 28.81, 2868870, 20, Kaduwela,11.88, Agricultural, 1, 1, 1
 2022, 22.07, 4085664, 15, Kadawatha, 10.45, Residential, 1, 0, 1
 2024, 21.52, 4219706, 20, Ja-Ela, 6.03, Commercial, 1, 0, 1
 2015, 22.83, 7182934, 10, Ragama, 5.74, Residential, 0, 1, 0
@@ -48,7 +47,6 @@ publication_year, land_size, full_price, price_per_acre, city, distance_to_city_
 2018, 15.2, 8649210, 10, Ja-Ela, 14.35, Agricultural, 0, 0, 1
 2022, 44.46, 30960076, 15, Kadana, 8.23, Agricultural, 0, 0, 1
 2023, 35.26, 15900884, 12, Malabe, 20.7, Agricultural, 1, 1, 1
-
 2021, 20.16, 12488999, 10, Kadawatha, 17.96, Agricultural, 1, 1, 0
 2016, 6.92, 2073854, 25, Kadawatha, 14.76, Commercial, 0, 1, 0
 2016, 21.3, 11593611, 15, Kadawatha, 5.88, Agricultural, 0, 1, 0
@@ -75,7 +73,6 @@ publication_year, land_size, full_price, price_per_acre, city, distance_to_city_
 2015, 18.34, 7045567, 15, Kadawatha, 17.67, Commercial, 0, 1, 1
 2019, 12.16, 8152939, 10, Rajagiriya, 4.17, Agricultural, 0, 0, 0
 2023, 16.44, 9735422, 25, Kadana, 11.85, Commercial, 0, 1, 1
-
 2017, 28.69, 5842029, 12, Malabe, 24.17, Commercial, 1, 0, 1
 2014, 31.99, 15602098, 12, Rajagiriya, 5.21, Commercial, 1, 0, 0
 2022, 26.21, 2706365, 15, Kelaniya, 7.99, Agricultural, 0, 0, 1
@@ -102,7 +99,6 @@ publication_year, land_size, full_price, price_per_acre, city, distance_to_city_
 2024, 20.82, 7323289, 20, Kadawatha, 7.58, Residential, 0, 0, 0
 2014, 46.58, 12720578, 15, Rajagiriya, 2.93, Residential, 0, 0, 0
 2018, 22.17, 12474194, 15, Ja-Ela, 17.21, Residential, 1, 1, 0
-
 2019, 44.47, 26539028, 15, Rajagiriya, 4.7, Commercial, 0, 1, 1
 2018, 6.46, 1831487, 15, Kaduwela, 3.1, Residential, 1, 0, 0
 2015, 32.35, 11259385, 15, Malabe, 12.26, Agricultural, 1, 1, 1
@@ -129,7 +125,6 @@ publication_year, land_size, full_price, price_per_acre, city, distance_to_city_
 2024, 19.18, 4406048, 15, Kadawatha, 9.38, Residential, 1, 0, 0
 2023, 21.42, 14451281, 10, Malabe, 23.94, Residential, 0, 1, 1
 2024, 25.57, 17554290, 12, Ja-Ela, 3.01, Agricultural, 0, 1, 1
-
 2016, 45.26, 4345910, 10, Ja-Ela, 14.84, Agricultural, 1, 0, 1
 2023, 45.38, 21170768, 20, Malabe, 14.76, Commercial, 1, 0, 1
 2018, 7.12, 4284922, 20, Rajagiriya, 1.3, Commercial, 0, 0, 1
