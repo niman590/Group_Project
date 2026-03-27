@@ -25,7 +25,7 @@
 
       <nav class="nav-links">
         <a href="{{ url_for('main.dashboard') }}">Home</a>
-        <a href="#popular-services">Services</a>
+        <a href="#main-services">Services</a>
         <a href="#useful-information">Public Notices</a>
         <a href="#help-section">Help</a>
         <a href="#" class="nav-search"><i class="fa-solid fa-magnifying-glass"></i></a>
@@ -62,23 +62,23 @@
         <div class="hero-card-content">
           <h3>Public access to essential services</h3>
           <p>
-            Explore planning approvals, land records, permit tracking,
-            and helpful citizen guidance from the Civic Plan portal.
+            Explore planning approvals, land value prediction, land transaction history records,
+            and permit tracking through the Civic Plan portal.
           </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- QUICK LINKS -->
-  <section class="quick-links-section" id="popular-services">
+  <!-- MAIN SERVICES -->
+  <section class="quick-links-section" id="main-services">
     <div class="container">
       <div class="section-header">
         <span class="section-tag">PUBLIC ACCESS</span>
-        <h2>Popular services</h2>
+        <h2>Main services</h2>
       </div>
 
-      <div class="quick-links-grid">
+      <div class="quick-links-grid four-cards">
         <div class="quick-card">
           <div class="card-icon"><i class="fa-solid fa-file-circle-check"></i></div>
           <h3>Planning approval applications</h3>
@@ -89,10 +89,19 @@
         </div>
 
         <div class="quick-card">
-          <div class="card-icon"><i class="fa-solid fa-map-location-dot"></i></div>
-          <h3>Land record search</h3>
-          <p>Find public land-related information and review available property records.</p>
-          <button class="read-more-btn" data-modal="landModal">
+          <div class="card-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <h3>Land Value Prediction</h3>
+          <p>Estimate land value trends using available property-related information.</p>
+          <button class="read-more-btn" data-modal="valueModal">
+            Read more <i class="fa-solid fa-angle-right"></i>
+          </button>
+        </div>
+
+        <div class="quick-card">
+          <div class="card-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <h3>Land Transaction History Records</h3>
+          <p>Review past land transaction records and historical activity information.</p>
+          <button class="read-more-btn" data-modal="historyModal">
             Read more <i class="fa-solid fa-angle-right"></i>
           </button>
         </div>
@@ -202,7 +211,7 @@
       <div class="footer-links">
         <h4>Portal</h4>
         <a href="{{ url_for('main.dashboard') }}">Home</a>
-        <a href="#popular-services">Services</a>
+        <a href="#main-services">Services</a>
         <a href="#useful-information">Public Notices</a>
         <a href="#help-section">Help</a>
       </div>
@@ -243,22 +252,41 @@
     </ul>
   </div>
 
-  <!-- LAND RECORD MODAL -->
-  <div class="service-modal" id="landModal">
+  <!-- LAND VALUE PREDICTION MODAL -->
+  <div class="service-modal" id="valueModal">
     <button class="close-modal" data-close>&times;</button>
     <div class="modal-icon">
-      <i class="fa-solid fa-map-location-dot"></i>
+      <i class="fa-solid fa-chart-line"></i>
     </div>
-    <h3>Land record search</h3>
+    <h3>Land Value Prediction</h3>
     <p>
-      This service allows the public to explore available land-related information and review accessible
-      property records through the Civic Plan portal.
+      This service provides estimated land value insights based on available property-related information
+      and helps users understand possible market trends.
     </p>
     <ul>
-      <li>Review public land-related information</li>
-      <li>Understand available property record access</li>
-      <li>Support land verification and inquiry preparation</li>
-      <li>Use registered access for deeper searches</li>
+      <li>View estimated land value trends</li>
+      <li>Support land-related planning and decision-making</li>
+      <li>Understand possible changes in property value</li>
+      <li>Use prediction features through the digital portal</li>
+    </ul>
+  </div>
+
+  <!-- LAND TRANSACTION HISTORY MODAL -->
+  <div class="service-modal" id="historyModal">
+    <button class="close-modal" data-close>&times;</button>
+    <div class="modal-icon">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+    </div>
+    <h3>Land Transaction History Records</h3>
+    <p>
+      This service helps users review previous land transaction records and understand the historical
+      background of land-related ownership or transaction activity.
+    </p>
+    <ul>
+      <li>Review past land transaction records</li>
+      <li>Understand historical land activity</li>
+      <li>Support land verification and record checking</li>
+      <li>Access structured transaction history information</li>
     </ul>
   </div>
 
