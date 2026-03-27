@@ -1,4 +1,4 @@
-publication_year, land_size, full_price, price_per_acre, city, distance_to_city_center, zone_type, electricity, water_supply, flood_risk
+Year of Publication, Land Size (Perches), Price (LKR), Access Road Size (ft), Location, Distance to Nearest City (km), Zone Type, Electricity, Water, Flood Risk
 2017, 38.61, 14925892, 10, Ragama, 16.56, Commercial, 0, 1, 1
 2021, 29.45, 18094492, 15, Rajagiriya, 13.23, Residential, 0, 1, 0
 2018, 6.75, 4571829, 10, Rajagiriya, 3.96, Residential, 0, 0, 0
@@ -26,7 +26,7 @@ publication_year, land_size, full_price, price_per_acre, city, distance_to_city_
 2015, 40.37, 24442622, 25, Ragama, 5.54, Residential, 0, 0, 0
 2017, 16.18, 2461511, 20, Kadana, 7.06, Agricultural, 0, 1, 0
 2022, 33.26, 15690039, 15, Kadana, 6.07, Commercial, 1, 1, 1
-2018, 28.81, 2868870, 20, Kaduwela,11.88, Agricultural, 1, 1, 1
+2018, 28.81, 2868870, 20, Kaduwela, 11.88, Agricultural, 1, 1, 1
 2022, 22.07, 4085664, 15, Kadawatha, 10.45, Residential, 1, 0, 1
 2024, 21.52, 4219706, 20, Ja-Ela, 6.03, Commercial, 1, 0, 1
 2015, 22.83, 7182934, 10, Ragama, 5.74, Residential, 0, 1, 0
