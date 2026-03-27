@@ -114,7 +114,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>No</th>
                                 <th>Name</th>
                                 <th>NIC</th>
                                 <th>Email</th>
@@ -128,7 +128,7 @@
                             {% if users %}
                             {% for u in users %}
                             <tr>
-                                <td>{{ u['user_id'] }}</td>
+                                <td>{{ loop.index }}</td>
                                 <td>{{ u['first_name'] }} {{ u['last_name'] }}</td>
                                 <td>{{ u['nic'] if u['nic'] else '-' }}</td>
                                 <td>{{ u['email'] }}</td>
