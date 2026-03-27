@@ -1,151 +1,156 @@
-publication_year, land_size, full_price, price_per_acre, access_road_size, city, distance_to_city_center, zone_type, electricity, water_supply,flood_risk
-2019, 43.82, 15663108, 357442, 10, Kaduwela, 10.58, Agricultural, 1, 1, 0
-2023, 43.1, 15768609, 365861, 20, Kaduwela, 10.06, Commercial, 1, 0, 0
-2022, 17.77, 11723402, 659730, 10, Ragama, 3.59, Residential, 0, 1, 1
-2021, 11.39, 3081997, 270588, 12, Kadawatha, 1.73, Commercial, 1, 0, 1
-2020, 18.33, 6297693, 343573, 12, Kadawatha, 21.05, Commercial, 1, 1, 0
-2021, 36.75, 22325331, 607492, 25, Rajagiriya, 13.06, Residential, 1, 0, 0
-2015, 16.43, 7117032, 433173, 25, Kadana, 1.2, Residential, 1, 0, 1
-2018, 19.68, 3550173, 180395, 15, Kadana, 20.93, Residential, 0, 1, 0
-2026, 27.76, 13755801, 495526, 15, Kadawatha, 5.42, Residential, 0, 0, 0
-2021, 15.04, 5182062, 344552, 25, Malabe, 23.04, Commercial, 1, 0, 0
-2020, 12.68, 4514574, 356039, 10, Ragama, 10.65, Commercial, 0, 1, 0
-2016, 21.02, 13617638, 647842, 20, Kadawatha, 18.92, Residential, 1, 1, 0
-2018, 9, 4465584, 496176, 20, Kaduwela, 12.86, Agricultural, 0, 1, 0
-2020, 17.64, 6235669, 353496, 25, Kadana, 10.47, Agricultural, 1, 0, 1
-2024, 22.67, 5889597, 259797, 20, Malabe, 5, Commercial, 0, 1, 1
-2023, 39.18, 14788530, 377451, 25, Kaduwela, 15.88, Residential, 0, 1, 0
-2023, 27.81, 3051201, 109716, 20, Kaduwela, 4.88, Residential, 1, 0, 1
-2025, 24.98, 5138635, 205710, 12, Malabe, 6.93, Agricultural, 0, 1, 0
-2018, 14.41, 3218459, 223349, 20, Kadawatha, 18.22, Agricultural, 1, 1, 0
-2018, 44.27, 19324607, 436517, 10, Kaduwela, 10.27, Residential, 1, 0, 1
-2023, 27.97, 18621614, 665771, 12, Kelaniya, 13.79, Residential, 1, 0, 0
-2021, 35.19, 4991947, 141857, 25, Malabe, 20.97, Residential, 0, 0, 1
-2016, 32.41, 4281134, 132093, 10, Ja-Ela, 4.37, Agricultural, 1, 1, 1
-2023, 21.27, 5755981, 270615, 12, Ja-Ela, 24.14, Commercial, 1, 1, 1
-2024, 26.88, 14486008, 538914, 25, Kadana, 23.98, Commercial, 0, 0, 0
-2021, 28.92, 12377875, 428004, 25, Ragama, 11.54, Commercial, 1, 1, 0
-2018, 49.65, 8159381, 164338, 25, Malabe, 23.95, Commercial, 0, 0, 1
-2020, 36.49, 5511668, 151046, 20, Kadana, 6.84, Commercial, 1, 1, 1
-2022, 8.4, 4029043, 479648, 15, Kelaniya, 23.22, Residential, 1, 1, 1
-2021, 28.4, 9958687, 350658, 25, Ragama, 19.75, Agricultural, 0, 0, 0
-2022, 9.51, 5653305, 594459, 25, Kaduwela, 21.03, Commercial, 1, 0, 0
-2017, 9.55, 3508794, 367413, 15, Ja-Ela, 1.06, Agricultural, 1, 1, 1
-2020, 15.87, 4818417, 303618, 25, Kadana, 2.59, Commercial, 0, 0, 0
-2015, 25.47, 4616386, 181248, 20, Ja-Ela, 12.78, Agricultural, 1, 1, 0
-2025, 41.69, 27738608, 665354, 12, Kadawatha, 18.33, Commercial, 1, 1, 0
-2025, 7.81, 2917253, 373528, 12, Rajagiriya, 8.9, Residential, 0, 0, 0
-2016, 31.78, 3552527, 111785, 20, Kelaniya, 1.66, Commercial, 1, 1, 1
-2024, 36.17, 21960977, 607160, 15, Kadana, 17.87, Commercial, 0, 1, 0
-2026, 11.72, 3518109, 300180, 15, Rajagiriya, 22.01, Residential, 1, 0, 0
-2025, 8.94, 4988698, 558020, 20, Malabe, 12.84, Commercial, 1, 1, 0
-2017, 38.34, 24471923, 638287, 20, Kadawatha, 19.78, Agricultural, 1, 1, 1
-2022, 47.56, 16209351, 340819, 12, Malabe, 15.68, Commercial, 0, 1, 0
-2019, 21.49, 3072231, 142961, 20, Rajagiriya, 3.43, Commercial, 0, 0, 1
-2022, 44.42, 27209559, 612552, 20, Kadana, 18.5, Agricultural, 1, 1, 0
-2016, 19.88, 3631320, 182662, 10, Malabe, 2.11, Agricultural, 0, 0, 0
-2018, 13.97, 3748416, 268319, 25, Rajagiriya, 24.13, Residential, 0, 0, 1
-2015, 36.87, 21303596, 577803, 15, Kadawatha, 24.5, Commercial, 1, 0, 0
-2025, 11.33, 1772714, 156462, 25, Malabe, 20.52, Residential, 1, 0, 0
-2016, 9.47, 5392009, 569378, 15, Kadana, 23.52, Commercial, 1, 1, 0
-2024, 24.62, 9112157, 370112, 25, Rajagiriya, 2.97, Residential, 0, 0, 0
-2019, 26.19, 12498051, 477207, 10, Rajagiriya, 3.52, Agricultural, 1, 1, 1
-2020, 45.5, 27255910, 599031, 15, Kaduwela, 9.21, Commercial, 0, 0, 0
-2026, 28.43, 13306519, 468045, 12, Kadawatha, 17.84, Residential, 1, 1, 1
-2018, 9.56, 4418402, 462176, 10, Malabe, 6.61, Residential, 1, 1, 0
-2026, 30.53, 19376444, 634669, 25, Ragama, 23.89, Residential, 1, 1, 1
-2024, 41.35, 16913349, 409029, 20, Kaduwela, 15.79, Residential, 0, 0, 0
-2025, 8.41, 4572702, 543722, 25, Kelaniya, 21.21, Commercial, 1, 0, 1
-2019, 46.05, 24231740, 526205, 10, Kadawatha, 1.65, Residential, 1, 0, 0
-2023, 46.69, 24613987, 527179, 10, Malabe, 2.84, Residential, 1, 1, 0
-2022, 9.22, 3358919, 364308, 15, Ja-Ela, 14.92, Agricultural, 0, 0, 1
-2023, 45.96, 30267831, 658569, 10, Kelaniya, 2.41, Commercial, 1, 0, 1
-2015, 34.42, 18493900, 537301, 25, Kelaniya, 13.05, Commercial, 0, 1, 0
-2022, 14.25, 6810787, 477950, 25, Malabe, 11.64, Commercial, 1, 1, 0
-2026, 38.24, 19482629, 509483, 25, Kelaniya, 20.4, Agricultural, 1, 0, 0
-2026, 27.55, 4394803, 159521, 12, Rajagiriya, 10.29, Agricultural, 0, 1, 0
-2025, 41.05, 18680254, 455061, 10, Kelaniya, 22.16, Residential, 1, 1, 0
-2017, 15.77, 1836211, 116437, 10, Kelaniya, 2.28, Residential, 1, 0, 1
-2017, 35.06, 23912532, 682046, 20, Kelaniya, 3.3, Commercial, 0, 1, 0
-2019, 29.25, 19534758, 667855, 20, Ragama, 6.54, Agricultural, 0, 1, 0
-2026, 22.92, 5723490, 249716, 25, Malabe, 13.9, Agricultural, 0, 0, 1
-2025, 46.38, 5908116, 127385, 20, Kadana, 10.12, Residential, 0, 0, 1
-2015, 14.4, 1946721, 135189, 15, Ragama, 6.5, Agricultural, 0, 0, 1
-2015, 11.69, 2422401, 207220, 20, Kelaniya, 18.42, Commercial, 1, 0, 1
-2018, 7.95, 4830237, 607577, 25, Ja-Ela, 17.35, Agricultural, 1, 0, 1
-2018, 33.17, 17052995, 514109, 15, Rajagiriya, 8.54, Agricultural, 1, 1, 0
-2026, 25.38, 13996333, 551471, 12, Kadawatha, 12, Agricultural, 1, 0, 0
-2016, 35.96, 21893023, 608816, 25, Ragama, 2.73, Commercial, 0, 0, 1
-2016, 21.61, 5530323, 255915, 10, Kelaniya, 24.36, Commercial, 0, 0, 0
-2019, 22.14, 13016106, 587900, 12, Kadawatha, 6.68, Commercial, 0, 0, 1
-2018, 42.73, 3904624, 91379, 10, Ragama, 13.54, Commercial, 0, 0, 1
-2018, 26.48, 9443615, 356632, 25, Kaduwela, 14, Residential, 1, 0, 0
-2020, 26.62, 18443427, 692841, 12, Rajagiriya, 23.31, Agricultural, 1, 0, 0
-2018, 31.32, 20506268, 654734, 12, Ragama, 6.2, Commercial, 0, 1, 0
-2015, 37.48, 25204100, 672468, 15, Malabe, 5.89, Residential, 0, 1, 1
-2024, 49.49, 17025698, 344023, 15, Rajagiriya, 22.68, Residential, 0, 0, 1
-2023, 41.38, 28489964, 688496, 20, Ragama, 23.18, Commercial, 1, 1, 0
-2016, 8.57, 4335211, 505859, 15, Kelaniya, 4.19, Residential, 1, 1, 1
-2020, 39.29, 19938496, 507470, 10, Ragama, 17.52, Commercial, 1, 0, 1
-2019, 33.74, 10294681, 305118, 25, Ja-Ela, 18.72, Commercial, 1, 1, 1
-2024, 42.58, 15633502, 367156, 20, Ragama, 2, Agricultural, 0, 1, 0
-2015, 9.18, 5369455, 584908, 10, Ja-Ela, 5.35, Residential, 1, 0, 0
-2016, 13.96, 5875345, 420870, 15, Kadawatha, 16.16, Residential, 1, 1, 0
-2024, 37.18, 15345189, 412727, 25, Kadawatha, 9.94, Agricultural, 0, 1, 0
-2019, 12.54, 8606753, 686344, 12, Kelaniya, 8.09, Residential, 0, 1, 1
-2018, 34.68, 15275603, 440473, 25, Rajagiriya, 17.74, Residential, 0, 0, 0
-2016, 27.72, 9388930, 338706, 10, Malabe, 13.03, Residential, 1, 0, 0
-2019, 14.13, 2681294, 189759, 12, Ja-Ela, 9.98, Residential, 0, 0, 1
-2018, 13.56, 6812896, 502426, 10, Kaduwela, 6.75, Residential, 0, 1, 0
-2018, 13.69, 2444719, 178577, 12, Malabe, 13.11, Residential, 1, 1, 0
-2022, 8.69, 983334, 113157, 12, Kelaniya, 5.54, Residential, 0, 0, 0
-2024, 39.53, 11126904, 281480, 20, Kadawatha, 6.65, Residential, 1, 0, 0
-2023, 32.6, 16069941, 492943, 15, Kadawatha, 1.37, Commercial, 0, 1, 0
-2023, 37.02, 25082752, 677546, 25, Kadana, 20.64, Residential, 1, 0, 1
-2015, 14.92, 8374357, 561284, 15, Malabe, 5.42, Residential, 0, 1, 1
-2024, 27.65, 13265612, 479769, 12, Rajagiriya, 23.06, Residential, 1, 0, 1
-2019, 41.38, 13423961, 324407, 25, Ragama, 23.45, Agricultural, 1, 0, 1
-2020, 9.98, 5687552, 569895, 12, Ragama, 22.43, Residential, 1, 0, 0
-2020, 43.47, 26319302, 605459, 12, Malabe, 13.64, Agricultural, 0, 1, 0
-2023, 45.62, 23009040, 504363, 20, Ja-Ela, 6.72, Residential, 1, 0, 0
-2016, 25.71, 11112864, 432239, 12, Malabe, 18.38, Agricultural, 1, 1, 1
-2024, 39.97, 20098434, 502838, 10, Kaduwela, 11.02, Agricultural, 1, 0, 0
-2025, 46.44, 19960887, 429821, 12, Ragama, 11.13, Commercial, 1, 0, 0
-2022, 33.75, 4803941, 142339, 10, Kelaniya, 20.25, Residential, 0, 0, 1
-2017, 9.26, 4501591, 486133, 20, Kadana, 5.11, Residential, 0, 0, 0
-2020, 47.45, 26130240, 550690, 10, Rajagiriya, 10.98, Agricultural, 0, 0, 1
-2023, 46.9, 29251342, 623696, 15, Rajagiriya, 21.28, Agricultural, 1, 1, 0
-2017, 43.86, 18668965, 425649, 12, Kadawatha, 15.21, Agricultural, 1, 0, 1
-2015, 41.69, 15351675, 368234, 12, Ragama, 4.98, Commercial, 0, 0, 0
-2024, 16.88, 3445309, 204106, 25, Kelaniya, 4.2, Agricultural, 1, 0, 1
-2022, 32.02, 13992515, 436993, 20, Kadawatha, 23.74, Residential, 1, 1, 1
-2017, 8.71, 885441, 101658, 10, Ja-Ela, 2.18, Residential, 0, 0, 0
-2015, 32.57, 14485312, 444744, 25, Malabe, 18.11, Agricultural, 1, 0, 1
-2019, 37.3, 14843758, 397956, 20, Kaduwela, 11.89, Agricultural, 0, 1, 0
-2016, 24.58, 16758619, 681799, 15, Kelaniya, 12.59, Agricultural, 0, 1, 1
-2017, 38.53, 14778643, 383562, 20, Malabe, 22.85, Residential, 0, 0, 0
-2025, 44.48, 20494960, 460768, 15, Rajagiriya, 2.35, Commercial, 1, 0, 0
-2026, 39.56, 7947564, 200899, 20, Ragama, 5.79, Commercial, 1, 1, 0
-2016, 34.45, 13445869, 390301, 10, Kelaniya, 5.38, Residential, 1, 0, 0
-2025, 31.88, 8901023, 279204, 25, Kelaniya, 20.94, Residential, 1, 0, 0
-2019, 39.81, 20218662, 507879, 10, Kelaniya, 22.8, Commercial, 0, 1, 1
-2016, 12.58, 8262292, 656780, 10, Kadawatha, 3.79, Commercial, 1, 1, 0
-2022, 33.08, 16581945, 501268, 12, Kadawatha, 18.27, Residential, 0, 1, 0
-2018, 24.04, 5836815, 242796, 15, Kadana, 23.58, Commercial, 1, 0, 1
-2022, 9.67, 2806495, 290227, 12, Ja-Ela, 23.85, Residential, 0, 1, 0
-2023, 36.24, 10422877, 287607, 12, Ja-Ela, 1.34, Commercial, 1, 1, 0
-2015, 33.48, 15367822, 459015, 20, Kadana, 5.14, Commercial, 1, 1, 0
-2025, 6.56, 2504220, 381741, 15, Malabe, 17.49, Commercial, 0, 1, 1
-2019, 8.14, 1059616, 130174, 25, Kadana, 20.5, Commercial, 0, 0, 1
-2024, 44.99, 21236269, 472022, 15, Kadawatha, 15.95, Agricultural, 0, 1, 0
-2020, 48.04, 10376303, 215993, 20, Kadawatha, 23.16, Residential, 1, 1, 1
-2026, 16.18, 3805099, 235173, 10, Ja-Ela, 8.69, Agricultural, 0, 1, 1
-2026, 29.16, 19553529, 670560, 10, Kadana, 4.66, Residential, 1, 1, 0
-2016, 7.13, 2487542, 348884, 25, Kadawatha, 6.06, Agricultural, 1, 1, 0
-2020, 13.06, 6188363, 473841, 10, Kaduwela, 11.42, Residential, 0, 0, 0
-2018, 41.79, 14816184, 354539, 20, Ragama, 5.03, Residential, 1, 1, 1
-2021, 26.81, 9085667, 338891, 15, Kadawatha, 16.95, Residential, 0, 0, 1
-2021, 13.79, 4307347, 312353, 20, Kadawatha, 10.08, Residential, 0, 0, 1
-2022, 12.23, 3372422, 275750, 15, Rajagiriya, 21.15, Commercial, 1, 1, 1
-2026, 22.12, 7464261, 337444, 20, Malabe, 5.89, Commercial, 1, 1, 1
-2017, 42.5, 17049895, 401174, 25, Malabe, 16.21, Residential, 1, 0, 1
+publication_year, land_size, full_price, price_per_acre, city, distance_to_city_center, zone_type, electricity, water_supply, flood_risk
+2017, 38.61, 14925892, 10, Ragama, 16.56, Commercial, 0, 1, 1
+2021, 29.45, 18094492, 15, Rajagiriya, 13.23, Residential, 0, 1, 0
+2018, 6.75, 4571829, 10, Rajagiriya, 3.96, Residential, 0, 0, 0
+2019, 26.05, 17798792, 20, Malabe, 19.64, Agricultural, 0, 1, 1
+2015, 21.28, 10369148, 10, Ja-Ela, 9.18, Commercial, 0, 1, 0
+2014, 17.52, 6344745, 15, Malabe, 20.4, Commercial, 1, 1, 1
+2015, 22.69, 10763546, 12, Kelaniya, 7.95, Commercial, 0, 1, 1
+2015, 15.61, 8804726, 10, Kadana, 10.02, Agricultural, 1, 0, 0
+2019, 25.63, 15564945, 25, Kadawatha, 8.08, Commercial, 0, 0, 0
+2024, 31.65, 14380588, 12, Ragama, 18.24, Residential, 0, 0, 1
+2019, 15.14, 5992033, 12, Kelaniya, 7.54, Residential, 1, 0, 1
+2022, 15.45, 8704267, 20, Ragama, 4.96, Residential, 0, 1, 1
+2016, 6.66, 3714754, 12, Kadana, 2.28, Residential, 1, 0, 1
+2016, 41.73, 5160206, 10, Malabe, 19.11, Commercial, 0, 1, 1
+2015, 19.51, 8592106, 10, Ja-Ela, 14.99, Commercial, 0, 0, 0
+2021, 27.38, 2818442, 15, Malabe, 5.67, Commercial, 0, 0, 1
+2021, 24.84, 6336833, 15, Ja-Ela, 5.03, Residential, 0, 0, 1
+2022, 43.66, 24404499, 25, Kaduwela, 20.62, Commercial, 0, 0, 0
+2016, 44.76, 22056832, 20, Kadana, 10.41, Commercial, 0, 0, 0
+2015, 25.43, 4752078, 12, Kadana, 8.06, Commercial, 0, 1, 0
+2014, 7.85, 2837500, 10, Kadawatha, 15.78, Commercial, 1, 0, 0
+2022, 18.01, 6506418, 10, Ja-Ela, 24.38, Commercial, 1, 1, 1
+
+2018, 22.39, 5364173, 12, Kelaniya, 9.2, Agricultural, 0, 0, 1
+2024, 40.87, 13098916, 10, Rajagiriya, 10.77, Commercial, 1, 1, 0
+2015, 40.37, 24442622, 25, Ragama, 5.54, Residential, 0, 0, 0
+2017, 16.18, 2461511, 20, Kadana, 7.06, Agricultural, 0, 1, 0
+2022, 33.26, 15690039, 15, Kadana, 6.07, Commercial, 1, 1, 1
+2018, 28.81, 2868870, 20, Kaduwela, 11.88, Agricultural, 1, 1, 1
+2022, 22.07, 4085664, 15, Kadawatha, 10.45, Residential, 1, 0, 1
+2024, 21.52, 4219706, 20, Ja-Ela, 6.03, Commercial, 1, 0, 1
+2015, 22.83, 7182934, 10, Ragama, 5.74, Residential, 0, 1, 0
+2020, 21.6, 11661084, 20, Ja-Ela, 8.74, Residential, 1, 0, 0
+2018, 16.09, 7076430, 12, Ragama, 4.49, Residential, 0, 1, 1
+2022, 41.31, 26443522, 12, Kadana, 23.98, Agricultural, 0, 1, 1
+2021, 37.46, 24856807, 20, Malabe, 14.73, Agricultural, 1, 0, 1
+2017, 30.9, 21390463, 25, Ja-Ela, 19.38, Agricultural, 0, 0, 1
+2014, 7.19, 2561976, 15, Kelaniya, 5.12, Agricultural, 1, 1, 1
+2019, 20.01, 4974706, 25, Kadana, 21.22, Residential, 0, 1, 1
+2020, 27.7, 5457204, 25, Ragama, 13.85, Agricultural, 0, 0, 1
+2023, 7.47, 2610018, 10, Kadawatha, 4.71, Agricultural, 0, 1, 0
+2017, 29.46, 8847220, 15, Kadawatha, 23.83, Agricultural, 0, 1, 0
+2017, 21.54, 1742693, 20, Kelaniya, 23.33, Residential, 1, 0, 1
+2017, 39.82, 9767965, 25, Rajagiriya, 16.56, Commercial, 0, 1, 0
+2022, 32.09, 16848084, 12, Malabe, 13.57, Residential, 1, 1, 1
+2023, 31.96, 5756858, 20, Kelaniya, 5.39, Residential, 1, 0, 0
+2018, 15.2, 8649210, 10, Ja-Ela, 14.35, Agricultural, 0, 0, 1
+2022, 44.46, 30960076, 15, Kadana, 8.23, Agricultural, 0, 0, 1
+2023, 35.26, 15900884, 12, Malabe, 20.7, Agricultural, 1, 1, 1
+
+2021, 20.16, 12488999, 10, Kadawatha, 17.96, Agricultural, 1, 1, 0
+2016, 6.92, 2073854, 25, Kadawatha, 14.76, Commercial, 0, 1, 0
+2016, 21.3, 11593611, 15, Kadawatha, 5.88, Agricultural, 0, 1, 0
+2021, 18.53, 2940173, 20, Kadawatha, 22.27, Commercial, 1, 1, 1
+2024, 49.59, 23783364, 25, Kaduwela, 23.52, Commercial, 0, 0, 1
+2014, 18.73, 8777702, 15, Kadawatha, 15.64, Residential, 0, 1, 0
+2017, 9.0, 1915524, 12, Kadana, 8.1, Agricultural, 0, 0, 0
+2020, 28.14, 11607665, 12, Kadana, 6.52, Commercial, 0, 0, 1
+2018, 13.76, 4878952, 20, Kadawatha, 23.57, Commercial, 1, 1, 0
+2021, 16.73, 3559407, 15, Ragama, 17.61, Agricultural, 1, 0, 0
+2021, 43.62, 22008601, 15, Kelaniya, 10.14, Commercial, 0, 0, 0
+2014, 13.08, 1481440, 20, Rajagiriya, 3.71, Commercial, 0, 0, 0
+2022, 38.4, 12035020, 15, Malabe, 9.56, Agricultural, 0, 0, 0
+2020, 33.24, 5613770, 25, Kadana, 12.79, Commercial, 0, 0, 0
+2014, 15.86, 5517773, 15, Ja-Ela, 5.05, Residential, 0, 1, 1
+2019, 28.22, 15675419, 12, Ja-Ela, 5.0, Commercial, 0, 0, 0
+2020, 48.12, 9601191, 12, Malabe, 2.44, Commercial, 1, 0, 0
+2016, 36.47, 15459851, 10, Rajagiriya, 24.71, Commercial, 1, 0, 0
+2015, 15.43, 6428215, 15, Rajagiriya, 17.62, Agricultural, 1, 1, 0
+2016, 21.53, 8823769, 10, Ja-Ela, 21.8, Commercial, 1, 1, 1
+2021, 26.26, 11077833, 25, Ragama, 11.57, Residential, 1, 1, 0
+2020, 27.2, 17136598, 12, Kadana, 1.19, Residential, 1, 0, 1
+2014, 48.65, 15602103, 20, Kaduwela, 12.97, Agricultural, 1, 0, 0
+2015, 18.34, 7045567, 15, Kadawatha, 17.67, Commercial, 0, 1, 1
+2019, 12.16, 8152939, 10, Rajagiriya, 4.17, Agricultural, 0, 0, 0
+2023, 16.44, 9735422, 25, Kadana, 11.85, Commercial, 0, 1, 1
+
+2017, 28.69, 5842029, 12, Malabe, 24.17, Commercial, 1, 0, 1
+2014, 31.99, 15602098, 12, Rajagiriya, 5.21, Commercial, 1, 0, 0
+2022, 26.21, 2706365, 15, Kelaniya, 7.99, Agricultural, 0, 0, 1
+2023, 49.35, 21751900, 10, Ragama, 4.3, Residential, 0, 0, 1
+2022, 30.67, 2631056, 20, Malabe, 5.9, Agricultural, 1, 1, 0
+2017, 23.36, 13572393, 10, Kadawatha, 4.2, Commercial, 1, 1, 0
+2018, 38.58, 18526077, 10, Ragama, 16.52, Agricultural, 1, 1, 0
+2016, 23.71, 13726975, 15, Kelaniya, 19.17, Agricultural, 1, 1, 1
+2019, 11.32, 1662172, 10, Ragama, 14.27, Residential, 1, 1, 0
+2022, 24.91, 3398820, 10, Kadawatha, 23.85, Commercial, 0, 0, 0
+2021, 20.18, 6003590, 15, Ragama, 3.28, Commercial, 0, 0, 1
+2019, 12.07, 5723750, 20, Ragama, 15.77, Agricultural, 0, 0, 0
+2016, 45.33, 23474231, 10, Ragama, 11.22, Commercial, 1, 1, 0
+2020, 46.77, 20530205, 20, Rajagiriya, 5.69, Residential, 1, 0, 0
+2018, 21.23, 4251838, 20, Kelaniya, 16.25, Residential, 0, 0, 1
+2018, 31.65, 18391941, 20, Malabe, 1.78, Agricultural, 1, 0, 0
+2022, 23.13, 5040952, 15, Rajagiriya, 1.94, Residential, 0, 0, 0
+2014, 45.68, 26646468, 25, Rajagiriya, 9.01, Residential, 1, 1, 0
+2014, 29.25, 15763731, 15, Malabe, 4.21, Commercial, 0, 1, 1
+2018, 29.86, 13419263, 10, Kadawatha, 21.49, Agricultural, 1, 1, 1
+2024, 37.05, 3079595, 20, Kaduwela, 19.0, Agricultural, 0, 1, 0
+2018, 35.43, 19508679, 10, Ja-Ela, 22.57, Residential, 1, 0, 1
+2018, 14.35, 9636570, 15, Kelaniya, 23.94, Residential, 0, 0, 1
+2024, 20.82, 7323289, 20, Kadawatha, 7.58, Residential, 0, 0, 0
+2014, 46.58, 12720578, 15, Rajagiriya, 2.93, Residential, 0, 0, 0
+2018, 22.17, 12474194, 15, Ja-Ela, 17.21, Residential, 1, 1, 0
+
+2019, 44.47, 26539028, 15, Rajagiriya, 4.7, Commercial, 0, 1, 1
+2018, 6.46, 1831487, 15, Kaduwela, 3.1, Residential, 1, 0, 0
+2015, 32.35, 11259385, 15, Malabe, 12.26, Agricultural, 1, 1, 1
+2020, 12.69, 2766394, 10, Rajagiriya, 9.45, Residential, 0, 0, 1
+2018, 35.71, 18519813, 15, Kadana, 3.78, Residential, 1, 0, 0
+2017, 7.0, 3951136, 12, Rajagiriya, 17.94, Residential, 1, 1, 0
+2016, 30.02, 19554067, 20, Malabe, 9.27, Commercial, 0, 0, 1
+2024, 33.16, 8395747, 15, Kelaniya, 3.03, Commercial, 0, 0, 0
+2023, 31.71, 7015235, 15, Ragama, 11.7, Commercial, 0, 1, 1
+2018, 39.05, 3730641, 15, Kelaniya, 22.89, Residential, 1, 1, 0
+2020, 10.68, 5148753, 15, Ragama, 9.29, Agricultural, 1, 1, 1
+2024, 46.41, 22876649, 10, Kelaniya, 9.61, Agricultural, 0, 1, 0
+2017, 45.6, 17918520, 12, Malabe, 18.69, Residential, 0, 0, 0
+2016, 37.09, 13722521, 25, Ja-Ela, 15.28, Commercial, 0, 0, 1
+2018, 36.51, 10759387, 25, Kadana, 17.6, Residential, 1, 0, 1
+2017, 13.96, 3800665, 25, Malabe, 1.36, Residential, 1, 1, 1
+2014, 22.52, 5087493, 10, Kaduwela, 1.08, Agricultural, 1, 1, 1
+2018, 48.76, 32710597, 15, Ja-Ela, 5.47, Agricultural, 1, 0, 0
+2024, 10.97, 5145467, 20, Malabe, 15.03, Commercial, 1, 1, 1
+2023, 12.14, 7473930, 15, Kelaniya, 19.7, Commercial, 1, 1, 1
+2015, 25.15, 12181578, 25, Rajagiriya, 13.93, Residential, 1, 1, 0
+2021, 45.55, 10371097, 20, Kelaniya, 10.09, Commercial, 1, 1, 0
+2018, 48.83, 14565061, 20, Malabe, 15.39, Residential, 1, 0, 1
+2024, 19.18, 4406048, 15, Kadawatha, 9.38, Residential, 1, 0, 0
+2023, 21.42, 14451281, 10, Malabe, 23.94, Residential, 0, 1, 1
+2024, 25.57, 17554290, 12, Ja-Ela, 3.01, Agricultural, 0, 1, 1
+
+2016, 45.26, 4345910, 10, Ja-Ela, 14.84, Agricultural, 1, 0, 1
+2023, 45.38, 21170768, 20, Malabe, 14.76, Commercial, 1, 0, 1
+2018, 7.12, 4284922, 20, Rajagiriya, 1.3, Commercial, 0, 0, 1
+2014, 21.16, 3535031, 20, Ja-Ela, 14.1, Agricultural, 0, 0, 0
+2022, 25.29, 4138025, 20, Kaduwela, 17.44, Commercial, 1, 1, 1
+2016, 12.08, 2499158, 25, Ragama, 10.48, Residential, 0, 0, 1
+2024, 37.07, 18720906, 25, Rajagiriya, 10.83, Commercial, 1, 1, 1
+2014, 46.96, 14277389, 15, Kadana, 3.29, Residential, 1, 1, 0
+2014, 49.14, 26325231, 10, Malabe, 1.15, Agricultural, 0, 0, 0
+2016, 35.47, 10132147, 12, Kadawatha, 7.5, Agricultural, 1, 0, 1
+2023, 34.2, 23438320, 12, Kelaniya, 6.45, Agricultural, 0, 1, 1
+2017, 32.77, 17866892, 10, Kadawatha, 9.37, Residential, 0, 1, 1
+2022, 9.83, 4206679, 25, Kadawatha, 22.44, Commercial, 1, 0, 0
+2016, 47.21, 22910540, 10, Malabe, 5.68, Residential, 0, 0, 1
+2022, 25.37, 15086777, 15, Kelaniya, 24.36, Residential, 0, 1, 1
+2021, 10.08, 3163366, 25, Kadana, 1.21, Residential, 1, 0, 1
+2014, 19.51, 10103468, 25, Rajagiriya, 11.03, Commercial, 0, 0, 0
+2020, 21.31, 4087364, 12, Ragama, 20.02, Residential, 1, 1, 0
+2017, 35.89, 25049712, 25, Kadawatha, 8.36, Commercial, 1, 1, 0
+2014, 49.64, 19764314, 25, Malabe, 11.28, Commercial, 0, 1, 1
+2015, 22.32, 6117398, 25, Ragama, 23.07, Agricultural, 1, 0, 1
+2021, 19.98, 4527687, 10, Malabe, 11.08, Agricultural, 1, 1, 0
+2014, 44.04, 7347193, 25, Kelaniya, 11.46, Agricultural, 1, 0, 0
+2015, 24.36, 9590483, 25, Malabe, 18.78, Residential, 1, 1, 0
