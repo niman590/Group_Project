@@ -66,8 +66,7 @@
                             {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                         </div>
                         <div>
-                            <strong>{{ user['first_name'] }} {{ user['last_name'] if user else 'Citizen User'
-                                }}</strong>
+                            <strong>{{ user['first_name'] }} {{ user['last_name'] if user else 'Citizen User' }}</strong>
                             <span>NIC: {{ user['nic'] if user else '200012345678' }}</span>
                         </div>
                     </div>
@@ -265,13 +264,10 @@
                                 {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                             </div>
                             <div class="profile-meta">
-                                <h3>{{ user['first_name'] }} {{ user['last_name'] if user else 'R.A.D. Akash Randeniya'
-                                    }}</h3>
+                                <h3>{{ user['first_name'] }} {{ user['last_name'] if user else 'R.A.D. Akash Randeniya' }}</h3>
                                 <p>Email: {{ user['email'] if user else 'akash@example.com' }}</p>
-                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234
-                                    5678' }}</p>
-                                <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}
-                                </p>
+                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234 5678' }}</p>
+                                <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}</p>
                             </div>
                         </div>
                     </div>
@@ -331,6 +327,80 @@
 
         </main>
     </div>
+
+    <!-- CHATBOT BUTTON -->
+    <button class="chatbot-button" onclick="toggleChat()" aria-label="Open AI Assistant">
+        <i class="fa-solid fa-comment-dots"></i>
+    </button>
+
+    <!-- CHATBOT BOX -->
+    <div class="chatbot-box" id="chatbotBox">
+        <div class="chatbot-header">
+            <div class="chatbot-title">
+                <i class="fa-solid fa-robot"></i>
+                <span>AI Assistant</span>
+            </div>
+            <button type="button" class="chatbot-close" onclick="toggleChat()">×</button>
+        </div>
+
+        <div class="chatbot-messages" id="chatMessages">
+            <div class="bot-msg">
+                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site navigation.
+            </div>
+        </div>
+
+        <div class="chatbot-input">
+            <input type="text" id="chatInput" placeholder="Ask something..." />
+            <button type="button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleChat() {
+            const box = document.getElementById("chatbotBox");
+            if (box.style.display === "flex") {
+                box.style.display = "none";
+            } else {
+                box.style.display = "flex";
+                document.getElementById("chatInput").focus();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById("chatInput");
+            const messages = document.getElementById("chatMessages");
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            messages.innerHTML += `<div class="user-msg">${text}</div>`;
+            input.value = "";
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                const res = await fetch("/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await res.json();
+                messages.innerHTML += `<div class="bot-msg">${data.reply}</div>`;
+                messages.scrollTop = messages.scrollHeight;
+            } catch (error) {
+                messages.innerHTML += `<div class="bot-msg">Sorry, something went wrong. Please try again.</div>`;
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+
+        document.getElementById("chatInput").addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                sendMessage();
+            }
+        });
+    </script>
 </body>
 
 </html>
