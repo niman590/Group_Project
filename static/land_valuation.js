@@ -28,6 +28,16 @@ function validatePayload(payload) {
         alert("Please fill all numeric fields correctly.");
         return false;
     }
+
+    if (
+        payload.land_size < 0 ||
+        payload.access_road_size < 0 ||
+        payload.distance_to_city < 0
+    ) {
+        alert("Values cannot be negative.");
+        return false;
+    }
+
     return true;
 }
 
@@ -48,6 +58,11 @@ async function predictLandValue() {
         });
 
         const result = await response.json();
+
+        if (!response.ok) {
+            alert(result.error || "Something went wrong while predicting land value.");
+            return;
+        }
 
         if (result.error) {
             alert(result.error);
@@ -83,7 +98,8 @@ async function downloadLandValuationPDF() {
         });
 
         if (!response.ok) {
-            throw new Error("Failed to generate PDF.");
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to generate PDF.");
         }
 
         const blob = await response.blob();
@@ -99,7 +115,7 @@ async function downloadLandValuationPDF() {
         window.URL.revokeObjectURL(url);
 
     } catch (error) {
-        alert("Something went wrong while downloading the PDF.");
+        alert(error.message || "Something went wrong while downloading the PDF.");
         console.error(error);
     }
 }
