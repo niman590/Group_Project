@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Land Value Prediction</title>
+</head>
+<body>
+    <h2>Land Value Prediction</h2>
+
+    <input id="publication_year" placeholder="Publication Year"><br><br>
+    <input id="land_size" placeholder="Land Size"><br><br>
+    <input id="access_road_size" placeholder="Access Road Size"><br><br>
+    <input id="distance_to_city" placeholder="Distance to City"><br><br>
+
+    <select id="location">
+        <option value="Ragama">Ragama</option>
+        <option value="Rajagiriya">Rajagiriya</option>
+        <option value="Malabe">Malabe</option>
+        <option value="Ja-Ela">Ja-Ela</option>
+        <option value="Kelaniya">Kelaniya</option>
+        <option value="Kadana">Kadana</option>
+        <option value="Kadawatha">Kadawatha</option>
+        <option value="Kaduwela">Kaduwela</option>
+    </select><br><br>
+
+    <select id="zone_type">
+        <option value="Residential">Residential</option>
+        <option value="Commercial">Commercial</option>
+        <option value="Agricultural">Agricultural</option>
+    </select><br><br>
+
+    <input id="electricity" placeholder="Electricity (1 or 0)"><br><br>
+    <input id="water" placeholder="Water (1 or 0)"><br><br>
+    <input id="flood_risk" placeholder="Flood Risk (1 or 0)"><br><br>
+
+    <button onclick="predictLandValue()">Predict</button>
+
+    <h3>Results</h3>
+    <p>Current Value: <span id="current_value"></span></p>
+    <p>Predicted 1 Year: <span id="predicted_1_year"></span></p>
+    <p>Predicted 5 Year: <span id="predicted_5_year"></span></p>
+
+    <script>
+        async function predictLandValue() {
+            const payload = {
+                publication_year: parseInt(document.getElementById("publication_year").value),
+                land_size: parseFloat(document.getElementById("land_size").value),
+                access_road_size: parseInt(document.getElementById("access_road_size").value),
+                location: document.getElementById("location").value,
+                distance_to_city: parseFloat(document.getElementById("distance_to_city").value),
+                zone_type: document.getElementById("zone_type").value,
+                electricity: parseInt(document.getElementById("electricity").value),
+                water: parseInt(document.getElementById("water").value),
+                flood_risk: parseInt(document.getElementById("flood_risk").value)
+            };
+
+            const response = await fetch("/predict-land-value", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            document.getElementById("current_value").innerText = result.current_value || result.error;
+            document.getElementById("predicted_1_year").innerText = result.predicted_1_year || "-";
+            document.getElementById("predicted_5_year").innerText = result.predicted_5_year || "-";
+        }
+    </script>
+</body>
+</html>

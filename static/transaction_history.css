@@ -1,0 +1,107 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+}
+
+.history-page {
+    padding: 40px 20px;
+}
+
+.history-container {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.page-header h1 {
+    color: #123f88;
+    margin-bottom: 10px;
+}
+
+.page-header p {
+    color: #5f6b7a;
+}
+
+.choice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 25px 0;
+}
+
+.choice-card {
+    padding: 20px;
+    border: none;
+    border-radius: 14px;
+    background: #123f88;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.card {
+    background: white;
+    border-radius: 18px;
+    padding: 25px;
+    margin-top: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+}
+
+.hidden {
+    display: none;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d6dce5;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+.primary-btn {
+    padding: 12px 18px;
+    background: #123f88;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.result-area {
+    margin-top: 20px;
+}
+
+.history-card {
+    background: #f9fbff;
+    border: 1px solid #dce6f5;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.success-msg {
+    background: #eaf8ef;
+    color: #1d6b34;
+    padding: 12px;
+    border-radius: 10px;
+}
+
+.error-msg {
+    background: #fdecec;
+    color: #a02828;
+    padding: 12px;
+    border-radius: 10px;
+}s

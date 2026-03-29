@@ -128,6 +128,88 @@ def init_db():
     );
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS land_record (
+        land_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        deed_number TEXT UNIQUE NOT NULL,
+        property_address TEXT,
+        location TEXT,
+        current_owner_name TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS ownership_history (
+        history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        land_id INTEGER NOT NULL,
+        owner_name TEXT NOT NULL,
+        owner_nic TEXT,
+        owner_address TEXT,
+        owner_phone TEXT,
+        transfer_date TEXT NOT NULL,
+        transaction_type TEXT NOT NULL,
+        ownership_order INTEGER NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (land_id) REFERENCES land_record(land_id)
+    );
+    """)
+    
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS transaction_history_update_request (
+        request_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        deed_number TEXT NOT NULL,
+        proposed_owner_name TEXT NOT NULL,
+        proposed_owner_nic TEXT,
+        proposed_owner_address TEXT,
+        proposed_owner_phone TEXT,
+        proposed_transfer_date TEXT NOT NULL,
+        proposed_transaction_type TEXT NOT NULL,
+        notes TEXT,
+        proof_document_path TEXT,
+        status TEXT DEFAULT 'Pending',
+        submitted_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        reviewed_by INTEGER,
+        reviewed_at TEXT,
+        admin_comment TEXT,
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        FOREIGN KEY (reviewed_by) REFERENCES users(user_id)
+    );
+    """)
+
+    cursor.execute("""
+    INSERT OR IGNORE INTO land_record (deed_number, property_address, location, current_owner_name)
+    VALUES ('D-1001', 'No. 25, Kaduwela Road', 'Kaduwela', 'Amal Perera');
+    """)
+
+    cursor.execute("SELECT land_id FROM land_record WHERE deed_number = 'D-1001'")
+    land = cursor.fetchone()
+
+    if land:
+        land_id = land[0]
+
+        cursor.execute("""
+        INSERT OR IGNORE INTO ownership_history
+        (land_id, owner_name, owner_nic, owner_address, owner_phone, transfer_date, transaction_type, ownership_order)
+        VALUES
+        (?, 'Nimal Silva', '901234567V', 'Colombo', '0711111111', '2010-05-10', 'Original Registration', 1)
+        """, (land_id,))
+
+        cursor.execute("""
+        INSERT OR IGNORE INTO ownership_history
+        (land_id, owner_name, owner_nic, owner_address, owner_phone, transfer_date, transaction_type, ownership_order)
+        VALUES
+        (?, 'Sunil Fernando', '881234567V', 'Gampaha', '0722222222', '2015-08-15', 'Sale', 2)
+        """, (land_id,))
+
+        cursor.execute("""
+        INSERT OR IGNORE INTO ownership_history
+        (land_id, owner_name, owner_nic, owner_address, owner_phone, transfer_date, transaction_type, ownership_order)
+        VALUES
+        (?, 'Amal Perera', '851234567V', 'Kaduwela', '0773333333', '2020-02-01', 'Sale', 3)
+        """, (land_id,))
+
     # Make sure old users get is_active default if null
     cursor.execute("""
     UPDATE users

@@ -7,6 +7,8 @@ from routes.admin_routes import admin_bp
 from routes.password_reset_routes import password_reset_bp
 from routes.prediction_routes import prediction_bp
 from routes.chatbot_routes import chatbot_bp
+from routes.transaction_history_routes import transaction_history_bp
+
 
 app = Flask(__name__)
 app.secret_key = "civic_plan_secret_key"
@@ -20,6 +22,7 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(password_reset_bp)
 app.register_blueprint(prediction_bp)
 app.register_blueprint(chatbot_bp)
+app.register_blueprint(transaction_history_bp)
 
 if __name__ == "__main__":
     app.run(debug=True)
