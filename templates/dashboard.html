@@ -28,7 +28,6 @@
                 <a href="#main-services">Services</a>
                 <a href="#useful-information">Public Notices</a>
                 <button class="nav-help-btn" data-modal="helpModal" type="button">Help</button>
-                <a href="#" class="nav-search"><i class="fa-solid fa-magnifying-glass"></i></a>
             </nav>
 
             <div class="header-actions">
@@ -211,8 +210,8 @@
                 <h4>Account</h4>
                 <a href="{{ url_for('auth.login') }}">Sign in</a>
                 <a href="{{ url_for('auth.register') }}">Create account</a>
-                <a href="#">Privacy</a>
-                <a href="#">Terms</a>
+                <button class="footer-help-btn" data-modal="privacyModal" type="button">Privacy</button>
+                <button class="footer-help-btn" data-modal="termsModal" type="button">Terms</button>
             </div>
         </div>
 
@@ -429,6 +428,123 @@
             <li>Update your account details when your phone number or email changes</li>
             <li>Contact support if a submission fails or important account access issues continue</li>
         </ul>
+    </div>
+
+    <!-- PRIVACY MODAL -->
+    <div class="service-modal large-modal" id="privacyModal" role="dialog" aria-modal="true"
+        aria-labelledby="privacyModalTitle">
+        <button class="close-modal" data-close type="button">&times;</button>
+        <div class="modal-icon">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 id="privacyModalTitle">Privacy notice</h3>
+        <p>
+            Civic Plan is designed as a public-facing digital service for land management and planning-related
+            requests. We handle personal details only for service delivery, account management, security,
+            application tracking, and lawful administrative communication.
+        </p>
+        <p>
+            This notice is written in a style commonly seen on Sri Lankan public-service websites and is
+            suitable for a project demo. For a live deployment, it should be reviewed against your final
+            legal and institutional requirements.
+        </p>
+
+        <h4>Information we may collect</h4>
+        <ul>
+            <li>Identity and account details such as name, NIC, email, contact number, and address</li>
+            <li>Property-related details, uploaded documents, reference numbers, and application data</li>
+            <li>Technical records such as login activity, timestamps, device or browser information, and audit logs</li>
+            <li>Communication records linked to requests, approvals, corrections, and account support</li>
+        </ul>
+
+        <h4>How information is used</h4>
+        <ul>
+            <li>To register users, verify access, and manage secure sign-in</li>
+            <li>To process planning-related requests and support administrative review workflows</li>
+            <li>To issue notifications, status updates, approvals, rejections, or requests for more documents</li>
+            <li>To maintain service reliability, monitor suspicious activity, and protect the portal from misuse</li>
+        </ul>
+
+        <h4>Data protection and security</h4>
+        <ul>
+            <li>Reasonable safeguards should be used to protect user records, credentials, and uploaded files</li>
+            <li>Access should be restricted according to user role, operational need, and approved authority</li>
+            <li>Audit logs may be retained for security monitoring, troubleshooting, and accountability</li>
+            <li>Personal information should not be disclosed except where required for service delivery or by law</li>
+        </ul>
+
+        <h4>User responsibilities</h4>
+        <ul>
+            <li>Provide accurate information and keep contact details up to date</li>
+            <li>Do not share passwords or allow unauthorized persons to use your account</li>
+            <li>Review uploaded documents before submission to avoid incorrect or incomplete records</li>
+        </ul>
+
+        <h4>Policy updates</h4>
+        <p>
+            This privacy notice may be updated when service features, security controls, or legal requirements
+            change. Continued use of the portal after updates means you accept the revised notice.
+        </p>
+    </div>
+
+    <!-- TERMS MODAL -->
+    <div class="service-modal large-modal" id="termsModal" role="dialog" aria-modal="true"
+        aria-labelledby="termsModalTitle">
+        <button class="close-modal" data-close type="button">&times;</button>
+        <div class="modal-icon">
+            <i class="fa-solid fa-scale-balanced"></i>
+        </div>
+        <h3 id="termsModalTitle">Terms and conditions</h3>
+        <p>
+            Civic Plan is a digital project portal created to present land management and planning approval
+            services in a structured online format. By using this portal, you agree to use it lawfully,
+            provide accurate information, and follow official service procedures.
+        </p>
+
+        <h4>Use of the portal</h4>
+        <ul>
+            <li>The portal is intended for lawful access to information, account services, and planning-related requests
+            </li>
+            <li>Users must not submit false, misleading, incomplete, or unauthorized information</li>
+            <li>Users must not attempt to damage, disrupt, probe, or gain unauthorized access to the system</li>
+            <li>Availability of online information does not by itself guarantee approval, registration, or legal
+                entitlement</li>
+        </ul>
+
+        <h4>Applications and decisions</h4>
+        <ul>
+            <li>Planning and land-related requests remain subject to document review, validation rules, and relevant
+                regulations</li>
+            <li>Authorities may request additional information, corrections, or supporting records before decisions are
+                made</li>
+            <li>Submission through the portal does not replace statutory processes, inspections, or legal obligations
+                where applicable</li>
+            <li>Processing times may vary depending on document completeness, review requirements, and case complexity
+            </li>
+        </ul>
+
+        <h4>Documents and records</h4>
+        <ul>
+            <li>Users are responsible for ensuring uploaded files are accurate, readable, and relevant to the request
+            </li>
+            <li>Reference materials, notices, and guidance content are provided for general service support</li>
+            <li>Official laws, regulations, gazettes, and authority directions take precedence over portal summaries
+            </li>
+        </ul>
+
+        <h4>Account and security</h4>
+        <ul>
+            <li>You are responsible for maintaining the confidentiality of your account credentials</li>
+            <li>The portal may suspend access where suspicious activity, misuse, or policy breaches are detected</li>
+            <li>Administrative actions may be logged for service quality, security, and compliance purposes</li>
+        </ul>
+
+        <h4>Service limitation</h4>
+        <p>
+            While reasonable effort may be taken to keep information up to date, the portal may contain
+            changes, updates, or service interruptions. Users should verify important requirements against
+            current official guidance before acting on time-sensitive matters.
+        </p>
     </div>
 
     <script>
