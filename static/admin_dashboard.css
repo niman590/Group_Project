@@ -15,11 +15,22 @@ body {
     min-height: 100vh;
 }
 
+.dashboard-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
 .sidebar {
     width: 280px;
+    min-height: 100vh;
     background: linear-gradient(to bottom, #0d2b52, #163b6d, #2f5ea8);
     color: white;
     padding: 28px 20px;
+}
+
+.main-content {
+    flex: 1;
+    padding: 28px;
 }
 
 .sidebar-brand {
