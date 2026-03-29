@@ -526,41 +526,56 @@ a {
 .modal-overlay {
     position: fixed;
     inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 24px 16px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     background: rgba(7, 24, 52, 0.58);
     backdrop-filter: blur(5px);
     opacity: 0;
     visibility: hidden;
-    transition: 0.3s ease;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
     z-index: 999;
 }
 
 .modal-overlay.active {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
 }
 
 .service-modal {
     position: fixed;
-    top: 50%;
+    top: 24px;
     left: 50%;
-    width: 92%;
-    max-width: 500px;
+    width: min(92vw, 500px);
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     background: #ffffff;
     border-radius: 22px;
     padding: 30px 28px 26px;
     box-shadow: 0 28px 70px rgba(10, 45, 99, 0.24);
     border: 1px solid #dbe7fb;
-    transform: translate(-50%, -50%) scale(0.88);
+    transform: translateX(-50%) translateY(12px) scale(0.96);
+    transform-origin: top center;
     opacity: 0;
     visibility: hidden;
-    transition: 0.3s ease;
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
     z-index: 1000;
 }
 
 .service-modal.active {
-    transform: translate(-50%, -50%) scale(1);
+    transform: translateX(-50%) translateY(0) scale(1);
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
 }
 
 .large-modal {
@@ -643,6 +658,23 @@ body.modal-open {
     overflow: hidden;
 }
 
+html.modal-open {
+    overflow: hidden;
+}
+
+.service-modal::-webkit-scrollbar {
+    width: 10px;
+}
+
+.service-modal::-webkit-scrollbar-thumb {
+    background: #c9d8f0;
+    border-radius: 999px;
+}
+
+.service-modal::-webkit-scrollbar-track {
+    background: transparent;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1100px) {
 
@@ -687,13 +719,21 @@ body.modal-open {
         font-size: 1.8rem;
     }
 
+    .modal-overlay {
+        padding: 12px 10px;
+    }
+
     .service-modal {
+        top: 12px;
+        left: 50%;
+        width: calc(100vw - 20px);
+        max-height: calc(100vh - 24px);
         padding: 26px 20px 22px;
         border-radius: 18px;
     }
 
     .large-modal {
-        width: 94%;
+        width: calc(100vw - 20px);
         padding: 24px 18px 20px;
     }
 
