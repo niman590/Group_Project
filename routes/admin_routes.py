@@ -1,5 +1,7 @@
-from flask import Blueprint, render_template, session, redirect, url_for, flash, request
+from flask import render_template, request, redirect, url_for, flash, session
+from datetime import datetime
 from database.db_connection import get_connection
+from flask import Blueprint
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -153,6 +155,145 @@ def toggle_user_status(user_id):
 
     return redirect(url_for("admin.admin_dashboard"))
 
+@admin_bp.route("/admin/transaction-history-requests")
+def admin_transaction_history_requests():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT request_id, deed_number, proposed_owner_name, proposed_owner_nic,
+               proposed_owner_address, proposed_owner_phone,
+               proposed_transfer_date, proposed_transaction_type,
+               notes, proof_document_path, status, submitted_at
+        FROM transaction_history_update_request
+        ORDER BY submitted_at DESC
+    """)
+    requests = cursor.fetchall()
+
+    conn.close()
+
+    return render_template("admin_transaction_history_requests.html", requests=requests)
+
+@admin_bp.route("/admin/transaction-history-request/<int:request_id>/approve", methods=["POST"])
+def approve_transaction_history_request(request_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Get request details
+    cursor.execute("""
+        SELECT deed_number, proposed_owner_name, proposed_owner_nic,
+               proposed_owner_address, proposed_owner_phone,
+               proposed_transfer_date, proposed_transaction_type
+        FROM transaction_history_update_request
+        WHERE request_id = ? AND status = 'Pending'
+    """, (request_id,))
+    req = cursor.fetchone()
+
+    if not req:
+        conn.close()
+        flash("Request not found or already processed.", "error")
+        return redirect(url_for("admin.admin_transaction_history_requests"))
+
+    deed_number = req["deed_number"]
+    proposed_owner_name = req["proposed_owner_name"]
+    proposed_owner_nic = req["proposed_owner_nic"]
+    proposed_owner_address = req["proposed_owner_address"]
+    proposed_owner_phone = req["proposed_owner_phone"]
+    proposed_transfer_date = req["proposed_transfer_date"]
+    proposed_transaction_type = req["proposed_transaction_type"]
+
+    # Find matching land
+    cursor.execute("""
+        SELECT land_id
+        FROM land_record
+        WHERE deed_number = ?
+    """, (deed_number,))
+    land = cursor.fetchone()
+
+    if not land:
+        conn.close()
+        flash("No matching land record found.", "error")
+        return redirect(url_for("admin.admin_transaction_history_requests"))
+
+    land_id = land["land_id"]
+
+    # Get next ownership order
+    cursor.execute("""
+        SELECT COALESCE(MAX(ownership_order), 0)
+        FROM ownership_history
+        WHERE land_id = ?
+    """, (land_id,))
+    max_order = cursor.fetchone()[0]
+    next_order = max_order + 1
+
+    # Insert into official ownership history
+    cursor.execute("""
+        INSERT INTO ownership_history
+        (
+            land_id, owner_name, owner_nic, owner_address, owner_phone,
+            transfer_date, transaction_type, ownership_order
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        land_id,
+        proposed_owner_name,
+        proposed_owner_nic,
+        proposed_owner_address,
+        proposed_owner_phone,
+        proposed_transfer_date,
+        proposed_transaction_type,
+        next_order
+    ))
+
+    # Update current owner in land_record
+    cursor.execute("""
+        UPDATE land_record
+        SET current_owner_name = ?
+        WHERE land_id = ?
+    """, (proposed_owner_name, land_id))
+
+    # Mark request approved
+    admin_user_id = session.get("user_id", None)
+    reviewed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    cursor.execute("""
+        UPDATE transaction_history_update_request
+        SET status = 'Approved',
+            reviewed_by = ?,
+            reviewed_at = ?
+        WHERE request_id = ?
+    """, (admin_user_id, reviewed_at, request_id))
+
+    conn.commit()
+    conn.close()
+
+    flash("Transaction history request approved successfully.", "success")
+    return redirect(url_for("admin.admin_transaction_history_requests"))
+
+@admin_bp.route("/admin/transaction-history-request/<int:request_id>/reject", methods=["POST"])
+def reject_transaction_history_request(request_id):
+    admin_comment = request.form.get("admin_comment", "")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    admin_user_id = session.get("user_id", None)
+    reviewed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    cursor.execute("""
+        UPDATE transaction_history_update_request
+        SET status = 'Rejected',
+            reviewed_by = ?,
+            reviewed_at = ?,
+            admin_comment = ?
+        WHERE request_id = ? AND status = 'Pending'
+    """, (admin_user_id, reviewed_at, admin_comment, request_id))
+
+    conn.commit()
+    conn.close()
+
+    flash("Transaction history request rejected.", "warning")
+    return redirect(url_for("admin.admin_transaction_history_requests"))
 
 @admin_bp.route("/admin/users/<int:user_id>/make-admin", methods=["POST"])
 def make_admin(user_id):
