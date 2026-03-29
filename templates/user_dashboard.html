@@ -32,7 +32,9 @@
                 <a href="#"><i class="fa-solid fa-file-arrow-up"></i> Submit Documents</a>
                 <a href="#"><i class="fa-solid fa-folder-open"></i> My Applications</a>
                 <a href="#"><i class="fa-solid fa-landmark"></i> Property Records</a>
-                <a href="#"><i class="fa-solid fa-clock-rotate-left"></i> Transaction History</a>
+                <a href="{{ url_for('transaction_history.transaction_history_page') }}">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Transaction History
+                </a>
                 <a href="#"><i class="fa-solid fa-map-location-dot"></i> GIS Map</a>
                 <a href="{{ url_for('prediction.land_valuation_page') }}">
                     <i class="fa-solid fa-chart-line"></i> Land Valuation
@@ -122,8 +124,8 @@
                     <p>Monitor review progress, approvals, rejections, and updates.</p>
                 </a>
 
-                <a href="#" class="action-card">
-                    <i class="fa-solid fa-history"></i>
+                <a href="{{ url_for('transaction_history.transaction_history_page') }}" class="action-card">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
                     <h3>View Land Transaction History</h3>
                     <p>See past transactions and ownership changes.</p>
                 </a>
