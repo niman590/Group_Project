@@ -1,14 +1,21 @@
-import sqlite3
 import os
+import sqlite3
 from werkzeug.security import generate_password_hash
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
-db_path = os.path.join(base_dir, "land_management_system.db")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "land_management_system.db")
+
+
+def get_connection():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON;")
+    return conn
 
 
 def get_existing_columns(cursor, table_name):
     cursor.execute(f"PRAGMA table_info({table_name})")
-    return [row[1] for row in cursor.fetchall()]
+    return [row["name"] if isinstance(row, sqlite3.Row) else row[1] for row in cursor.fetchall()]
 
 
 def add_column_if_missing(cursor, table_name, column_name, column_definition):
@@ -17,10 +24,94 @@ def add_column_if_missing(cursor, table_name, column_name, column_definition):
         cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}")
 
 
-def init_db():
-    connection = sqlite3.connect(db_path)
-    cursor = connection.cursor()
+def create_indexes(cursor):
+    # USERS
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique
+        ON users(email)
+    """)
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_nic_unique
+        ON users(nic)
+    """)
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_employee_id_unique
+        ON users(employee_id)
+        WHERE employee_id IS NOT NULL
+    """)
 
+    # PROPERTY
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_property_owner_id
+        ON property(owner_id)
+    """)
+
+    # TRANSACTION HISTORY
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_transaction_history_property_id
+        ON transaction_history(property_id)
+    """)
+
+    # VALUE PREDICTION
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_value_prediction_property_id
+        ON value_prediction(property_id)
+    """)
+
+    # PLAN CASE
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_plan_case_user_id
+        ON plan_case(user_id)
+    """)
+
+    # DOCUMENT
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_document_property_id
+        ON document(property_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_document_user_id
+        ON document(user_id)
+    """)
+
+    # PLAN CASE TRACKING
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_plan_case_tracking_document_id
+        ON plan_case_tracking(document_id)
+    """)
+
+    # LAND RECORD
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_land_record_deed_number_unique
+        ON land_record(deed_number)
+    """)
+
+    # OWNERSHIP HISTORY
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_ownership_history_land_id
+        ON ownership_history(land_id)
+    """)
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_ownership_history_land_order_unique
+        ON ownership_history(land_id, ownership_order)
+    """)
+
+    # UPDATE REQUESTS
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_history_update_request_user_id
+        ON transaction_history_update_request(user_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_history_update_request_deed_number
+        ON transaction_history_update_request(deed_number)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_history_update_request_status
+        ON transaction_history_update_request(status)
+    """)
+
+
+def create_tables(cursor):
     # USERS TABLE
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
@@ -28,18 +119,18 @@ def init_db():
         first_name TEXT NOT NULL,
         last_name TEXT NOT NULL,
         phone_number TEXT,
-        email TEXT UNIQUE NOT NULL,
+        email TEXT NOT NULL,
         password_hash TEXT NOT NULL,
         date_of_birth TEXT,
         address TEXT,
         city TEXT,
-        nic TEXT UNIQUE NOT NULL,
-        is_admin BOOLEAN DEFAULT FALSE,
+        nic TEXT NOT NULL,
+        is_admin BOOLEAN DEFAULT 0,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
     """)
 
-    # Safely add missing columns to existing DB
+    # Add safely for old databases
     add_column_if_missing(cursor, "users", "employee_id", "TEXT")
     add_column_if_missing(cursor, "users", "is_active", "BOOLEAN DEFAULT 1")
 
@@ -109,8 +200,8 @@ def init_db():
     CREATE TABLE IF NOT EXISTS plan_case_tracking (
         tracking_id INTEGER PRIMARY KEY AUTOINCREMENT,
         document_id INTEGER NOT NULL,
-        case_opendate DATETIME,
-        case_closedate DATETIME,
+        case_opendate TEXT,
+        case_closedate TEXT,
         FOREIGN KEY (document_id) REFERENCES document(document_id)
     );
     """)
@@ -119,7 +210,7 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS report (
         report_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        generated_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+        generated_date TEXT DEFAULT CURRENT_TIMESTAMP,
         total_cases INTEGER DEFAULT 0,
         rejected_cases INTEGER DEFAULT 0,
         approved_cases INTEGER DEFAULT 0,
@@ -128,10 +219,11 @@ def init_db():
     );
     """)
 
+    # LAND RECORD TABLE
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS land_record (
         land_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        deed_number TEXT UNIQUE NOT NULL,
+        deed_number TEXT NOT NULL,
         property_address TEXT,
         location TEXT,
         current_owner_name TEXT,
@@ -139,6 +231,7 @@ def init_db():
     );
     """)
 
+    # OWNERSHIP HISTORY TABLE
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS ownership_history (
         history_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -154,7 +247,8 @@ def init_db():
         FOREIGN KEY (land_id) REFERENCES land_record(land_id)
     );
     """)
-    
+
+    # TRANSACTION HISTORY UPDATE REQUEST TABLE
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS transaction_history_update_request (
         request_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -178,69 +272,37 @@ def init_db():
     );
     """)
 
+
+def create_default_admin(cursor):
     cursor.execute("""
-    INSERT OR IGNORE INTO land_record (deed_number, property_address, location, current_owner_name)
-    VALUES ('D-1001', 'No. 25, Kaduwela Road', 'Kaduwela', 'Amal Perera');
+        UPDATE users
+        SET is_active = 1
+        WHERE is_active IS NULL
     """)
 
-    cursor.execute("SELECT land_id FROM land_record WHERE deed_number = 'D-1001'")
-    land = cursor.fetchone()
-
-    if land:
-        land_id = land[0]
-
-        cursor.execute("""
-        INSERT OR IGNORE INTO ownership_history
-        (land_id, owner_name, owner_nic, owner_address, owner_phone, transfer_date, transaction_type, ownership_order)
-        VALUES
-        (?, 'Nimal Silva', '901234567V', 'Colombo', '0711111111', '2010-05-10', 'Original Registration', 1)
-        """, (land_id,))
-
-        cursor.execute("""
-        INSERT OR IGNORE INTO ownership_history
-        (land_id, owner_name, owner_nic, owner_address, owner_phone, transfer_date, transaction_type, ownership_order)
-        VALUES
-        (?, 'Sunil Fernando', '881234567V', 'Gampaha', '0722222222', '2015-08-15', 'Sale', 2)
-        """, (land_id,))
-
-        cursor.execute("""
-        INSERT OR IGNORE INTO ownership_history
-        (land_id, owner_name, owner_nic, owner_address, owner_phone, transfer_date, transaction_type, ownership_order)
-        VALUES
-        (?, 'Amal Perera', '851234567V', 'Kaduwela', '0773333333', '2020-02-01', 'Sale', 3)
-        """, (land_id,))
-
-    # Make sure old users get is_active default if null
     cursor.execute("""
-    UPDATE users
-    SET is_active = 1
-    WHERE is_active IS NULL
-    """)
-
-    # Create default admin only if not already existing
-    cursor.execute("""
-    SELECT user_id FROM users
-    WHERE email = ?
+        SELECT user_id FROM users
+        WHERE email = ?
     """, ("admin@civicplan.local",))
     admin_exists = cursor.fetchone()
 
     if not admin_exists:
         cursor.execute("""
-        INSERT INTO users (
-            first_name,
-            last_name,
-            phone_number,
-            email,
-            password_hash,
-            date_of_birth,
-            address,
-            city,
-            nic,
-            employee_id,
-            is_admin,
-            is_active
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (
+                first_name,
+                last_name,
+                phone_number,
+                email,
+                password_hash,
+                date_of_birth,
+                address,
+                city,
+                nic,
+                employee_id,
+                is_admin,
+                is_active
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             "System",
             "Admin",
@@ -256,11 +318,116 @@ def init_db():
             1
         ))
 
-    connection.commit()
-    connection.close()
+
+def insert_sample_transaction_history_data(cursor):
+    """
+    Insert sample deed and ownership history only if they do not already exist.
+    This avoids duplicate history rows every time the app starts.
+    """
+
+    # Insert land record only once
+    cursor.execute("""
+        INSERT OR IGNORE INTO land_record (
+            deed_number,
+            property_address,
+            location,
+            current_owner_name
+        )
+        VALUES (?, ?, ?, ?)
+    """, (
+        "D-1001",
+        "No. 25, Kaduwela Road",
+        "Kaduwela",
+        "Amal Perera"
+    ))
+
+    cursor.execute("""
+        SELECT land_id
+        FROM land_record
+        WHERE deed_number = ?
+    """, ("D-1001",))
+    land = cursor.fetchone()
+
+    if not land:
+        return
+
+    land_id = land["land_id"]
+
+    # Only insert sample history if no history exists for this land
+    cursor.execute("""
+        SELECT COUNT(*) AS count
+        FROM ownership_history
+        WHERE land_id = ?
+    """, (land_id,))
+    history_count = cursor.fetchone()["count"]
+
+    if history_count == 0:
+        cursor.execute("""
+            INSERT INTO ownership_history (
+                land_id, owner_name, owner_nic, owner_address,
+                owner_phone, transfer_date, transaction_type, ownership_order
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            land_id,
+            "Nimal Silva",
+            "901234567V",
+            "Colombo",
+            "0711111111",
+            "2010-05-10",
+            "Original Registration",
+            1
+        ))
+
+        cursor.execute("""
+            INSERT INTO ownership_history (
+                land_id, owner_name, owner_nic, owner_address,
+                owner_phone, transfer_date, transaction_type, ownership_order
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            land_id,
+            "Sunil Fernando",
+            "881234567V",
+            "Gampaha",
+            "0722222222",
+            "2015-08-15",
+            "Sale",
+            2
+        ))
+
+        cursor.execute("""
+            INSERT INTO ownership_history (
+                land_id, owner_name, owner_nic, owner_address,
+                owner_phone, transfer_date, transaction_type, ownership_order
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            land_id,
+            "Amal Perera",
+            "851234567V",
+            "Kaduwela",
+            "0773333333",
+            "2020-02-01",
+            "Sale",
+            3
+        ))
+
+
+def init_db():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    create_tables(cursor)
+    create_indexes(cursor)
+    create_default_admin(cursor)
+    insert_sample_transaction_history_data(cursor)
+
+    conn.commit()
+    conn.close()
 
 
 if __name__ == "__main__":
     init_db()
-    print("Database updated successfully.")
-    print("Database path:", db_path)
+    print("Database initialized successfully.")
+    print("Database path:", DB_PATH)
