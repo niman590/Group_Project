@@ -8,6 +8,7 @@ from routes.password_reset_routes import password_reset_bp
 from routes.prediction_routes import prediction_bp
 from routes.chatbot_routes import chatbot_bp
 from routes.transaction_history_routes import transaction_history_bp
+from routes.submit_documents_routes import submit_documents_bp
 
 
 app = Flask(__name__)
