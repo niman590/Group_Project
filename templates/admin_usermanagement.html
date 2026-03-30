@@ -11,7 +11,6 @@
 
     <div class="admin-shell">
 
-        <!-- SAME SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-brand">
                 <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}">
@@ -30,7 +29,8 @@
                     History Requests
                 </a>
 
-                <a href="{{ url_for('admin.admin_user_management') }}" class="active">
+                <!-- ✅ FIXED -->
+                <a href="{{ url_for('admin.admin_users') }}" class="active">
                     User Management
                 </a>
 
@@ -46,7 +46,6 @@
                 <h1>User Management</h1>
             </header>
 
-            <!-- 🔥 SAME TABLE (NO CHANGE) -->
             <section class="panel">
 
                 <div class="table-wrap">

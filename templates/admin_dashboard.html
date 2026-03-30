@@ -1,18 +1,24 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Civic Plan - Admin Dashboard</title>
+
+    ```
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    ```
+
 </head>
 
 <body>
 
     <div class="admin-shell">
 
+        ```
         <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-brand">
@@ -24,17 +30,25 @@
             </div>
 
             <nav class="sidebar-nav">
+
                 <a href="{{ url_for('admin.admin_dashboard') }}" class="active">
-                    <i class="fa-solid fa-gauge"></i> Admin Dashboard
+                    <i class="fa-solid fa-gauge"></i> Dashboard
                 </a>
 
                 <a href="{{ url_for('admin.admin_transaction_history_requests') }}">
                     <i class="fa-solid fa-clock-rotate-left"></i> History Requests
                 </a>
 
-                <!-- ✅ NEW PAGE -->
-                <a href="{{ url_for('admin.admin_user_management') }}">
+                <a href="{{ url_for('admin.admin_users') }}">
                     <i class="fa-solid fa-users"></i> User Management
+                </a>
+
+                <a href="#">
+                    <i class="fa-solid fa-file-lines"></i> Reports
+                </a>
+
+                <a href="#">
+                    <i class="fa-solid fa-shield-halved"></i> Security Logs
                 </a>
 
                 <a href="{{ url_for('user.account') }}">
@@ -44,16 +58,18 @@
                 <a href="{{ url_for('auth.logout') }}">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
+
             </nav>
         </aside>
 
         <!-- MAIN -->
         <main class="main-content">
 
+            <!-- TOP BAR -->
             <header class="topbar">
                 <div>
                     <h1>Welcome back, {{ user['first_name'] }}</h1>
-                    <p>Manage users, roles, and system activity.</p>
+                    <p>Manage system operations, users, and approvals.</p>
                 </div>
 
                 <div class="admin-chip">
@@ -65,18 +81,7 @@
                 </div>
             </header>
 
-            <!-- FLASH -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            <div class="flash-messages">
-                {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
-                {% endfor %}
-            </div>
-            {% endif %}
-            {% endwith %}
-
-            <!-- ✅ SYSTEM OVERVIEW -->
+            <!-- STATS -->
             <section class="stats-grid">
                 <div class="stat-card">
                     <h3>{{ total_users }}</h3>
@@ -99,25 +104,36 @@
                 </div>
             </section>
 
-            <!-- ✅ QUICK ACTION PANEL -->
+            <!-- QUICK ACTIONS -->
             <section class="panel">
                 <div class="panel-header">
                     <h2>Quick Actions</h2>
-                    <p>Common admin tasks</p>
+                    <p>Perform administrative tasks quickly</p>
                 </div>
 
                 <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                    <a href="{{ url_for('admin.admin_transaction_history_requests') }}" class="btn primary">
-                        View Requests
-                    </a>
 
-                    <a href="{{ url_for('admin.admin_user_management') }}" class="btn secondary">
-                        Manage Users
-                    </a>
+                    <button onclick="location.href='{{ url_for('admin.admin_transaction_history_requests') }}'"
+                        class="btn primary">
+                        <i class="fa-solid fa-list"></i> View Requests
+                    </button>
+
+                    <button onclick="location.href='{{ url_for('admin.admin_users') }}'" class="btn secondary">
+                        <i class="fa-solid fa-users"></i> Manage Users
+                    </button>
+
+                    <button class="btn warning">
+                        <i class="fa-solid fa-triangle-exclamation"></i> View Alerts
+                    </button>
+
+                    <button class="btn success">
+                        <i class="fa-solid fa-file-circle-check"></i> Approvals
+                    </button>
+
                 </div>
             </section>
 
-            <!-- ✅ RECENT ACTIVITY -->
+            <!-- RECENT ACTIVITY -->
             <section class="panel">
                 <div class="panel-header">
                     <h2>Recent Activity</h2>
@@ -125,13 +141,25 @@
 
                 <ul style="padding-left:20px; color:#4a5568;">
                     <li>✔ New user registered</li>
-                    <li>✔ Request approved</li>
-                    <li>⚠ Suspicious activity detected</li>
+                    <li>✔ Transaction approved</li>
+                    <li>⚠ Suspicious login detected</li>
                     <li>✔ User promoted to admin</li>
                 </ul>
             </section>
 
+            <!-- ALERT PANEL -->
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>System Alerts</h2>
+                </div>
+
+                <div class="flash warning">⚠ 2 suspicious login attempts detected</div>
+                <div class="flash success">✔ System running normally</div>
+            </section>
+
         </main>
+        ```
+
     </div>
 
 </body>
