@@ -23,6 +23,7 @@ app.register_blueprint(password_reset_bp)
 app.register_blueprint(prediction_bp)
 app.register_blueprint(chatbot_bp)
 app.register_blueprint(transaction_history_bp)
+app.register_blueprint(submit_documents_bp)
 
 if __name__ == "__main__":
     app.run(debug=True)
