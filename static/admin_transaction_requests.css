@@ -229,4 +229,24 @@
         font-size: 13px;
         padding: 14px 10px;
     }
+<<<<<<< HEAD
 }
+=======
+}
+
+.btn-delete {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: 0.25s ease;
+    background: #374151;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #1f2937;
+}
+>>>>>>> 33e6af25b41904b20f37f86bfa0b83edb0ec4dea
