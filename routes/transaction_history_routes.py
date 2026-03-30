@@ -1,5 +1,9 @@
 import os
+<<<<<<< HEAD
 from flask import Blueprint, render_template, request, jsonify, session
+=======
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, flash
+>>>>>>> 33e6af25b41904b20f37f86bfa0b83edb0ec4dea
 from werkzeug.utils import secure_filename
 from database.db_connection import get_connection
 
@@ -121,4 +125,41 @@ def request_transaction_history_update():
     conn.commit()
     conn.close()
 
+<<<<<<< HEAD
     return jsonify({"message": "Update request submitted successfully and is pending admin approval."})
+=======
+    return jsonify({"message": "Update request submitted successfully and is pending admin approval."})
+
+@transaction_history_bp.route("/admin/delete-approved-transaction/<int:request_id>", methods=["POST"])
+def delete_approved_transaction(request_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT status
+        FROM transaction_history_update_request
+        WHERE request_id = ?
+    """, (request_id,))
+    request_row = cursor.fetchone()
+
+    if not request_row:
+        conn.close()
+        flash("Transaction request not found.", "error")
+        return redirect(url_for("admin.admin_transaction_history_requests"))
+
+    if request_row[0] != "Approved":
+        conn.close()
+        flash("Only approved transactions can be deleted.", "warning")
+        return redirect(url_for("admin.admin_transaction_history_requests"))
+
+    cursor.execute("""
+        DELETE FROM transaction_history_update_request
+        WHERE request_id = ? AND status = 'Approved'
+    """, (request_id,))
+
+    conn.commit()
+    conn.close()
+
+    flash("Approved transaction deleted successfully.", "success")
+    return redirect(url_for("admin.admin_transaction_history_requests"))
+>>>>>>> 33e6af25b41904b20f37f86bfa0b83edb0ec4dea

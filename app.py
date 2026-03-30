@@ -9,7 +9,11 @@ from routes.prediction_routes import prediction_bp
 from routes.chatbot_routes import chatbot_bp
 from routes.transaction_history_routes import transaction_history_bp
 
+<<<<<<< HEAD
 
+=======
+#niman nethmika
+>>>>>>> 33e6af25b41904b20f37f86bfa0b83edb0ec4dea
 app = Flask(__name__)
 app.secret_key = "civic_plan_secret_key"
 
