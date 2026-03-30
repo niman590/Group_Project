@@ -29,18 +29,30 @@
                 <a href="{{ url_for('user.account') }}">
                     <i class="fa-solid fa-user"></i> My Profile
                 </a>
-                <a href="#"><i class="fa-solid fa-file-arrow-up"></i> Submit Documents</a>
-                <a href="#"><i class="fa-solid fa-folder-open"></i> My Applications</a>
-                <a href="#"><i class="fa-solid fa-landmark"></i> Property Records</a>
+                <a href="{{ url_for('user.submit_documents') }}">
+                    <i class="fa-solid fa-file-arrow-up"></i> Submit Documents
+                </a>
+                <a href="{{ url_for('user.my_applications') if false else '#' }}">
+                    <i class="fa-solid fa-folder-open"></i> My Applications
+                </a>
+                <a href="{{ url_for('user.property_records') if false else '#' }}">
+                    <i class="fa-solid fa-landmark"></i> Property Records
+                </a>
                 <a href="{{ url_for('transaction_history.transaction_history_page') }}">
                     <i class="fa-solid fa-clock-rotate-left"></i> Transaction History
                 </a>
-                <a href="#"><i class="fa-solid fa-map-location-dot"></i> GIS Map</a>
+                <a href="{{ url_for('user.gis_map') if false else '#' }}">
+                    <i class="fa-solid fa-map-location-dot"></i> GIS Map
+                </a>
                 <a href="{{ url_for('prediction.land_valuation_page') }}">
                     <i class="fa-solid fa-chart-line"></i> Land Valuation
                 </a>
-                <a href="#"><i class="fa-solid fa-book"></i> Support Documents</a>
-                <a href="#"><i class="fa-solid fa-bell"></i> Notifications</a>
+                <a href="{{ url_for('user.support_documents') if false else '#' }}">
+                    <i class="fa-solid fa-book"></i> Support Documents
+                </a>
+                <a href="{{ url_for('user.notifications') if false else '#' }}">
+                    <i class="fa-solid fa-bell"></i> Notifications
+                </a>
                 <a href="{{ url_for('auth.logout') }}">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
@@ -65,8 +77,9 @@
                             {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                         </div>
                         <div>
-                            <strong>{{ user['first_name'] }} {{ user['last_name'] if user else 'Citizen User' }}</strong>
-                            <span>NIC: {{ user['nic'] if user else '200012345678' }}</span>
+                            <strong>{{ user['first_name'] if user else 'Citizen' }} {{ user['last_name'] if user and
+                                user['last_name'] else 'User' }}</strong>
+                            <span>NIC: {{ user['nic'] if user and user['nic'] else '200012345678' }}</span>
                         </div>
                     </div>
                 </div>
@@ -109,13 +122,13 @@
 
             <!-- PRIMARY ACTIONS -->
             <section class="action-grid">
-                <a href="#" class="action-card">
+                <a href="{{ url_for('user.submit_documents') }}" class="action-card">
                     <i class="fa-solid fa-file-arrow-up"></i>
                     <h3>Submit Planning Documents</h3>
                     <p>Upload new planning approval files and supporting documents.</p>
                 </a>
 
-                <a href="#" class="action-card">
+                <a href="{{ url_for('user.my_applications') if false else '#' }}" class="action-card">
                     <i class="fa-solid fa-folder-open"></i>
                     <h3>Track My Applications</h3>
                     <p>Monitor review progress, approvals, rejections, and updates.</p>
@@ -263,10 +276,13 @@
                                 {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                             </div>
                             <div class="profile-meta">
-                                <h3>{{ user['first_name'] }} {{ user['last_name'] if user else 'R.A.D. Akash Randeniya' }}</h3>
-                                <p>Email: {{ user['email'] if user else 'akash@example.com' }}</p>
-                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234 5678' }}</p>
-                                <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}</p>
+                                <h3>{{ user['first_name'] if user else 'Citizen' }} {{ user['last_name'] if user and
+                                    user['last_name'] else 'User' }}</h3>
+                                <p>Email: {{ user['email'] if user and user['email'] else 'akash@example.com' }}</p>
+                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234
+                                    5678' }}</p>
+                                <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -344,7 +360,8 @@
 
         <div class="chatbot-messages" id="chatMessages">
             <div class="bot-msg">
-                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site navigation.
+                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site
+                navigation.
             </div>
         </div>
 
