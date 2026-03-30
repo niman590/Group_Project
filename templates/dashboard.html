@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civic Plan - Public Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="site-header">
+        <div class="container header-wrapper">
+            <div class="brand">
+                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo"
+                    class="brand-logo" />
+                <div class="brand-text">
+                    <h1>CIVIC PLAN</h1>
+                    <p>Land Management Portal</p>
+                </div>
+            </div>
+
+            <nav class="nav-links">
+                <a href="{{ url_for('main.dashboard') }}">Home</a>
+                <a href="#main-services">Services</a>
+                <a href="#useful-information">Public Notices</a>
+                <button class="nav-help-btn" data-modal="helpModal" type="button">Help</button>
+            </nav>
+
+            <div class="header-actions">
+                <a href="{{ url_for('auth.register') }}" class="register-link">Create account</a>
+                <a href="{{ url_for('auth.login') }}" class="signin-btn">
+                    Sign in <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero-section">
+        <div class="container hero-grid">
+            <div class="hero-content">
+                <span class="hero-badge">SMART DIGITAL LAND SERVICES</span>
+                <h2>Land services made simpler and faster</h2>
+                <p>
+                    Access land management and planning approval services in one secure portal.
+                    Register, submit requests, track approvals, and receive official updates online.
+                </p>
+
+                <div class="hero-buttons">
+                    <a href="{{ url_for('auth.login') }}" class="btn-primary">Sign in</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn-secondary">Create account</a>
+                </div>
+            </div>
+
+            <div class="hero-card">
+                <div class="hero-card-overlay"></div>
+                <div class="hero-card-content">
+                    <h3>Public access to essential services</h3>
+                    <p>
+                        Explore planning approvals, land value prediction, and land transaction history records
+                        through the Civic Plan portal.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN SERVICES -->
+    <section class="quick-links-section" id="main-services">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">PUBLIC ACCESS</span>
+                <h2>Main services</h2>
+            </div>
+
+            <div class="quick-links-grid">
+                <div class="quick-card">
+                    <div class="card-icon"><i class="fa-solid fa-file-circle-check"></i></div>
+                    <h3 id="planningModalTitle">Planning approval applications</h3>
+                    <p>Start a new application, review required details, and manage approval progress.</p>
+                    <button class="read-more-btn" data-modal="planningModal" type="button">
+                        Read more <i class="fa-solid fa-angle-right"></i>
+                    </button>
+                </div>
+
+                <div class="quick-card">
+                    <div class="card-icon"><i class="fa-solid fa-chart-line"></i></div>
+                    <h3 id="valueModalTitle">Land Value Prediction</h3>
+                    <p>Estimate land value trends using available property-related information.</p>
+                    <button class="read-more-btn" data-modal="valueModal" type="button">
+                        Read more <i class="fa-solid fa-angle-right"></i>
+                    </button>
+                </div>
+
+                <div class="quick-card">
+                    <div class="card-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <h3 id="historyModalTitle">Land Transaction History Records</h3>
+                    <p>Review past land transaction records and historical activity information.</p>
+                    <button class="read-more-btn" data-modal="historyModal" type="button">
+                        Read more <i class="fa-solid fa-angle-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INFORMATION -->
+    <section class="info-section" id="useful-information">
+        <div class="container">
+            <div class="section-header light">
+                <span class="section-tag">GUIDANCE</span>
+                <h2>Useful information</h2>
+            </div>
+
+            <div class="info-grid">
+                <button class="info-card info-card-btn" data-modal="ownershipInfoModal" type="button">
+                    <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80"
+                        alt="Ownership help" />
+                    <div class="info-content">
+                        <h3 id="ownershipInfoModalTitle">How to prepare for land ownership verification</h3>
+                        <p>Learn the details and documents commonly needed before you begin a verification request.</p>
+                    </div>
+                </button>
+
+                <button class="info-card info-card-btn" data-modal="planningInfoModal" type="button">
+                    <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80"
+                        alt="Checklist" />
+                    <div class="info-content">
+                        <h3 id="planningInfoModalTitle">Preparing for planning approval submissions</h3>
+                        <p>Understand what supporting information may be needed before submitting an application.</p>
+                    </div>
+                </button>
+
+                <button class="info-card info-card-btn" data-modal="notificationInfoModal" type="button">
+                    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80"
+                        alt="Notifications" />
+                    <div class="info-content">
+                        <h3 id="notificationInfoModalTitle">Official portal notifications and updates</h3>
+                        <p>Find out how important notices, status updates, and submission alerts are communicated.</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- BENEFITS -->
+    <section class="benefits-section" id="help-section">
+        <div class="container benefits-grid">
+            <div class="benefit-box">
+                <h3>Why use Civic Plan?</h3>
+                <ul>
+                    <li>One secure portal for land and planning services</li>
+                    <li>Faster access to records and application status</li>
+                    <li>Reduced paperwork and manual processing</li>
+                    <li>Clear updates and digital communication</li>
+                </ul>
+            </div>
+
+            <div class="benefit-box">
+                <h3>Before you begin</h3>
+                <ul>
+                    <li>Keep your NIC ready for account registration</li>
+                    <li>Prepare relevant property and location details</li>
+                    <li>Collect required supporting documents</li>
+                    <li>Create an account to access protected services</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container cta-box">
+            <div>
+                <h2>Ready to access Civic Plan services?</h2>
+                <p>Sign in to continue or create a new account to access digital land services.</p>
+            </div>
+
+            <div class="cta-actions">
+                <a href="{{ url_for('auth.login') }}" class="btn-primary">Sign in</a>
+                <a href="{{ url_for('auth.register') }}" class="btn-secondary light-btn">Create account</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div class="footer-brand">
+                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo" />
+                <div>
+                    <h3>CIVIC PLAN</h3>
+                    <p>Smart Digital Land Management and Planning Approval System</p>
+                </div>
+            </div>
+
+            <div class="footer-links">
+                <h4>Portal</h4>
+                <a href="{{ url_for('main.dashboard') }}">Home</a>
+                <a href="#main-services">Services</a>
+                <a href="#useful-information">Public Notices</a>
+                <button class="footer-help-btn" data-modal="helpModal" type="button">Help</button>
+            </div>
+
+            <div class="footer-links">
+                <h4>Account</h4>
+                <a href="{{ url_for('auth.login') }}">Sign in</a>
+                <a href="{{ url_for('auth.register') }}">Create account</a>
+                <button class="footer-help-btn" data-modal="privacyModal" type="button">Privacy</button>
+                <button class="footer-help-btn" data-modal="termsModal" type="button">Terms</button>
+            </div>
+        </div>
+
+        <div class="container footer-bottom">
+            <p>© 2026 Civic Plan. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- MODAL OVERLAY -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+
+    <!-- PLANNING APPROVAL MODAL -->
+    <div class="service-modal" id="planningModal" role="dialog" aria-modal="true" aria-labelledby="planningModalTitle">
+        <button class="close-modal" data-close type="button">&times;</button>
+        <div class="modal-icon">
+            <i class="fa-solid fa-file-circle-check"></i>
+        </div>
+        <h3>Planning approval applications</h3>
+        <p>
+            This service helps citizens and property owners understand how to begin a planning approval request
+            before submitting through the portal. It also supports users in tracking submitted permit and approval
+            requests and reviewing the latest status updates.
+        </p>
+        <ul>
+            <li>Understand the approval submission process</li>
+            <li>Review required details and supporting documents</li>
+            <li>Prepare property and location information</li>
+            <li>Track submitted planning and permit requests</li>
+            <li>Review approval progress and latest status updates</li>
+            <li>Access full submission features after signing in</li>
+        </ul>
+    </div>
+
+    <!-- LAND VALUE PREDICTION MODAL -->
+    <div class="service-modal" id="valueModal" role="dialog" aria-modal="true" aria-labelledby="valueModalTitle">
+        <button class="close-modal" data-close type="button">&times;</button>
+        <div class="modal-icon">
+            <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <h3>Land Value Prediction</h3>
+        <p>
+            This service provides estimated land value insights based on available property-related information
+            and helps users understand possible market trends.
+        </p>
+        <ul>
+            <li>View estimated land value trends</li>
+            <li>Support land-related planning and decision-making</li>
+            <li>Understand possible changes in property value</li>
+            <li>Use prediction features through the digital portal</li>
+        </ul>
+    </div>
+
+    <!-- LAND TRANSACTION HISTORY MODAL -->
+    <div class="service-modal" id="historyModal" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
+        <button class="close-modal" data-close type="button">&times;</button>
+        <div class="modal-icon">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <h3>Land Transaction History Records</h3>
+        <p>
+            This service helps users review previous land transaction records and understand the historical
+            background of land-related ownership or transaction activity.
+        </p>
+        <ul>
+            <li>Review past land transaction records</li>
+            <li>Understand historical land activity</li>
+            <li>Support land verification and record checking</li>
+            <li>Access structured transaction history information</li>
+        </ul>
+    </div>
+
+    <!-- OWNERSHIP VERIFICATION INFO MODAL -->
+    <div class="service-modal large-modal" id="ownershipInfoModal" role="dialog" aria-modal="true"
+        aria-labelledby="ownershipInfoModalTitle">
+        <button class="close-modal" data-close type="button">&times;</button>
+        <div class="modal-icon">
+            <i class="fa-solid fa-file-signature"></i>
+        </div>
+        <h3>How to prepare for land ownership verification</h3>
+        <p>
+            Land ownership verification is the process of confirming that a property legally belongs to a person
+            or organization based on official records and supporting documents. Before starting a verification
+            request, it is important to collect the correct documents and ensure the property details are accurate.
+        </p>
+        <p>
+            Preparing in advance helps reduce delays, prevents incomplete submissions, and makes the verification
+            process easier for both the applicant and the reviewing authority.
+        </p>
+        <h4>What you should prepare</h4>
+        <ul>
+            <li>National Identity Card or another valid identification document</li>
+            <li>Copy of the deed or ownership certificate related to the land</li>
+            <li>Survey plan or land parcel reference information, if available</li>
+            <li>Property address, district, or local area details</li>
+            <li>Any previous land-related approvals or supporting legal documents</li>
+        </ul>
+        <h4>Before submitting</h4>
+        <ul>
+            <li>Check that the owner name matches the submitted legal documents</li>
+            <li>Make sure land references and parcel details are clearly written</li>
+            <li>Confirm that uploaded copies are readable and complete</li>
+            <li>Keep additional supporting documents ready in case verification is requested</li>
+        </ul>
+    </div>
+
+    <!-- PLANNING SUBMISSION INFO MODAL -->
+    <div class="service-modal large-modal" id="planningInfoModal" role="dialog" aria-modal="true"
+        aria-labelledby="planningInfoModalTitle">
+        <button class="close-modal" data-close type="button">&times;</button>
+        <div class="modal-icon">
+            <i class="fa-solid fa-clipboard-list"></i>
+        </div>
+        <h3>Preparing for planning approval submissions</h3>
+        <p>
+            Planning approval submissions usually require accurate property details, applicant information,
+            and supporting documents related to the proposed land use or development activity.
+        </p>
+        <p>
+            Before submission, applicants should make sure all required information is available and organized.
+            This improves the quality of the application and helps reduce delays caused by missing details.
+        </p>
+        <h4>Common preparation steps</h4>
+        <ul>
+            <li>Identify the property correctly using land or parcel details</li>
+            <li>Prepare site-related drawings, plans, or descriptions if needed</li>
+            <li>Collect owner and applicant identification information</li>
+            <li>Review whether additional permits or supporting approvals may be required</li>
+            <li>Ensure contact details are correct for future updates</li>
+        </ul>
+        <h4>Helpful advice</h4>
+        <ul>
+            <li>Double-check all uploaded documents before submission</li>
+            <li>Use clear file names and readable document scans</li>
+            <li>Keep original versions of documents for later verification</li>
+            <li>Be prepared to provide more documents if requested by the authority</li>
+        </ul>
+    </div>
+
+    <!-- NOTIFICATION INFO MODAL -->
+    <div class="service-modal large-modal" id="notificationInfoModal" role="dialog" aria-modal="true"
+        aria-labelledby="notificationInfoModalTitle">
+        <button class="close-modal" data-close type="button">&times;</button>
+        <div class="modal-icon">
+            <i class="fa-solid fa-bell"></i>
+        </div>
+        <h3>Official portal notifications and updates</h3>
+        <p>
+            The Civic Plan portal uses notifications and status updates to keep applicants informed about
+            important activity related to their requests, submissions, and account actions.
+        </p>
+        <p>
+            These updates help users understand what is happening in the approval process and whether any
+            further action is needed.
+        </p>
+        <h4>Types of updates you may receive</h4>
+        <ul>
+            <li>Submission confirmations after a request is successfully sent</li>
+            <li>Status changes for permits, approvals, or verification requests</li>
+            <li>Requests for additional documents or corrections</li>
+            <li>Approval, rejection, or review progress notifications</li>
+            <li>System announcements related to portal activity</li>
+        </ul>
+        <h4>Why notifications matter</h4>
+        <ul>
+            <li>They help users respond quickly to pending requirements</li>
+            <li>They reduce uncertainty during the review process</li>
+            <li>They make digital communication clearer and more transparent</li>
+            <li>They improve user awareness of official portal actions</li>
+        </ul>
+    </div>
+
+    <!-- HELP MODAL -->
+    <div class="service-modal large-modal" id="helpModal" role="dialog" aria-modal="true"
+        aria-labelledby="helpModalTitle">
+        <button class="close-modal" data-close type="button">&times;</button>
+        <div class="modal-icon">
+            <i class="fa-solid fa-circle-question"></i>
+        </div>
+        <h3 id="helpModalTitle">Help and support</h3>
+        <p>
+            Welcome to Civic Plan. This portal is designed to help you access land-related digital services
+            such as planning approval applications, land value prediction, and land transaction history records.
+            Use this help guide to understand how to get started and what to do if you need assistance.
+        </p>
+
+        <h4>Getting started</h4>
+        <ul>
+            <li>Create an account or sign in to access protected services</li>
+            <li>Keep your NIC and personal details ready before starting</li>
+            <li>Review the service information before submitting any request</li>
+            <li>Use the portal sections to understand what each service provides</li>
+        </ul>
+
+        <h4>Before submitting an application</h4>
+        <ul>
+            <li>Prepare property details, ownership records, and supporting documents</li>
+            <li>Check that names, land references, and contact details are correct</li>
+            <li>Make sure uploaded files are clear and readable</li>
+            <li>Keep extra documents ready in case additional verification is requested</li>
+        </ul>
+
+        <h4>Tracking and notifications</h4>
+        <ul>
+            <li>Use your account to review application progress and latest updates</li>
+            <li>Check portal notifications for requests, approvals, or corrections</li>
+            <li>Review status updates regularly after submission</li>
+            <li>Make sure your account details stay updated so you do not miss important notices</li>
+        </ul>
+
+        <h4>Account and access support</h4>
+        <ul>
+            <li>Use the sign-in page if you already have an account</li>
+            <li>Use password reset if you cannot access your account</li>
+            <li>Update your account details when your phone number or email changes</li>
+            <li>Contact support if a submission fails or important account access issues continue</li>
+        </ul>
+    </div>
+
+    <!-- PRIVACY MODAL -->
+    <div class="service-modal large-modal" id="privacyModal" role="dialog" aria-modal="true"
+        aria-labelledby="privacyModalTitle">
+        <button class="close-modal" data-close type="button">&times;</button>
+        <div class="modal-icon">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 id="privacyModalTitle">Privacy notice</h3>
+        <p>
+            Civic Plan is designed as a public-facing digital service for land management and planning-related
+            requests. We handle personal details only for service delivery, account management, security,
+            application tracking, and lawful administrative communication.
+        </p>
+        <p>
+            This notice is written in a style commonly seen on Sri Lankan public-service websites and is
+            suitable for a project demo. For a live deployment, it should be reviewed against your final
+            legal and institutional requirements.
+        </p>
+
+        <h4>Information we may collect</h4>
+        <ul>
+            <li>Identity and account details such as name, NIC, email, contact number, and address</li>
+            <li>Property-related details, uploaded documents, reference numbers, and application data</li>
+            <li>Technical records such as login activity, timestamps, device or browser information, and audit logs</li>
+            <li>Communication records linked to requests, approvals, corrections, and account support</li>
+        </ul>
+
+        <h4>How information is used</h4>
+        <ul>
+            <li>To register users, verify access, and manage secure sign-in</li>
+            <li>To process planning-related requests and support administrative review workflows</li>
+            <li>To issue notifications, status updates, approvals, rejections, or requests for more documents</li>
+            <li>To maintain service reliability, monitor suspicious activity, and protect the portal from misuse</li>
+        </ul>
+
+        <h4>Data protection and security</h4>
+        <ul>
+            <li>Reasonable safeguards should be used to protect user records, credentials, and uploaded files</li>
+            <li>Access should be restricted according to user role, operational need, and approved authority</li>
+            <li>Audit logs may be retained for security monitoring, troubleshooting, and accountability</li>
+            <li>Personal information should not be disclosed except where required for service delivery or by law</li>
+        </ul>
+
+        <h4>User responsibilities</h4>
+        <ul>
+            <li>Provide accurate information and keep contact details up to date</li>
+            <li>Do not share passwords or allow unauthorized persons to use your account</li>
+            <li>Review uploaded documents before submission to avoid incorrect or incomplete records</li>
+        </ul>
+
+        <h4>Policy updates</h4>
+        <p>
+            This privacy notice may be updated when service features, security controls, or legal requirements
+            change. Continued use of the portal after updates means you accept the revised notice.
+        </p>
+    </div>
+
+    <!-- TERMS MODAL -->
+    <div class="service-modal large-modal" id="termsModal" role="dialog" aria-modal="true"
+        aria-labelledby="termsModalTitle">
+        <button class="close-modal" data-close type="button">&times;</button>
+        <div class="modal-icon">
+            <i class="fa-solid fa-scale-balanced"></i>
+        </div>
+        <h3 id="termsModalTitle">Terms and conditions</h3>
+        <p>
+            Civic Plan is a digital project portal created to present land management and planning approval
+            services in a structured online format. By using this portal, you agree to use it lawfully,
+            provide accurate information, and follow official service procedures.
+        </p>
+
+        <h4>Use of the portal</h4>
+        <ul>
+            <li>The portal is intended for lawful access to information, account services, and planning-related requests
+            </li>
+            <li>Users must not submit false, misleading, incomplete, or unauthorized information</li>
+            <li>Users must not attempt to damage, disrupt, probe, or gain unauthorized access to the system</li>
+            <li>Availability of online information does not by itself guarantee approval, registration, or legal
+                entitlement</li>
+        </ul>
+
+        <h4>Applications and decisions</h4>
+        <ul>
+            <li>Planning and land-related requests remain subject to document review, validation rules, and relevant
+                regulations</li>
+            <li>Authorities may request additional information, corrections, or supporting records before decisions are
+                made</li>
+            <li>Submission through the portal does not replace statutory processes, inspections, or legal obligations
+                where applicable</li>
+            <li>Processing times may vary depending on document completeness, review requirements, and case complexity
+            </li>
+        </ul>
+
+        <h4>Documents and records</h4>
+        <ul>
+            <li>Users are responsible for ensuring uploaded files are accurate, readable, and relevant to the request
+            </li>
+            <li>Reference materials, notices, and guidance content are provided for general service support</li>
+            <li>Official laws, regulations, gazettes, and authority directions take precedence over portal summaries
+            </li>
+        </ul>
+
+        <h4>Account and security</h4>
+        <ul>
+            <li>You are responsible for maintaining the confidentiality of your account credentials</li>
+            <li>The portal may suspend access where suspicious activity, misuse, or policy breaches are detected</li>
+            <li>Administrative actions may be logged for service quality, security, and compliance purposes</li>
+        </ul>
+
+        <h4>Service limitation</h4>
+        <p>
+            While reasonable effort may be taken to keep information up to date, the portal may contain
+            changes, updates, or service interruptions. Users should verify important requirements against
+            current official guidance before acting on time-sensitive matters.
+        </p>
+    </div>
+
+    <script>
+        const modalButtons = document.querySelectorAll(".read-more-btn, .info-card-btn, .nav-help-btn, .footer-help-btn");
+        const modals = document.querySelectorAll(".service-modal");
+        const overlay = document.getElementById("modalOverlay");
+        const closeButtons = document.querySelectorAll("[data-close]");
+
+        function closeAllModals() {
+            modals.forEach(modal => modal.classList.remove("active"));
+            overlay.classList.remove("active");
+            document.body.classList.remove("modal-open");
+            document.documentElement.classList.remove("modal-open");
+        }
+
+        modalButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                const modalId = button.getAttribute("data-modal");
+                const targetModal = document.getElementById(modalId);
+
+                closeAllModals();
+
+                if (targetModal) {
+                    targetModal.scrollTop = 0;
+                    overlay.scrollTop = 0;
+                    targetModal.classList.add("active");
+                    overlay.classList.add("active");
+                    document.body.classList.add("modal-open");
+                    document.documentElement.classList.add("modal-open");
+                }
+            });
+        });
+
+        closeButtons.forEach(button => {
+            button.addEventListener("click", closeAllModals);
+        });
+
+        overlay.addEventListener("click", closeAllModals);
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                closeAllModals();
+            }
+        });
+    </script>
+
+</body>
+
+</html>

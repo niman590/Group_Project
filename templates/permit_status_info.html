@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Permit and Approval Status</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+
+<body>
+    <div class="info-page">
+        <h1>Permit and Approval Status</h1>
+        <p>
+            This service helps applicants track the latest updates on submitted permits and planning approval requests.
+            It provides visibility into current progress, decisions, and review status.
+        </p>
+
+        <h3>Main Features</h3>
+        <ul>
+            <li>Track submitted applications</li>
+            <li>View approval or rejection progress</li>
+            <li>Check current case status</li>
+            <li>Stay informed with latest updates</li>
+        </ul>
+
+        <a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a>
+    </div>
+</body>
+
+</html>

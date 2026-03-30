@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Land Record Search</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+</head>
+
+<body>
+    <div class="info-page">
+        <h1>Land Record Search</h1>
+        <p>
+            This service provides public access to land-related information and available property records.
+            Users can search and review land ownership and property details where access is permitted.
+        </p>
+
+        <h3>Main Features</h3>
+        <ul>
+            <li>Search property and land records</li>
+            <li>View public land-related information</li>
+            <li>Access available ownership details</li>
+            <li>Support faster land verification</li>
+        </ul>
+
+        <a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a>
+    </div>
+</body>
+
+</html>

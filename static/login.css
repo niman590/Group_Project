@@ -1,0 +1,269 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a2d63, #1d4f91);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 25px;
+}
+
+.page-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-container {
+  width: 100%;
+  max-width: 1100px;
+  min-height: 620px;
+  display: flex;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+/* LEFT */
+.left-panel {
+  position: relative;
+  flex: 1;
+  background: url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80") center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  padding: 40px;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 39, 87, 0.65);
+}
+
+.left-content {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  max-width: 420px;
+}
+
+.left-content h1 {
+  font-size: 2.8rem;
+  line-height: 1.2;
+  font-weight: 800;
+  margin-bottom: 25px;
+}
+
+.left-content p {
+  font-size: 1rem;
+  line-height: 1.7;
+  font-weight: 600;
+}
+
+/* RIGHT */
+.right-panel {
+  flex: 1;
+  background: #f7f7f7;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* LOGO CENTER STYLE */
+.logo-box {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.logo-box img {
+  width: 90px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* TEXT */
+.brand-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #315ea8;
+  margin-bottom: 4px;
+}
+
+.brand-subtitle {
+  text-align: center;
+  color: #999;
+  margin-bottom: 30px;
+  font-size: 1.05rem;
+}
+
+/* FLASH MESSAGES */
+.flash-messages {
+  margin-bottom: 18px;
+}
+
+.flash {
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.flash.error {
+  background: #ffe5e5;
+  color: #b30000;
+  border: 1px solid #ffb3b3;
+}
+
+.flash.success {
+  background: #e7f8ec;
+  color: #157347;
+  border: 1px solid #b7e4c7;
+}
+
+/* FORM */
+.login-form label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #2f58a0;
+  margin-bottom: 6px;
+}
+
+.login-form input[type="text"],
+.login-form input[type="password"] {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #d6d6d6;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+  outline: none;
+  background: #fff;
+}
+
+.login-form input[type="text"]:focus,
+.login-form input[type="password"]:focus {
+  border-color: #315ea8;
+}
+
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0 18px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.form-options a {
+  color: #1c4a87;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.form-options a:hover {
+  text-decoration: underline;
+}
+
+button {
+  width: 100%;
+  height: 45px;
+  border: none;
+  border-radius: 5px;
+  background: #1c4a87;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #14396a;
+}
+
+.register-text {
+  text-align: center;
+  margin-top: 18px;
+  color: #777;
+  font-size: 0.92rem;
+}
+
+.register-text a {
+  color: #1c4a87;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.register-text a:hover {
+  text-decoration: underline;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .login-container {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 500px) {
+  body {
+    padding: 15px;
+  }
+
+  .left-panel,
+  .right-panel {
+    padding: 22px;
+  }
+
+  .left-content h1 {
+    font-size: 2rem;
+  }
+
+  .brand-title {
+    font-size: 2rem;
+  }
+}
+
+/* BACK ARROW (TOP LEFT CORNER) */
+.login-container {
+  position: relative;
+  /* IMPORTANT */
+}
+
+.back-arrow {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  text-decoration: none;
+  font-size: 22px;
+  font-weight: bold;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 6px 12px;
+  border-radius: 50%;
+  transition: 0.3s ease;
+  z-index: 10;
+}
+
+.back-arrow:hover {
+  background: rgba(0, 0, 0, 0.6);
+}

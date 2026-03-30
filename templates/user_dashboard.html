@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civic Plan - User Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body>
+    <div class="dashboard-shell">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo" />
+                <div>
+                    <h2>CIVIC PLAN</h2>
+                    <p>Citizen Portal</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('user.user_dashboard') }}" class="active">
+                    <i class="fa-solid fa-table-columns"></i> Dashboard
+                </a>
+                <a href="{{ url_for('user.account') }}">
+                    <i class="fa-solid fa-user"></i> My Profile
+                </a>
+                <a href="#"><i class="fa-solid fa-file-arrow-up"></i> Submit Documents</a>
+                <a href="#"><i class="fa-solid fa-folder-open"></i> My Applications</a>
+                <a href="#"><i class="fa-solid fa-landmark"></i> Property Records</a>
+                <a href="{{ url_for('transaction_history.transaction_history_page') }}">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Transaction History
+                </a>
+                <a href="#"><i class="fa-solid fa-map-location-dot"></i> GIS Map</a>
+                <a href="{{ url_for('prediction.land_valuation_page') }}">
+                    <i class="fa-solid fa-chart-line"></i> Land Valuation
+                </a>
+                <a href="#"><i class="fa-solid fa-book"></i> Support Documents</a>
+                <a href="#"><i class="fa-solid fa-bell"></i> Notifications</a>
+                <a href="{{ url_for('auth.logout') }}">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </nav>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main-content">
+
+            <!-- TOP BAR -->
+            <header class="topbar">
+                <div>
+                    <h1>Welcome back, {{ user['first_name'] if user and user['first_name'] else 'User' }}</h1>
+                    <p>Manage your land records, planning approvals, and citizen services.</p>
+                </div>
+
+                <div class="topbar-actions">
+                    <button class="icon-btn"><i class="fa-solid fa-bell"></i></button>
+                    <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
+                    <div class="user-chip">
+                        <div class="avatar">
+                            {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
+                        </div>
+                        <div>
+                            <strong>{{ user['first_name'] }} {{ user['last_name'] if user else 'Citizen User' }}</strong>
+                            <span>NIC: {{ user['nic'] if user else '200012345678' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- QUICK STATS -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fa-solid fa-file-circle-check"></i></div>
+                    <div>
+                        <h3>04</h3>
+                        <p>Total Applications</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <h3>02</h3>
+                        <p>Approved Cases</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fa-solid fa-hourglass-half"></i></div>
+                    <div>
+                        <h3>02</h3>
+                        <p>Pending Reviews</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon red"><i class="fa-solid fa-bell"></i></div>
+                    <div>
+                        <h3>03</h3>
+                        <p>Alerts & Notifications</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRIMARY ACTIONS -->
+            <section class="action-grid">
+                <a href="#" class="action-card">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                    <h3>Submit Planning Documents</h3>
+                    <p>Upload new planning approval files and supporting documents.</p>
+                </a>
+
+                <a href="#" class="action-card">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <h3>Track My Applications</h3>
+                    <p>Monitor review progress, approvals, rejections, and updates.</p>
+                </a>
+
+                <a href="{{ url_for('transaction_history.transaction_history_page') }}" class="action-card">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <h3>View Land Transaction History</h3>
+                    <p>See past transactions and ownership changes.</p>
+                </a>
+
+                <a href="{{ url_for('prediction.land_valuation_page') }}" class="action-card">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <h3>Check Land Value</h3>
+                    <p>View current land value and estimated future trends.</p>
+                </a>
+            </section>
+
+            <!-- TWO COLUMN -->
+            <section class="content-grid">
+
+                <!-- LEFT -->
+                <div class="left-column">
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Pending Requests & Alerts</h2>
+                            <a href="#">View all</a>
+                        </div>
+
+                        <div class="alert-list">
+                            <div class="alert-item warning">
+                                <div>
+                                    <h4>Additional document requested</h4>
+                                    <p>Your planning file CP-PLN-2026-014 requires a revised site plan.</p>
+                                </div>
+                                <span>Today</span>
+                            </div>
+
+                            <div class="alert-item info">
+                                <div>
+                                    <h4>Application under review</h4>
+                                    <p>Case CP-PLN-2026-012 is currently being reviewed by the planning officer.</p>
+                                </div>
+                                <span>1 day ago</span>
+                            </div>
+
+                            <div class="alert-item success">
+                                <div>
+                                    <h4>Property record verified</h4>
+                                    <p>Land record LR-9082 has been verified successfully.</p>
+                                </div>
+                                <span>3 days ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>My Property Records</h2>
+                            <a href="#">Open records</a>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Land ID</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Owner Since</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>LR-9082</td>
+                                        <td>Maharagama</td>
+                                        <td><span class="badge ok">Verified</span></td>
+                                        <td>2019</td>
+                                    </tr>
+                                    <tr>
+                                        <td>LR-7741</td>
+                                        <td>Kaduwela</td>
+                                        <td><span class="badge pending">Pending Update</span></td>
+                                        <td>2021</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Application History</h2>
+                            <a href="#">Full history</a>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Case ID</th>
+                                        <th>Type</th>
+                                        <th>Submitted</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>CP-PLN-2026-014</td>
+                                        <td>Planning Approval</td>
+                                        <td>2026-03-20</td>
+                                        <td><span class="badge pending">Need Documents</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>CP-PLN-2026-012</td>
+                                        <td>Building Permit</td>
+                                        <td>2026-03-12</td>
+                                        <td><span class="badge review">Under Review</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>CP-PLN-2026-007</td>
+                                        <td>Land Clearance</td>
+                                        <td>2026-02-26</td>
+                                        <td><span class="badge ok">Approved</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- RIGHT -->
+                <div class="right-column">
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Profile Summary</h2>
+                            <a href="{{ url_for('user.account') }}">Edit</a>
+                        </div>
+
+                        <div class="profile-card">
+                            <div class="profile-avatar">
+                                {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
+                            </div>
+                            <div class="profile-meta">
+                                <h3>{{ user['first_name'] }} {{ user['last_name'] if user else 'R.A.D. Akash Randeniya' }}</h3>
+                                <p>Email: {{ user['email'] if user else 'akash@example.com' }}</p>
+                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234 5678' }}</p>
+                                <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Land Valuation</h2>
+                            <a href="{{ url_for('prediction.land_valuation_page') }}">Open module</a>
+                        </div>
+
+                        <div class="valuation-card">
+                            <h3>Estimated Current Value</h3>
+                            <div class="value-number">LKR 8.4M</div>
+                            <p>Property: LR-9082</p>
+
+                            <div class="mini-stats">
+                                <div>
+                                    <span>Future Estimate</span>
+                                    <strong>LKR 9.1M</strong>
+                                </div>
+                                <div>
+                                    <span>Trend</span>
+                                    <strong>+8.3%</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>GIS Map Preview</h2>
+                            <a href="#">Expand</a>
+                        </div>
+
+                        <div class="map-placeholder">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <h3>Land Parcel Map</h3>
+                            <p>OpenStreetMap / Google Maps integration area</p>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2>Support Documents</h2>
+                            <a href="#">All files</a>
+                        </div>
+
+                        <ul class="doc-list">
+                            <li><i class="fa-solid fa-file-pdf"></i> Planning Approval Guidelines</li>
+                            <li><i class="fa-solid fa-file-lines"></i> Required Documents Checklist</li>
+                            <li><i class="fa-solid fa-book-open"></i> Gazettes and Rules</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- CHATBOT BUTTON -->
+    <button class="chatbot-button" onclick="toggleChat()" aria-label="Open AI Assistant">
+        <i class="fa-solid fa-comment-dots"></i>
+    </button>
+
+    <!-- CHATBOT BOX -->
+    <div class="chatbot-box" id="chatbotBox">
+        <div class="chatbot-header">
+            <div class="chatbot-title">
+                <i class="fa-solid fa-robot"></i>
+                <span>AI Assistant</span>
+            </div>
+            <button type="button" class="chatbot-close" onclick="toggleChat()">×</button>
+        </div>
+
+        <div class="chatbot-messages" id="chatMessages">
+            <div class="bot-msg">
+                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site navigation.
+            </div>
+        </div>
+
+        <div class="chatbot-input">
+            <input type="text" id="chatInput" placeholder="Ask something..." />
+            <button type="button" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleChat() {
+            const box = document.getElementById("chatbotBox");
+            if (box.style.display === "flex") {
+                box.style.display = "none";
+            } else {
+                box.style.display = "flex";
+                document.getElementById("chatInput").focus();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById("chatInput");
+            const messages = document.getElementById("chatMessages");
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            messages.innerHTML += `<div class="user-msg">${text}</div>`;
+            input.value = "";
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                const res = await fetch("/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await res.json();
+                messages.innerHTML += `<div class="bot-msg">${data.reply}</div>`;
+                messages.scrollTop = messages.scrollHeight;
+            } catch (error) {
+                messages.innerHTML += `<div class="bot-msg">Sorry, something went wrong. Please try again.</div>`;
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+
+        document.getElementById("chatInput").addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+
+</html>

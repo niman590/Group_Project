@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Civic Plan - Login</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+</head>
+
+<body>
+  <div class="page-wrapper">
+    <div class="login-container">
+
+      <!-- BACK BUTTON (TOP LEFT OVERLAY) -->
+      <a href="{{ url_for('main.dashboard') }}" class="back-arrow">←</a>
+
+      <div class="left-panel">
+        <div class="overlay"></div>
+        <div class="left-content">
+          <h1>
+            Smart Digital Land
+            Management and
+            Planning Approval
+            System
+          </h1>
+          <p>
+            Secure access portal for citizens and administrators to
+            manage land records, planning approvals, and related
+            digital services.
+          </p>
+        </div>
+      </div>
+
+      <div class="right-panel">
+        <div class="logo-box">
+          <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
+        </div>
+
+        <h2 class="brand-title">CIVIC PLAN</h2>
+        <p class="brand-subtitle">Land Management Portal</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form class="login-form" method="POST" action="{{ url_for('auth.login_post') }}">
+          <label for="nic">NIC / Username</label>
+          <input type="text" id="nic" name="nic" required />
+
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required />
+
+          <div class="form-options">
+            <label class="remember-me">
+              <input type="checkbox" />
+              <span>Remember me</span>
+            </label>
+            <a href="{{ url_for('auth.password_reset') }}">Forgot Password?</a>
+          </div>
+
+          <button type="submit">Login</button>
+        </form>
+
+        <p class="register-text">
+          Don’t have an account?
+          <a href="{{ url_for('auth.register') }}">Register here</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</body>
+
+</html>
