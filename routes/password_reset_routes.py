@@ -119,3 +119,5 @@ def reset_password():
     session.pop("otp_verified", None)
 
     return jsonify({"success": True})
+
+#thenuk is a hero 
