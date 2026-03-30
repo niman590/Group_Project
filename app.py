@@ -10,7 +10,6 @@ from routes.chatbot_routes import chatbot_bp
 from routes.transaction_history_routes import transaction_history_bp
 from routes.submit_documents_routes import submit_documents_bp
 
-
 app = Flask(__name__)
 app.secret_key = "civic_plan_secret_key"
 

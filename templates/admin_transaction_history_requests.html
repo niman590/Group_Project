@@ -1,206 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
+...
+<td>
+    {% if req['status'] == 'Pending' %}
+    <div class="action-stack">
+        <form action="{{ url_for('admin.approve_transaction_history_request', request_id=req['request_id']) }}"
+            method="POST">
+            <button type="submit" class="btn-approve">
+                <i class="fa-solid fa-check"></i> Approve
+            </button>
+        </form>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transaction History Requests</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='admin_transaction_requests.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
-
-<body>
-    <div class="dashboard-shell">
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div class="sidebar-brand">
-                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Logo" />
-                <div>
-                    <h2>CIVIC PLAN</h2>
-                    <p>Administrator Portal</p>
-                </div>
-            </div>
-
-            <nav class="sidebar-nav">
-                <a href="{{ url_for('admin.admin_dashboard') }}">
-                    <i class="fa-solid fa-gauge"></i> Admin Dashboard
-                </a>
-                <a href="{{ url_for('admin.admin_transaction_history_requests') }}" class="active">
-                    <i class="fa-solid fa-clock-rotate-left"></i> History Requests
-                </a>
-                <a href="{{ url_for('auth.logout') }}">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
-                </a>
-            </nav>
-        </aside>
-
-        <!-- MAIN CONTENT -->
-        <main class="main-content">
-            <header class="topbar">
-                <div>
-                    <h1>Transaction History Update Requests</h1>
-                    <p>Review, approve, or reject submitted ownership history updates.</p>
-                </div>
-                <div class="admin-top-chip">
-                    <i class="fa-solid fa-file-signature"></i>
-                    <span>Admin Review Panel</span>
-                </div>
-            </header>
-
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="flash-msg {{ category }}">{{ message }}</div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
-
-            <!-- SUMMARY CARDS -->
-            <section class="stats-grid custom-stats">
-                <div class="stat-card">
-                    <div class="stat-icon blue">
-                        <i class="fa-solid fa-folder-open"></i>
-                    </div>
-                    <div>
-                        <h3>{{ requests|length }}</h3>
-                        <p>Total Requests</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon orange">
-                        <i class="fa-solid fa-hourglass-half"></i>
-                    </div>
-                    <div>
-                        <h3>{{ requests | selectattr('status', 'equalto', 'Pending') | list | length }}</h3>
-                        <p>Pending Requests</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon green">
-                        <i class="fa-solid fa-circle-check"></i>
-                    </div>
-                    <div>
-                        <h3>{{ requests | selectattr('status', 'equalto', 'Approved') | list | length }}</h3>
-                        <p>Approved Requests</p>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon red">
-                        <i class="fa-solid fa-circle-xmark"></i>
-                    </div>
-                    <div>
-                        <h3>{{ requests | selectattr('status', 'equalto', 'Rejected') | list | length }}</h3>
-                        <p>Rejected Requests</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- REQUEST TABLE -->
-            <section class="panel request-panel">
-                <div class="panel-header">
-                    <div>
-                        <h2>Pending / Processed Requests</h2>
-                        <p class="panel-subtext">Monitor submitted deed history updates and take action when needed.</p>
-                    </div>
-                </div>
-
-                <div class="table-wrap custom-table-wrap">
-                    <table class="request-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Deed Number</th>
-                                <th>Proposed Owner</th>
-                                <th>Transfer Date</th>
-                                <th>Transaction Type</th>
-                                <th>Proof</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for req in requests %}
-                            <tr>
-                                <td>#{{ req['request_id'] }}</td>
-                                <td><span class="deed-badge">{{ req['deed_number'] }}</span></td>
-                                <td>
-                                    <div class="owner-cell">
-                                        <strong>{{ req['proposed_owner_name'] }}</strong>
-                                        {% if req['proposed_owner_nic'] %}
-                                        <small>{{ req['proposed_owner_nic'] }}</small>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                                <td>{{ req['proposed_transfer_date'] }}</td>
-                                <td>
-                                    <span class="type-badge">{{ req['proposed_transaction_type'] }}</span>
-                                </td>
-                                <td>
-                                    {% if req['proof_document_path'] %}
-                                    <a class="proof-link" href="/{{ req['proof_document_path'] }}" target="_blank">
-                                        <i class="fa-solid fa-file-lines"></i> View Proof
-                                    </a>
-                                    {% else %}
-                                    <span class="muted-text">No File</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if req['status'] == 'Pending' %}
-                                    <span class="status-badge pending">Pending</span>
-                                    {% elif req['status'] == 'Approved' %}
-                                    <span class="status-badge approved">Approved</span>
-                                    {% elif req['status'] == 'Rejected' %}
-                                    <span class="status-badge rejected">Rejected</span>
-                                    {% else %}
-                                    <span class="status-badge">{{ req['status'] }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if req['status'] == 'Pending' %}
-                                    <div class="action-stack">
-                                        <form
-                                            action="{{ url_for('admin.approve_transaction_history_request', request_id=req['request_id']) }}"
-                                            method="POST">
-                                            <button type="submit" class="btn-approve">
-                                                <i class="fa-solid fa-check"></i> Approve
-                                            </button>
-                                        </form>
-
-                                        <form
-                                            action="{{ url_for('admin.reject_transaction_history_request', request_id=req['request_id']) }}"
-                                            method="POST" class="reject-form">
-                                            <input type="text" name="admin_comment" placeholder="Reason for rejection"
-                                                required>
-                                            <button type="submit" class="btn-reject">
-                                                <i class="fa-solid fa-xmark"></i> Reject
-                                            </button>
-                                        </form>
-                                    </div>
-                                    {% else %}
-                                    <span class="processed-label">Processed</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="8">
-                                    <div class="empty-state">
-                                        <i class="fa-solid fa-inbox"></i>
-                                        <p>No transaction history requests found.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        </main>
+        <form action="{{ url_for('admin.reject_transaction_history_request', request_id=req['request_id']) }}"
+            method="POST" class="reject-form">
+            <input type="text" name="admin_comment" placeholder="Reason for rejection" required>
+            <button type="submit" class="btn-reject">
+                <i class="fa-solid fa-xmark"></i> Reject
+            </button>
+        </form>
     </div>
-</body>
 
-</html>
+    {% elif req['status'] == 'Approved' %}
+    <div class="action-stack">
+        <form action="{{ url_for('transaction_history.delete_approved_transaction', request_id=req['request_id']) }}"
+            method="POST" onsubmit="return confirm('Are you sure you want to delete this approved transaction?');">
+            <button type="submit" class="btn-delete">
+                <i class="fa-solid fa-trash"></i> Delete
+            </button>
+        </form>
+    </div>
+
+    {% else %}
+    <span class="processed-label">Processed</span>
+    {% endif %}
+</td>
+...
