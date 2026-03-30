@@ -35,3 +35,5 @@ def land_record():
 @main_bp.route("/services/permit-status")
 def permit_status():
     return render_template("permit_status.html")
+
+#niman keliya
