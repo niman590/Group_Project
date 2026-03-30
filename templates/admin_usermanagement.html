@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>User Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}">
+</head>
+
+<body>
+
+    <div class="admin-shell">
+
+        <!-- SAME SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}">
+                <div>
+                    <h2>CIVIC PLAN</h2>
+                    <p>Administrator Portal</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('admin.admin_dashboard') }}">
+                    Admin Dashboard
+                </a>
+
+                <a href="{{ url_for('admin.admin_transaction_history_requests') }}">
+                    History Requests
+                </a>
+
+                <a href="{{ url_for('admin.admin_user_management') }}" class="active">
+                    User Management
+                </a>
+
+                <a href="{{ url_for('auth.logout') }}">
+                    Logout
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+
+            <header class="topbar">
+                <h1>User Management</h1>
+            </header>
+
+            <!-- 🔥 SAME TABLE (NO CHANGE) -->
+            <section class="panel">
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Name</th>
+                                <th>NIC</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>User ID</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for u in users %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ u['first_name'] }} {{ u['last_name'] }}</td>
+                                <td>{{ u['nic'] }}</td>
+                                <td>{{ u['email'] }}</td>
+
+                                <td>
+                                    {% if u['is_admin'] %}
+                                    <span class="badge admin">Admin</span>
+                                    {% else %}
+                                    <span class="badge user">User</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if u['is_active'] %}
+                                    <span class="badge active">Active</span>
+                                    {% else %}
+                                    <span class="badge inactive">Inactive</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>USER-{{ u['user_id'] }}</td>
+
+                                <td>
+                                    <div class="action-buttons">
+
+                                        <form action="{{ url_for('admin.toggle_user_status', user_id=u['user_id']) }}"
+                                            method="POST">
+                                            <button class="btn warning small">Toggle</button>
+                                        </form>
+
+                                        <form action="{{ url_for('admin.delete_user', user_id=u['user_id']) }}"
+                                            method="POST">
+                                            <button class="btn danger small">Delete</button>
+                                        </form>
+
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>
