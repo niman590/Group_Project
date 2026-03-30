@@ -5,35 +5,80 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Submit Documents - Civic Plan</title>
-    <link rel="stylesheet" href="submit_documents.css" />
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='submit_documents.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
     <div class="app-layout">
         <aside class="sidebar">
-            <div class="brand">
-                <div class="brand-logo">CP</div>
+            <div class="sidebar-brand">
+                <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
                 <div>
-                    <h1>CIVIC PLAN</h1>
+                    <h2>CIVIC PLAN</h2>
                     <p>Citizen Portal</p>
                 </div>
             </div>
 
-            <nav class="sidebar-menu">
-                <a href="/user_dashboard"><span>📊</span> Dashboard</a>
-                <a href="/profile"><span>👤</span> My Profile</a>
-                <a href="/submit_documents" class="active"><span>📄</span> Submit Documents</a>
-                <a href="/my_applications"><span>🗂️</span> My Applications</a>
-                <a href="/property_records"><span>🏛️</span> Property Records</a>
-                <a href="/transaction_history"><span>🔄</span> Transaction History</a>
-                <a href="/gis_map"><span>🗺️</span> GIS Map</a>
-                <a href="/land_valuation"><span>📈</span> Land Valuation</a>
-                <a href="/support_documents"><span>📚</span> Support Documents</a>
-                <a href="/notifications"><span>🔔</span> Notifications</a>
-                <a href="/logout"><span>↩️</span> Logout</a>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('user.user_dashboard') }}">
+                    <i class="fa-solid fa-table-columns"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="{{ url_for('user.account') }}">
+                    <i class="fa-solid fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+
+                <a href="{{ url_for('submit_documents.submit_documents') }}" class="active">
+                    <i class="fa-solid fa-file-arrow-up"></i>
+                    <span>Submit Documents</span>
+                </a>
+
+                <a href="{{ url_for('submit_documents.my_applications') }}">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span>My Applications</span>
+                </a>
+
+                <a href="#">
+                    <i class="fa-solid fa-landmark"></i>
+                    <span>Property Records</span>
+                </a>
+
+                <a href="{{ url_for('transaction_history.transaction_history_page') }}">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Transaction History</span>
+                </a>
+
+                <a href="#">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span>GIS Map</span>
+                </a>
+
+                <a href="{{ url_for('prediction.land_valuation_page') }}">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Land Valuation</span>
+                </a>
+
+                <a href="#">
+                    <i class="fa-solid fa-book"></i>
+                    <span>Support Documents</span>
+                </a>
+
+                <a href="#">
+                    <i class="fa-solid fa-bell"></i>
+                    <span>Notifications</span>
+                </a>
+
+                <a href="{{ url_for('auth.logout') }}">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
             </nav>
         </aside>
 
@@ -43,11 +88,22 @@
                     <h2>Submit Planning Documents</h2>
                     <p>Upload your application details and supporting files for planning approval review.</p>
                 </div>
+
                 <div class="header-badges">
                     <span class="badge">Planning Module</span>
                     <span class="badge light">Citizen Submission</span>
                 </div>
             </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-message {{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
 
             <section class="content-grid">
                 <section class="card form-card">
@@ -56,28 +112,34 @@
                         <p>Fill in the required information and upload all relevant planning documents.</p>
                     </div>
 
-                    <form action="/submit_documents" method="POST" enctype="multipart/form-data" class="submit-form">
+                    <form action="{{ url_for('submit_documents.submit_documents') }}" method="POST"
+                        enctype="multipart/form-data" class="submit-form">
                         <div class="form-section">
                             <h4>Applicant Information</h4>
+
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label for="full_name">Full Name</label>
                                     <input type="text" id="full_name" name="full_name" placeholder="Enter full name"
                                         required>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="nic">NIC Number</label>
                                     <input type="text" id="nic" name="nic" placeholder="Enter NIC number" required>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="email">Email Address</label>
                                     <input type="email" id="email" name="email" placeholder="Enter email address"
                                         required>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="phone">Phone Number</label>
                                     <input type="tel" id="phone" name="phone" placeholder="Enter phone number" required>
                                 </div>
+
                                 <div class="form-group full-width">
                                     <label for="address">Address</label>
                                     <input type="text" id="address" name="address"
@@ -88,12 +150,14 @@
 
                         <div class="form-section">
                             <h4>Property & Project Details</h4>
+
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label for="property_id">Property / Land ID</label>
                                     <input type="text" id="property_id" name="property_id"
                                         placeholder="Example: LR-9082" required>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="application_type">Application Type</label>
                                     <select id="application_type" name="application_type" required>
@@ -105,27 +169,32 @@
                                         <option>Boundary Adjustment</option>
                                     </select>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="district">District / Authority</label>
                                     <input type="text" id="district" name="district"
                                         placeholder="Enter district or authority" required>
                                 </div>
+
                                 <div class="form-group">
                                     <label for="start_date">Expected Start Date</label>
                                     <input type="date" id="start_date" name="start_date">
                                 </div>
+
                                 <div class="form-group full-width">
                                     <label for="project_description">Project Description</label>
                                     <textarea id="project_description" name="project_description"
-                                        placeholder="Describe the proposed development, land use, dimensions, and any other important information"></textarea>
+                                        placeholder="Describe the proposed development, land use, dimensions, and other important information"></textarea>
                                 </div>
                             </div>
                         </div>
 
                         <div class="form-section">
                             <h4>Upload Documents</h4>
+
                             <div class="upload-box">
-                                <p class="upload-title">Choose or drag your files here</p>
+                                <p class="upload-title"><i class="fa-solid fa-cloud-arrow-up"></i> Choose or drag your
+                                    files here</p>
                                 <p class="upload-subtitle">Accepted formats: PDF, DOCX, JPG, PNG</p>
                                 <input type="file" id="planning_documents" name="planning_documents" multiple>
                             </div>
@@ -133,10 +202,12 @@
 
                         <div class="form-section">
                             <h4>Declaration</h4>
+
                             <label class="checkbox-row">
                                 <input type="checkbox" name="confirm_accuracy" required>
                                 <span>I confirm that the provided information and uploaded documents are correct.</span>
                             </label>
+
                             <label class="checkbox-row">
                                 <input type="checkbox" name="review_consent" required>
                                 <span>I agree to the authority reviewing and storing these documents for approval
@@ -165,18 +236,22 @@
 
                     <div class="card side-card process-card">
                         <h3>Review Process</h3>
+
                         <div class="process-item">
                             <strong>1. Submission</strong>
                             <span>Your request is recorded in the portal.</span>
                         </div>
+
                         <div class="process-item">
                             <strong>2. Validation</strong>
                             <span>Documents are checked for completeness.</span>
                         </div>
+
                         <div class="process-item">
                             <strong>3. Officer Review</strong>
                             <span>A planning officer evaluates your application.</span>
                         </div>
+
                         <div class="process-item">
                             <strong>4. Decision</strong>
                             <span>Status updates appear under My Applications.</span>
