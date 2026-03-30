@@ -1,54 +1,35 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Civic Plan - Admin Dashboard</title>
-
-    ```
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    ```
-
 </head>
 
 <body>
 
     <div class="admin-shell">
 
-        ```
-        <!-- SIDEBAR -->
         <aside class="sidebar">
             <div class="sidebar-brand">
-                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}">
+                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Logo">
                 <div>
                     <h2>CIVIC PLAN</h2>
                     <p>Administrator Portal</p>
                 </div>
             </div>
 
+            <!-- ✅ UPDATED SIDEBAR -->
             <nav class="sidebar-nav">
-
                 <a href="{{ url_for('admin.admin_dashboard') }}" class="active">
-                    <i class="fa-solid fa-gauge"></i> Dashboard
+                    <i class="fa-solid fa-gauge"></i> Admin Dashboard
                 </a>
 
                 <a href="{{ url_for('admin.admin_transaction_history_requests') }}">
                     <i class="fa-solid fa-clock-rotate-left"></i> History Requests
-                </a>
-
-                <a href="{{ url_for('admin.admin_users') }}">
-                    <i class="fa-solid fa-users"></i> User Management
-                </a>
-
-                <a href="#">
-                    <i class="fa-solid fa-file-lines"></i> Reports
-                </a>
-
-                <a href="#">
-                    <i class="fa-solid fa-shield-halved"></i> Security Logs
                 </a>
 
                 <a href="{{ url_for('user.account') }}">
@@ -58,18 +39,14 @@
                 <a href="{{ url_for('auth.logout') }}">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
-
             </nav>
         </aside>
 
-        <!-- MAIN -->
         <main class="main-content">
-
-            <!-- TOP BAR -->
             <header class="topbar">
                 <div>
                     <h1>Welcome back, {{ user['first_name'] }}</h1>
-                    <p>Manage system operations, users, and approvals.</p>
+                    <p>Manage users, roles, and account status from the admin portal.</p>
                 </div>
 
                 <div class="admin-chip">
@@ -81,85 +58,148 @@
                 </div>
             </header>
 
-            <!-- STATS -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
             <section class="stats-grid">
                 <div class="stat-card">
                     <h3>{{ total_users }}</h3>
                     <p>Total Users</p>
                 </div>
-
                 <div class="stat-card">
                     <h3>{{ total_admins }}</h3>
                     <p>Total Admins</p>
                 </div>
-
                 <div class="stat-card">
                     <h3>{{ active_users }}</h3>
                     <p>Active Accounts</p>
                 </div>
-
                 <div class="stat-card">
                     <h3>{{ inactive_users }}</h3>
                     <p>Inactive Accounts</p>
                 </div>
             </section>
 
-            <!-- QUICK ACTIONS -->
             <section class="panel">
                 <div class="panel-header">
-                    <h2>Quick Actions</h2>
-                    <p>Perform administrative tasks quickly</p>
+                    <h2>User Management</h2>
+                    <p>Promote users, remove admin rights, activate/deactivate, or delete accounts.</p>
                 </div>
 
-                <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                <form class="search-form" method="GET" action="{{ url_for('admin.admin_dashboard') }}">
+                    <div class="search-input-group">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" name="search" placeholder="Search by name, NIC, or email"
+                            value="{{ search_query if search_query else '' }}" />
+                    </div>
+                    <button type="submit" class="btn primary">Search</button>
+                    {% if search_query %}
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="btn secondary clear-search">Clear</a>
+                    {% endif %}
+                </form>
 
-                    <button onclick="location.href='{{ url_for('admin.admin_transaction_history_requests') }}'"
-                        class="btn primary">
-                        <i class="fa-solid fa-list"></i> View Requests
-                    </button>
+                {% if search_query %}
+                <div class="search-result-info">
+                    <p>
+                        Showing {{ users|length }} result{{ '' if users|length == 1 else 's' }} for
+                        "<strong>{{ search_query }}</strong>"
+                    </p>
+                </div>
+                {% endif %}
 
-                    <button onclick="location.href='{{ url_for('admin.admin_users') }}'" class="btn secondary">
-                        <i class="fa-solid fa-users"></i> Manage Users
-                    </button>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Name</th>
+                                <th>NIC</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>User ID</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if users %}
+                            {% for u in users %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ u['first_name'] }} {{ u['last_name'] }}</td>
+                                <td>{{ u['nic'] if u['nic'] else '-' }}</td>
+                                <td>{{ u['email'] }}</td>
+                                <td>
+                                    {% if u['is_admin'] %}
+                                    <span class="badge admin">Admin</span>
+                                    {% else %}
+                                    <span class="badge user">User</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if u['is_active'] %}
+                                    <span class="badge active">Active</span>
+                                    {% else %}
+                                    <span class="badge inactive">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>USER-{{ u['user_id'] }}</td>
+                                <td>
+                                    {% set is_system_admin = (u['email'] == 'admin@civicplan.local' and u['nic'] ==
+                                    'ADMIN000000V') %}
 
-                    <button class="btn warning">
-                        <i class="fa-solid fa-triangle-exclamation"></i> View Alerts
-                    </button>
+                                    {% if is_system_admin %}
+                                    <div class="action-buttons">
+                                        <span class="badge admin">Protected System Admin</span>
+                                    </div>
+                                    {% else %}
+                                    <div class="action-buttons">
+                                        <form action="{{ url_for('admin.toggle_user_status', user_id=u['user_id']) }}"
+                                            method="POST">
+                                            <button type="submit" class="btn small warning">
+                                                {% if u['is_active'] %}Deactivate{% else %}Activate{% endif %}
+                                            </button>
+                                        </form>
 
-                    <button class="btn success">
-                        <i class="fa-solid fa-file-circle-check"></i> Approvals
-                    </button>
+                                        {% if not u['is_admin'] %}
+                                        <form action="{{ url_for('admin.make_admin', user_id=u['user_id']) }}"
+                                            method="POST">
+                                            <button type="submit" class="btn small primary">Make Admin</button>
+                                        </form>
+                                        {% else %}
+                                        <form action="{{ url_for('admin.remove_admin', user_id=u['user_id']) }}"
+                                            method="POST">
+                                            <button type="submit" class="btn small secondary">Remove Admin</button>
+                                        </form>
+                                        {% endif %}
 
+                                        <form action="{{ url_for('admin.delete_user', user_id=u['user_id']) }}"
+                                            method="POST"
+                                            onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                            <button type="submit" class="btn small danger">Delete</button>
+                                        </form>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="no-results">No users found.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
                 </div>
             </section>
-
-            <!-- RECENT ACTIVITY -->
-            <section class="panel">
-                <div class="panel-header">
-                    <h2>Recent Activity</h2>
-                </div>
-
-                <ul style="padding-left:20px; color:#4a5568;">
-                    <li>✔ New user registered</li>
-                    <li>✔ Transaction approved</li>
-                    <li>⚠ Suspicious login detected</li>
-                    <li>✔ User promoted to admin</li>
-                </ul>
-            </section>
-
-            <!-- ALERT PANEL -->
-            <section class="panel">
-                <div class="panel-header">
-                    <h2>System Alerts</h2>
-                </div>
-
-                <div class="flash warning">⚠ 2 suspicious login attempts detected</div>
-                <div class="flash success">✔ System running normally</div>
-            </section>
-
         </main>
-        ```
-
     </div>
 
 </body>

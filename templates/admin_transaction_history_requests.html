@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_transaction_requests.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body>
     <div class="dashboard-shell">
         <!-- SIDEBAR -->
@@ -47,11 +49,11 @@
             </header>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="flash-msg {{ category }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-msg {{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
             {% endwith %}
 
             <!-- SUMMARY CARDS -->
@@ -129,7 +131,7 @@
                                     <div class="owner-cell">
                                         <strong>{{ req['proposed_owner_name'] }}</strong>
                                         {% if req['proposed_owner_nic'] %}
-                                            <small>{{ req['proposed_owner_nic'] }}</small>
+                                        <small>{{ req['proposed_owner_nic'] }}</small>
                                         {% endif %}
                                     </div>
                                 </td>
@@ -139,42 +141,47 @@
                                 </td>
                                 <td>
                                     {% if req['proof_document_path'] %}
-                                        <a class="proof-link" href="/{{ req['proof_document_path'] }}" target="_blank">
-                                            <i class="fa-solid fa-file-lines"></i> View Proof
-                                        </a>
+                                    <a class="proof-link" href="/{{ req['proof_document_path'] }}" target="_blank">
+                                        <i class="fa-solid fa-file-lines"></i> View Proof
+                                    </a>
                                     {% else %}
-                                        <span class="muted-text">No File</span>
+                                    <span class="muted-text">No File</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if req['status'] == 'Pending' %}
-                                        <span class="status-badge pending">Pending</span>
+                                    <span class="status-badge pending">Pending</span>
                                     {% elif req['status'] == 'Approved' %}
-                                        <span class="status-badge approved">Approved</span>
+                                    <span class="status-badge approved">Approved</span>
                                     {% elif req['status'] == 'Rejected' %}
-                                        <span class="status-badge rejected">Rejected</span>
+                                    <span class="status-badge rejected">Rejected</span>
                                     {% else %}
-                                        <span class="status-badge">{{ req['status'] }}</span>
+                                    <span class="status-badge">{{ req['status'] }}</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if req['status'] == 'Pending' %}
-                                        <div class="action-stack">
-                                            <form action="{{ url_for('admin.approve_transaction_history_request', request_id=req['request_id']) }}" method="POST">
-                                                <button type="submit" class="btn-approve">
-                                                    <i class="fa-solid fa-check"></i> Approve
-                                                </button>
-                                            </form>
+                                    <div class="action-stack">
+                                        <form
+                                            action="{{ url_for('admin.approve_transaction_history_request', request_id=req['request_id']) }}"
+                                            method="POST">
+                                            <button type="submit" class="btn-approve">
+                                                <i class="fa-solid fa-check"></i> Approve
+                                            </button>
+                                        </form>
 
-                                            <form action="{{ url_for('admin.reject_transaction_history_request', request_id=req['request_id']) }}" method="POST" class="reject-form">
-                                                <input type="text" name="admin_comment" placeholder="Reason for rejection" required>
-                                                <button type="submit" class="btn-reject">
-                                                    <i class="fa-solid fa-xmark"></i> Reject
-                                                </button>
-                                            </form>
-                                        </div>
+                                        <form
+                                            action="{{ url_for('admin.reject_transaction_history_request', request_id=req['request_id']) }}"
+                                            method="POST" class="reject-form">
+                                            <input type="text" name="admin_comment" placeholder="Reason for rejection"
+                                                required>
+                                            <button type="submit" class="btn-reject">
+                                                <i class="fa-solid fa-xmark"></i> Reject
+                                            </button>
+                                        </form>
+                                    </div>
                                     {% else %}
-                                        <span class="processed-label">Processed</span>
+                                    <span class="processed-label">Processed</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -195,4 +202,5 @@
         </main>
     </div>
 </body>
+
 </html>
