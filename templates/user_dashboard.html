@@ -29,28 +29,28 @@
                 <a href="{{ url_for('user.account') }}">
                     <i class="fa-solid fa-user"></i> My Profile
                 </a>
-                <a href="{{ url_for('user.submit_documents') }}">
+                <a href="{{ url_for('submit_documents.submit_documents') }}">
                     <i class="fa-solid fa-file-arrow-up"></i> Submit Documents
                 </a>
-                <a href="{{ url_for('user.my_applications') if false else '#' }}">
+                <a href="{{ url_for('submit_documents.my_applications') }}">
                     <i class="fa-solid fa-folder-open"></i> My Applications
                 </a>
-                <a href="{{ url_for('user.property_records') if false else '#' }}">
+                <a href="#">
                     <i class="fa-solid fa-landmark"></i> Property Records
                 </a>
                 <a href="{{ url_for('transaction_history.transaction_history_page') }}">
                     <i class="fa-solid fa-clock-rotate-left"></i> Transaction History
                 </a>
-                <a href="{{ url_for('user.gis_map') if false else '#' }}">
+                <a href="#">
                     <i class="fa-solid fa-map-location-dot"></i> GIS Map
                 </a>
                 <a href="{{ url_for('prediction.land_valuation_page') }}">
                     <i class="fa-solid fa-chart-line"></i> Land Valuation
                 </a>
-                <a href="{{ url_for('user.support_documents') if false else '#' }}">
+                <a href="#">
                     <i class="fa-solid fa-book"></i> Support Documents
                 </a>
-                <a href="{{ url_for('user.notifications') if false else '#' }}">
+                <a href="#">
                     <i class="fa-solid fa-bell"></i> Notifications
                 </a>
                 <a href="{{ url_for('auth.logout') }}">
@@ -122,13 +122,13 @@
 
             <!-- PRIMARY ACTIONS -->
             <section class="action-grid">
-                <a href="{{ url_for('user.submit_documents') }}" class="action-card">
+                <a href="{{ url_for('submit_documents.submit_documents') }}" class="action-card">
                     <i class="fa-solid fa-file-arrow-up"></i>
                     <h3>Submit Planning Documents</h3>
                     <p>Upload new planning approval files and supporting documents.</p>
                 </a>
 
-                <a href="{{ url_for('user.my_applications') if false else '#' }}" class="action-card">
+                <a href="{{ url_for('submit_documents.my_applications') }}" class="action-card">
                     <i class="fa-solid fa-folder-open"></i>
                     <h3>Track My Applications</h3>
                     <p>Monitor review progress, approvals, rejections, and updates.</p>
