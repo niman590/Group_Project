@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Civic Plan - User Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 
@@ -14,7 +13,39 @@
     <div class="dashboard-shell">
 
         <!-- SIDEBAR -->
-        {% include 'partials/user_sidebar.html' %}
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo" />
+                <div>
+                    <h2>CIVIC PLAN</h2>
+                    <p>Citizen Portal</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('user.user_dashboard') }}" class="active">
+                    <i class="fa-solid fa-table-columns"></i> Dashboard
+                </a>
+                <a href="{{ url_for('user.account') }}">
+                    <i class="fa-solid fa-user"></i> My Profile
+                </a>
+                <a href="#"><i class="fa-solid fa-file-arrow-up"></i> Submit Documents</a>
+                <a href="#"><i class="fa-solid fa-folder-open"></i> My Applications</a>
+                <a href="#"><i class="fa-solid fa-landmark"></i> Property Records</a>
+                <a href="{{ url_for('transaction_history.transaction_history_page') }}">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Transaction History
+                </a>
+                <a href="#"><i class="fa-solid fa-map-location-dot"></i> GIS Map</a>
+                <a href="{{ url_for('prediction.land_valuation_page') }}">
+                    <i class="fa-solid fa-chart-line"></i> Land Valuation
+                </a>
+                <a href="#"><i class="fa-solid fa-book"></i> Support Documents</a>
+                <a href="#"><i class="fa-solid fa-bell"></i> Notifications</a>
+                <a href="{{ url_for('auth.logout') }}">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </nav>
+        </aside>
 
         <!-- MAIN -->
         <main class="main-content">
@@ -34,9 +65,9 @@
                             {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                         </div>
                         <div>
-                            <strong>{{ user['first_name'] if user else 'Citizen' }} {{ user['last_name'] if user and
-                                user['last_name'] else 'User' }}</strong>
-                            <span>NIC: {{ user['nic'] if user and user['nic'] else '200012345678' }}</span>
+                            <strong>{{ user['first_name'] }} {{ user['last_name'] if user else 'Citizen User'
+                                }}</strong>
+                            <span>NIC: {{ user['nic'] if user else '200012345678' }}</span>
                         </div>
                     </div>
                 </div>
@@ -233,9 +264,9 @@
                                 {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                             </div>
                             <div class="profile-meta">
-                                <h3>{{ user['first_name'] if user else 'Citizen' }} {{ user['last_name'] if user and
-                                    user['last_name'] else 'User' }}</h3>
-                                <p>Email: {{ user['email'] if user and user['email'] else 'akash@example.com' }}</p>
+                                <h3>{{ user['first_name'] }} {{ user['last_name'] if user else 'R.A.D. Akash Randeniya'
+                                    }}</h3>
+                                <p>Email: {{ user['email'] if user else 'akash@example.com' }}</p>
                                 <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234
                                     5678' }}</p>
                                 <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}
