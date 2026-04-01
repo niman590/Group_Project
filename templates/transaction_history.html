@@ -1,96 +1,113 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Land Transaction History</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='transaction_history.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body>
-    <div class="history-page">
-        <div class="history-container">
-            <div class="page-header">
-                <h1>Land Transaction History</h1>
-                <p>Search ownership history by deed number or request a history update.</p>
-            </div>
+    <div class="dashboard-shell">
 
-            <div class="choice-grid">
-                <button class="choice-card" onclick="showSection('view')">View History</button>
-                <button class="choice-card" onclick="showSection('update')">Request Update</button>
-            </div>
+        {% include 'partials/user_sidebar.html' %}
 
-            <div id="view-section" class="card hidden">
-                <h2>View Ownership History</h2>
-                <div class="form-group">
-                    <label>Deed Number</label>
-                    <input type="text" id="view_deed_number" placeholder="Enter deed number">
+        <main class="main-content">
+            <div class="history-container">
+                <div class="page-header">
+                    <h1>Land Transaction History</h1>
+                    <p>Search ownership history by deed number or request a history update.</p>
                 </div>
-                <button class="primary-btn" onclick="fetchTransactionHistory()">Search History</button>
 
-                <div id="history-result" class="result-area"></div>
+                <div class="choice-grid">
+                    <button type="button" class="choice-card" onclick="showSection('view')">View History</button>
+                    <button type="button" class="choice-card" onclick="showSection('update')">Request Update</button>
+                </div>
+
+                <div id="view-section" class="card hidden">
+                    <h2>View Ownership History</h2>
+
+                    <div class="form-group">
+                        <label for="view_deed_number">Deed Number</label>
+                        <input type="text" id="view_deed_number" placeholder="Enter deed number">
+                    </div>
+
+                    <button type="button" class="primary-btn" onclick="fetchTransactionHistory()">Search
+                        History</button>
+
+                    <div id="history-result" class="result-area"></div>
+                </div>
+
+                <div id="update-section" class="card hidden">
+                    <h2>Request Transaction History Update</h2>
+
+                    <form id="updateForm" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="deed_number">Deed Number</label>
+                            <input type="text" id="deed_number" name="deed_number" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="proposed_owner_name">Proposed New Owner Name</label>
+                            <input type="text" id="proposed_owner_name" name="proposed_owner_name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="proposed_owner_nic">Owner NIC</label>
+                            <input type="text" id="proposed_owner_nic" name="proposed_owner_nic">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="proposed_owner_address">Owner Address</label>
+                            <input type="text" id="proposed_owner_address" name="proposed_owner_address">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="proposed_owner_phone">Owner Phone</label>
+                            <input type="text" id="proposed_owner_phone" name="proposed_owner_phone">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="proposed_transfer_date">Transfer Date</label>
+                            <input type="date" id="proposed_transfer_date" name="proposed_transfer_date" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="proposed_transaction_type">Transaction Type</label>
+                            <select id="proposed_transaction_type" name="proposed_transaction_type" required>
+                                <option value="Sale">Sale</option>
+                                <option value="Gift">Gift</option>
+                                <option value="Inheritance">Inheritance</option>
+                                <option value="Correction">Correction</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notes">Notes</label>
+                            <textarea id="notes" name="notes"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="proof_document">Upload Proof Document</label>
+                            <input type="file" id="proof_document" name="proof_document" required>
+                        </div>
+
+                        <button type="button" class="primary-btn" onclick="submitUpdateRequest()">Submit
+                            Request</button>
+                    </form>
+
+                    <div id="update-result" class="result-area"></div>
+                </div>
             </div>
+        </main>
 
-            <div id="update-section" class="card hidden">
-                <h2>Request Transaction History Update</h2>
-                <form id="updateForm" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label>Deed Number</label>
-                        <input type="text" name="deed_number" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Proposed New Owner Name</label>
-                        <input type="text" name="proposed_owner_name" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Owner NIC</label>
-                        <input type="text" name="proposed_owner_nic">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Owner Address</label>
-                        <input type="text" name="proposed_owner_address">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Owner Phone</label>
-                        <input type="text" name="proposed_owner_phone">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Transfer Date</label>
-                        <input type="date" name="proposed_transfer_date" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Transaction Type</label>
-                        <select name="proposed_transaction_type" required>
-                            <option value="Sale">Sale</option>
-                            <option value="Gift">Gift</option>
-                            <option value="Inheritance">Inheritance</option>
-                            <option value="Correction">Correction</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Notes</label>
-                        <textarea name="notes"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Upload Proof Document</label>
-                        <input type="file" name="proof_document" required>
-                    </div>
-
-                    <button type="button" class="primary-btn" onclick="submitUpdateRequest()">Submit Request</button>
-                </form>
-
-                <div id="update-result" class="result-area"></div>
-            </div>
-        </div>
     </div>
 
     <script src="{{ url_for('static', filename='transaction_history.js') }}"></script>
 </body>
+
 </html>
