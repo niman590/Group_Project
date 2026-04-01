@@ -186,3 +186,15 @@ body {
         flex-direction: column;
     }
 }
+
+.dashboard-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+    padding: 32px;
+    background: #f4f7fc;
+}
