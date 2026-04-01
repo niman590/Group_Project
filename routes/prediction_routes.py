@@ -11,7 +11,7 @@ prediction_bp = Blueprint("prediction", __name__)
 
 @prediction_bp.route("/land-valuation", methods=["GET"])
 def land_valuation_page():
-    return render_template("land_valuation.html")
+    return render_template("land_valuation.html", active_page="land_valuation")
 
 
 def validate_land_inputs(data):
