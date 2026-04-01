@@ -105,3 +105,14 @@ input, select, textarea {
     padding: 12px;
     border-radius: 10px;
 }
+
+.dashboard-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    padding: 30px;
+    background: #f4f7fb;
+}
