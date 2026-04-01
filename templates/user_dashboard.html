@@ -35,7 +35,8 @@
                             {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                         </div>
                         <div>
-                            <strong>{{ user['first_name'] }} {{ user['last_name'] if user else 'Citizen User' }}</strong>
+                            <strong>{{ user['first_name'] }} {{ user['last_name'] if user else 'Citizen User'
+                                }}</strong>
                             <span>NIC: {{ user['nic'] if user else '200012345678' }}</span>
                         </div>
                     </div>
@@ -233,10 +234,13 @@
                                 {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                             </div>
                             <div class="profile-meta">
-                                <h3>{{ user['first_name'] }} {{ user['last_name'] if user else 'R.A.D. Akash Randeniya' }}</h3>
+                                <h3>{{ user['first_name'] }} {{ user['last_name'] if user else 'R.A.D. Akash Randeniya'
+                                    }}</h3>
                                 <p>Email: {{ user['email'] if user else 'akash@example.com' }}</p>
-                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234 5678' }}</p>
-                                <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}</p>
+                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234
+                                    5678' }}</p>
+                                <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -314,7 +318,8 @@
 
         <div class="chatbot-messages" id="chatMessages">
             <div class="bot-msg">
-                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site navigation.
+                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site
+                navigation.
             </div>
         </div>
 
