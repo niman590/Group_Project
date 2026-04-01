@@ -111,9 +111,22 @@ a {
 }
 
 .register-link {
+    background: transparent;
     color: #ffffff;
-    text-decoration: underline;
-    font-weight: 600;
+    padding: 13px 26px;
+    border: 2px solid #ffffff;
+    border-radius: 6px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    transition: 0.3s ease;
+}
+
+.register-link:hover {
+    background: #ffffff;
+    color: #0a2d63;
 }
 
 .signin-btn {
@@ -505,6 +518,7 @@ a {
     color: #dce8ff;
     margin-bottom: 12px;
 }
+
 .footer-links {
     display: flex;
     flex-direction: column;
@@ -517,6 +531,7 @@ a {
     width: 100%;
     text-align: left;
 }
+
 .footer-help-btn {
     background: none;
     border: none;
