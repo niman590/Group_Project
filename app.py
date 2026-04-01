@@ -13,7 +13,7 @@ app = Flask(__name__)
 app.secret_key = "civic_plan_secret_key"
 
 init_db()
-#ammo hucnwa
+
 app.register_blueprint(main_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
@@ -24,6 +24,5 @@ app.register_blueprint(chatbot_bp)
 app.register_blueprint(transaction_history_bp)
 
 if __name__ == "__main__":
-    app.run(debug=True)\
+    app.run(debug=True)
     
-    #paka ponna akash 
