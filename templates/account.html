@@ -5,108 +5,121 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Civic Plan - My Account</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='account.css') }}" />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='account.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 
 <body>
-  <div class="account-page">
-  
+  <div class="dashboard-shell">
 
-    <div class="left-side">
-      <div class="overlay"></div>
+    {% include 'partials/user_sidebar.html' %}
 
-      <div class="left-content">
-        <h1>
-          Manage
-          Your Account
-          Details
-          Securely
-        </h1>
+    <main class="main-content">
+      <div class="account-page">
 
-        <p>
-          Update your account information anytime and permanently remove your account
-          when needed from one secure place.
-        </p>
+        <div class="left-side">
+          <div class="overlay"></div>
+
+          <div class="left-content">
+            <h1>
+              Manage
+              Your Account
+              Details
+              Securely
+            </h1>
+
+            <p>
+              Update your account information anytime and permanently remove your account
+              when needed from one secure place.
+            </p>
+          </div>
+        </div>
+
+        <div class="right-side">
+          <div class="form-container">
+            <div class="logo-box">
+              <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
+            </div>
+
+            <h2 class="brand-title">CIVIC PLAN</h2>
+            <p class="brand-subtitle">Land Management Portal</p>
+            <p class="section-title">My Account</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+              <div class="flash-message {{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <div class="account-card">
+              <form action="{{ url_for('user.account') }}" method="POST">
+
+                <div class="detail-group">
+                  <label for="first_name">First Name</label>
+                  <input type="text" id="first_name" name="first_name" value="{{ user.first_name or '' }}" required>
+                </div>
+
+                <div class="detail-group">
+                  <label for="last_name">Last Name</label>
+                  <input type="text" id="last_name" name="last_name" value="{{ user.last_name or '' }}" required>
+                </div>
+
+                <div class="detail-group">
+                  <label for="email">Email Address</label>
+                  <input type="email" id="email" name="email" value="{{ user.email or '' }}" required>
+                </div>
+
+                <div class="detail-group">
+                  <label for="phone_number">Phone Number</label>
+                  <input type="text" id="phone_number" name="phone_number" value="{{ user.phone_number or '' }}">
+                </div>
+
+                <div class="detail-group">
+                  <label for="nic">NIC Number</label>
+                  <input type="text" id="nic" name="nic" value="{{ user.nic or '' }}" readonly>
+                </div>
+
+                <div class="detail-group">
+                  <label for="city">City</label>
+                  <input type="text" id="city" name="city" value="{{ user.city or '' }}">
+                </div>
+
+                <div class="detail-group">
+                  <label for="address">Residential Address</label>
+                  <textarea id="address" name="address" rows="4">{{ user.address or '' }}</textarea>
+                </div>
+
+                <div class="button-group">
+                  <button type="submit" class="edit-btn">Save Changes</button>
+                </div>
+              </form>
+
+              <form action="{{ url_for('user.delete_account') }}" method="POST" class="delete-form"
+                onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
+                <button type="submit" class="delete-btn">Delete My Account</button>
+              </form>
+
+              <p class="back-text">
+                <a
+                  href="{% if user['is_admin'] %}{{ url_for('admin.admin_dashboard') }}{% else %}{{ url_for('user.user_dashboard') }}{% endif %}">
+                  Back to Dashboard
+                </a>
+              </p>
+
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
-
-    <div class="right-side">
-      <div class="form-container">
-        <div class="logo-box">
-          <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
-        </div>
-
-        <h2 class="brand-title">CIVIC PLAN</h2>
-        <p class="brand-subtitle">Land Management Portal</p>
-        <p class="section-title">My Account</p>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="flash-messages">
-          {% for category, message in messages %}
-          <div class="flash-message {{ category }}">{{ message }}</div>
-          {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
-
-        <div class="account-card">
-          <form action="{{ url_for('user.account') }}" method="POST">
-            <div class="detail-group">
-              <label for="first_name">First Name</label>
-              <input type="text" id="first_name" name="first_name" value="{{ user.first_name or '' }}" required>
-            </div>
-
-            <div class="detail-group">
-              <label for="last_name">Last Name</label>
-              <input type="text" id="last_name" name="last_name" value="{{ user.last_name or '' }}" required>
-            </div>
-
-            <div class="detail-group">
-              <label for="email">Email Address</label>
-              <input type="email" id="email" name="email" value="{{ user.email or '' }}" required>
-            </div>
-
-            <div class="detail-group">
-              <label for="phone_number">Phone Number</label>
-              <input type="text" id="phone_number" name="phone_number" value="{{ user.phone_number or '' }}">
-            </div>
-
-            <div class="detail-group">
-              <label for="nic">NIC Number</label>
-              <input type="text" id="nic" name="nic" value="{{ user.nic or '' }}" readonly>
-            </div>
-
-            <div class="detail-group">
-              <label for="city">City</label>
-              <input type="text" id="city" name="city" value="{{ user.city or '' }}">
-            </div>
-
-            <div class="detail-group">
-              <label for="address">Residential Address</label>
-              <textarea id="address" name="address" rows="4">{{ user.address or '' }}</textarea>
-            </div>
-
-            <div class="button-group">
-              <button type="submit" class="edit-btn">Save Changes</button>
-            </div>
-          </form>
-
-          <form action="{{ url_for('user.delete_account') }}" method="POST" class="delete-form"
-            onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
-            <button type="submit" class="delete-btn">Delete My Account</button>
-          </form>
-
-          <p class="back-text">
-            <a href="{% if user['is_admin'] %}{{ url_for('admin.admin_dashboard') }}{% else %}{{ url_for('user.user_dashboard') }}{% endif %}">Back to Dashboard</a>
-          </p>
-        </div>
-      </div>
-    </div>
+    </main>
 
   </div>
 </body>
 
 </html>
-
-/* test*/
