@@ -49,7 +49,8 @@ def user_dashboard():
         flash("User not found. Please sign in again.", "error")
         return redirect(url_for("auth.login"))
 
-    return render_template("user_dashboard.html", user=user)
+    # ✅ ADDED active_page
+    return render_template("user_dashboard.html", user=user, active_page="dashboard")
 
 
 @user_bp.route("/account", methods=["GET", "POST"])
@@ -75,7 +76,8 @@ def account():
 
         if not first_name or not last_name or not email:
             flash("First name, last name, and email are required.", "error")
-            return render_template("account.html", user=user)
+            # ✅ ADDED active_page here too
+            return render_template("account.html", user=user, active_page="account")
 
         conn = get_connection()
         cursor = conn.cursor()
@@ -92,7 +94,7 @@ def account():
         if existing_email:
             conn.close()
             flash("That email address is already being used.", "error")
-            return render_template("account.html", user=user)
+            return render_template("account.html", user=user, active_page="account")
 
         cursor.execute(
             """
@@ -133,7 +135,8 @@ def account():
         flash("Your account details were updated successfully.", "success")
         return redirect(url_for("user.account"))
 
-    return render_template("account.html", user=user)
+    # ✅ ADDED active_page here
+    return render_template("account.html", user=user, active_page="account")
 
 
 @user_bp.route("/account/delete", methods=["POST"])

@@ -291,3 +291,18 @@ body {
     font-size: 2rem;
   }
 }
+.dashboard-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 980px) {
+  .dashboard-shell {
+    flex-direction: column;
+  }
+}
