@@ -24,95 +24,10 @@ def add_column_if_missing(cursor, table_name, column_name, column_definition):
         cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}")
 
 
-def create_indexes(cursor):
-    # USERS
-    cursor.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique
-        ON users(email)
-    """)
-    cursor.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_nic_unique
-        ON users(nic)
-    """)
-    cursor.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_employee_id_unique
-        ON users(employee_id)
-        WHERE employee_id IS NOT NULL
-    """)
-
-    # PROPERTY
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_property_owner_id
-        ON property(owner_id)
-    """)
-
-    # TRANSACTION HISTORY
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_transaction_history_property_id
-        ON transaction_history(property_id)
-    """)
-
-    # VALUE PREDICTION
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_value_prediction_property_id
-        ON value_prediction(property_id)
-    """)
-
-    # PLAN CASE
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_plan_case_user_id
-        ON plan_case(user_id)
-    """)
-
-    # DOCUMENT
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_document_property_id
-        ON document(property_id)
-    """)
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_document_user_id
-        ON document(user_id)
-    """)
-
-    # PLAN CASE TRACKING
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_plan_case_tracking_document_id
-        ON plan_case_tracking(document_id)
-    """)
-
-    # LAND RECORD
-    cursor.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_land_record_deed_number_unique
-        ON land_record(deed_number)
-    """)
-
-    # OWNERSHIP HISTORY
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_ownership_history_land_id
-        ON ownership_history(land_id)
-    """)
-    cursor.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_ownership_history_land_order_unique
-        ON ownership_history(land_id, ownership_order)
-    """)
-
-    # UPDATE REQUESTS
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_history_update_request_user_id
-        ON transaction_history_update_request(user_id)
-    """)
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_history_update_request_deed_number
-        ON transaction_history_update_request(deed_number)
-    """)
-    cursor.execute("""
-        CREATE INDEX IF NOT EXISTS idx_history_update_request_status
-        ON transaction_history_update_request(status)
-    """)
-
-
 def create_tables(cursor):
-    # USERS TABLE
+    # =========================
+    # USERS
+    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,16 +40,19 @@ def create_tables(cursor):
         address TEXT,
         city TEXT,
         nic TEXT NOT NULL,
+        employee_id TEXT,
         is_admin BOOLEAN DEFAULT 0,
+        is_active BOOLEAN DEFAULT 1,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
     );
     """)
 
-    # Add safely for old databases
     add_column_if_missing(cursor, "users", "employee_id", "TEXT")
     add_column_if_missing(cursor, "users", "is_active", "BOOLEAN DEFAULT 1")
 
-    # PROPERTY TABLE
+    # =========================
+    # PROPERTY
+    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS property (
         property_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -147,7 +65,9 @@ def create_tables(cursor):
     );
     """)
 
-    # TRANSACTION HISTORY TABLE
+    # =========================
+    # TRANSACTION HISTORY
+    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS transaction_history (
         transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -158,7 +78,9 @@ def create_tables(cursor):
     );
     """)
 
-    # VALUE PREDICTION TABLE
+    # =========================
+    # VALUE PREDICTION
+    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS value_prediction (
         prediction_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -169,44 +91,9 @@ def create_tables(cursor):
     );
     """)
 
-    # PLAN CASE TABLE
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS plan_case (
-        case_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        postal_code TEXT NOT NULL,
-        gnd TEXT NOT NULL,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(user_id)
-    );
-    """)
-
-    # DOCUMENT TABLE
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS document (
-        document_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        property_id INTEGER NOT NULL,
-        user_id INTEGER NOT NULL,
-        submission_date TEXT DEFAULT CURRENT_TIMESTAMP,
-        result_date TEXT,
-        comment TEXT,
-        FOREIGN KEY (property_id) REFERENCES property(property_id),
-        FOREIGN KEY (user_id) REFERENCES users(user_id)
-    );
-    """)
-
-    # PLAN CASE TRACKING TABLE
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS plan_case_tracking (
-        tracking_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        document_id INTEGER NOT NULL,
-        case_opendate TEXT,
-        case_closedate TEXT,
-        FOREIGN KEY (document_id) REFERENCES document(document_id)
-    );
-    """)
-
-    # REPORT TABLE
+    # =========================
+    # REPORT
+    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS report (
         report_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -219,7 +106,9 @@ def create_tables(cursor):
     );
     """)
 
-    # LAND RECORD TABLE
+    # =========================
+    # LAND RECORD
+    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS land_record (
         land_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -231,7 +120,9 @@ def create_tables(cursor):
     );
     """)
 
-    # OWNERSHIP HISTORY TABLE
+    # =========================
+    # OWNERSHIP HISTORY
+    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS ownership_history (
         history_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -248,7 +139,9 @@ def create_tables(cursor):
     );
     """)
 
-    # TRANSACTION HISTORY UPDATE REQUEST TABLE
+    # =========================
+    # TRANSACTION HISTORY UPDATE REQUEST
+    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS transaction_history_update_request (
         request_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -270,6 +163,250 @@ def create_tables(cursor):
         FOREIGN KEY (user_id) REFERENCES users(user_id),
         FOREIGN KEY (reviewed_by) REFERENCES users(user_id)
     );
+    """)
+
+    # =========================================================
+    # NEW PLANNING APPROVAL TABLES
+    # =========================================================
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_applications (
+        application_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'Draft',
+        current_step INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_summary (
+        application_id INTEGER PRIMARY KEY,
+        development_work_type TEXT,
+        previous_plan_no TEXT,
+        assessment_no TEXT,
+        road_name TEXT,
+        postal_code TEXT,
+        local_authority_name TEXT,
+        gnd_name TEXT,
+        land_ownership_type TEXT,
+        land_ownership_other TEXT,
+        proposed_use_other TEXT,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_proposed_uses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        application_id INTEGER NOT NULL,
+        proposed_use TEXT NOT NULL,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_applicants (
+        applicant_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        application_id INTEGER NOT NULL,
+        applicant_order INTEGER NOT NULL,
+        name TEXT,
+        nic TEXT,
+        telephone TEXT,
+        email TEXT,
+        address TEXT,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_technical_details (
+        application_id INTEGER PRIMARY KEY,
+        architect_town_planner_name TEXT,
+        draughtsman_name TEXT,
+        engineer_name TEXT,
+        applicant_owns_land TEXT,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_land_owner (
+        application_id INTEGER PRIMARY KEY,
+        owner_name TEXT,
+        owner_nic TEXT,
+        owner_tel TEXT,
+        owner_email TEXT,
+        owner_address TEXT,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_clearances (
+        application_id INTEGER PRIMARY KEY,
+        rate_clearance_ref TEXT,
+        rate_clearance_date TEXT,
+        water_clearance_ref TEXT,
+        water_clearance_date TEXT,
+        drainage_clearance_ref TEXT,
+        drainage_clearance_date TEXT,
+        uda_preliminary_ref TEXT,
+        uda_preliminary_date TEXT,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_site_usage (
+        application_id INTEGER PRIMARY KEY,
+        existing_use TEXT,
+        proposed_use_text TEXT,
+        zoning_category TEXT,
+        site_extent REAL,
+        site_frontage_width REAL,
+        physical_width_of_road REAL,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_dimensions (
+        application_id INTEGER PRIMARY KEY,
+        distance_street_boundary REAL,
+        distance_rear_boundary REAL,
+        distance_left_boundary REAL,
+        distance_right_boundary REAL,
+        no_of_floors INTEGER,
+        total_building_height REAL,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_development_metrics (
+        application_id INTEGER PRIMARY KEY,
+        plot_coverage REAL,
+        floor_area_ratio REAL,
+        water_usage_liters REAL,
+        electricity_usage_kw REAL,
+        site_development_notes TEXT,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_units_parking (
+        application_id INTEGER PRIMARY KEY,
+        existing_units INTEGER,
+        proposed_units INTEGER,
+        total_units INTEGER,
+        parking_car_proposed INTEGER,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_submitted_plans (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        application_id INTEGER NOT NULL,
+        plan_name TEXT NOT NULL,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_attachments (
+        attachment_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        application_id INTEGER NOT NULL,
+        file_category TEXT NOT NULL,
+        file_name TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        uploaded_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
+
+
+def create_indexes(cursor):
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique
+        ON users(email)
+    """)
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_nic_unique
+        ON users(nic)
+    """)
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_users_employee_id_unique
+        ON users(employee_id)
+        WHERE employee_id IS NOT NULL
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_property_owner_id
+        ON property(owner_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_transaction_history_property_id
+        ON transaction_history(property_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_value_prediction_property_id
+        ON value_prediction(property_id)
+    """)
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_land_record_deed_number_unique
+        ON land_record(deed_number)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_ownership_history_land_id
+        ON ownership_history(land_id)
+    """)
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_ownership_history_land_order_unique
+        ON ownership_history(land_id, ownership_order)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_history_update_request_user_id
+        ON transaction_history_update_request(user_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_history_update_request_deed_number
+        ON transaction_history_update_request(deed_number)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_history_update_request_status
+        ON transaction_history_update_request(status)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_planning_applications_user_id
+        ON planning_applications(user_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_planning_applications_status
+        ON planning_applications(status)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_planning_app_summary_assessment_no
+        ON planning_application_summary(assessment_no)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_planning_app_applicants_application_id
+        ON planning_application_applicants(application_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_planning_app_proposed_uses_application_id
+        ON planning_application_proposed_uses(application_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_planning_app_submitted_plans_application_id
+        ON planning_application_submitted_plans(application_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_planning_app_attachments_application_id
+        ON planning_application_attachments(application_id)
     """)
 
 
@@ -320,12 +457,6 @@ def create_default_admin(cursor):
 
 
 def insert_sample_transaction_history_data(cursor):
-    """
-    Insert sample deed and ownership history only if they do not already exist.
-    This avoids duplicate history rows every time the app starts.
-    """
-
-    # Insert land record only once
     cursor.execute("""
         INSERT OR IGNORE INTO land_record (
             deed_number,
@@ -353,7 +484,6 @@ def insert_sample_transaction_history_data(cursor):
 
     land_id = land["land_id"]
 
-    # Only insert sample history if no history exists for this land
     cursor.execute("""
         SELECT COUNT(*) AS count
         FROM ownership_history
@@ -362,56 +492,19 @@ def insert_sample_transaction_history_data(cursor):
     history_count = cursor.fetchone()["count"]
 
     if history_count == 0:
-        cursor.execute("""
-            INSERT INTO ownership_history (
-                land_id, owner_name, owner_nic, owner_address,
-                owner_phone, transfer_date, transaction_type, ownership_order
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            land_id,
-            "Nimal Silva",
-            "901234567V",
-            "Colombo",
-            "0711111111",
-            "2010-05-10",
-            "Original Registration",
-            1
-        ))
+        sample_rows = [
+            (land_id, "Nimal Silva", "901234567V", "Colombo", "0711111111", "2010-05-10", "Original Registration", 1),
+            (land_id, "Sunil Fernando", "881234567V", "Gampaha", "0722222222", "2015-08-15", "Sale", 2),
+            (land_id, "Amal Perera", "851234567V", "Kaduwela", "0773333333", "2020-02-01", "Sale", 3),
+        ]
 
-        cursor.execute("""
+        cursor.executemany("""
             INSERT INTO ownership_history (
                 land_id, owner_name, owner_nic, owner_address,
                 owner_phone, transfer_date, transaction_type, ownership_order
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            land_id,
-            "Sunil Fernando",
-            "881234567V",
-            "Gampaha",
-            "0722222222",
-            "2015-08-15",
-            "Sale",
-            2
-        ))
-
-        cursor.execute("""
-            INSERT INTO ownership_history (
-                land_id, owner_name, owner_nic, owner_address,
-                owner_phone, transfer_date, transaction_type, ownership_order
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            land_id,
-            "Amal Perera",
-            "851234567V",
-            "Kaduwela",
-            "0773333333",
-            "2020-02-01",
-            "Sale",
-            3
-        ))
+        """, sample_rows)
 
 
 def init_db():
