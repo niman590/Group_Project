@@ -2,6 +2,10 @@ import os
 import json
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 from flask import Blueprint, render_template, request, jsonify, session
 from werkzeug.utils import secure_filename
 from database.db_connection import get_connection
@@ -52,6 +56,38 @@ def fetch_json(url, params=None):
 
     with urlopen(req, timeout=15) as response:
         return json.loads(response.read().decode("utf-8"))
+
+
+def send_planning_submission_email(to_email, first_name):
+    sender_email = "planapprovalsystem@gmail.com"
+    sender_password = "fikz sauz rsmz zkee"
+
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = to_email
+    msg["Subject"] = "Planning Approval Application Submitted"
+
+    body = f"""Hello {first_name}!
+
+Your planning approval document has been submitted successfully.
+
+Thank you,
+Civic Plan Team
+
+This is an automated email from Civic Plan Team.
+"""
+    msg.attach(MIMEText(body, "plain"))
+
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, to_email, msg.as_string())
+        server.quit()
+        return True
+    except Exception as e:
+        print("Planning submission email error:", e)
+        return False
 
 
 @submit_documents_bp.route("/submit-documents", methods=["GET"])
@@ -511,6 +547,13 @@ def submit_planning_application():
     application_id = row["application_id"] if hasattr(row, "keys") else row[0]
 
     cursor.execute("""
+        SELECT first_name, email
+        FROM users
+        WHERE user_id = ?
+    """, (user_id,))
+    user = cursor.fetchone()
+
+    cursor.execute("""
         UPDATE planning_applications
         SET status = 'Submitted', updated_at = CURRENT_TIMESTAMP
         WHERE application_id = ?
@@ -518,6 +561,11 @@ def submit_planning_application():
 
     conn.commit()
     conn.close()
+
+    if user:
+        first_name = user["first_name"] if hasattr(user, "keys") else user[0]
+        email = user["email"] if hasattr(user, "keys") else user[1]
+        send_planning_submission_email(email, first_name)
 
     return jsonify({
         "success": True,
