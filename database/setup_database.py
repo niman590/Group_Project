@@ -329,6 +329,11 @@ def create_tables(cursor):
     );
     """)
 
+    add_column_if_missing(cursor, "planning_applications", "reviewed_by", "INTEGER")
+    add_column_if_missing(cursor, "planning_applications", "reviewed_at", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "admin_comment", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "decision_pdf_path", "TEXT")
+
 
 def create_indexes(cursor):
     cursor.execute("""

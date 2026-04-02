@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Planning Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            padding: 30px;
+        }
+        .box {
+            max-width: 1100px;
+            margin: auto;
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+        }
+        h1, h2, h3 {
+            color: #123f88;
+        }
+        .section {
+            margin-top: 24px;
+            padding: 18px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            background: #fafcff;
+        }
+        .row {
+            margin-bottom: 10px;
+        }
+        .attachments a {
+            display: block;
+            margin-bottom: 8px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 110px;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #cfd8e3;
+            resize: vertical;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            border: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .approve {
+            background: #1d7d3c;
+            color: white;
+        }
+        .reject {
+            background: #c0392b;
+            color: white;
+        }
+        .pdf {
+            background: #123f88;
+            color: white;
+            text-decoration: none;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1>Review Application #{{ application['application_id'] }}</h1>
+
+        <div class="section">
+            <h2>Applicant</h2>
+            <div class="row"><strong>Name:</strong> {{ application['first_name'] }} {{ application['last_name'] }}</div>
+            <div class="row"><strong>Email:</strong> {{ application['email'] }}</div>
+            <div class="row"><strong>NIC:</strong> {{ application['nic'] }}</div>
+            <div class="row"><strong>Status:</strong> {{ application['status'] }}</div>
+        </div>
+
+        <div class="section">
+            <h2>Development Summary</h2>
+            {% if summary %}
+                <div class="row"><strong>Assessment No:</strong> {{ summary['assessment_no'] }}</div>
+                <div class="row"><strong>Road Name:</strong> {{ summary['road_name'] }}</div>
+                <div class="row"><strong>Local Authority:</strong> {{ summary['local_authority_name'] }}</div>
+                <div class="row"><strong>Development Type:</strong> {{ summary['development_work_type'] }}</div>
+                <div class="row"><strong>Ownership Type:</strong> {{ summary['land_ownership_type'] }}</div>
+                <div class="row">
+                    <strong>Proposed Uses:</strong>
+                    {% for use in proposed_uses %}
+                        {{ use['proposed_use'] }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No summary found.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Applicants</h2>
+            {% for applicant in applicants %}
+                <div class="row">
+                    <strong>{{ applicant['applicant_order'] }}.</strong>
+                    {{ applicant['name'] }} | {{ applicant['nic'] }} | {{ applicant['telephone'] }} | {{ applicant['email'] }}
+                </div>
+            {% else %}
+                <p>No applicants found.</p>
+            {% endfor %}
+        </div>
+
+        <div class="section">
+            <h2>Attachments</h2>
+            <div class="attachments">
+                {% for file in attachments %}
+                    <a href="/{{ file['file_path'] }}" target="_blank">{{ file['file_name'] }} ({{ file['file_category'] }})</a>
+                {% else %}
+                    <p>No attachments uploaded.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Admin Decision</h2>
+
+            <form method="POST" action="{{ url_for('admin.approve_planning_application', application_id=application['application_id']) }}">
+                <h3>Approve Application</h3>
+                <textarea name="admin_comment" placeholder="Add approval instructions / next steps"></textarea>
+                <div class="actions">
+                    <button class="approve" type="submit">Approve</button>
+                </div>
+            </form>
+
+            <br>
+
+            <form method="POST" action="{{ url_for('admin.reject_planning_application', application_id=application['application_id']) }}">
+                <h3>Reject Application</h3>
+                <textarea name="admin_comment" placeholder="Enter reasons for rejection" required></textarea>
+                <div class="actions">
+                    <button class="reject" type="submit">Reject</button>
+                </div>
+            </form>
+
+            {% if application['decision_pdf_path'] %}
+                <br>
+                <a class="pdf" href="{{ url_for('admin.download_planning_decision_pdf', application_id=application['application_id']) }}">
+                    Download Decision PDF
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
