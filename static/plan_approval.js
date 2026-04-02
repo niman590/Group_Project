@@ -16,7 +16,21 @@ const autosaveStatus = document.getElementById("autosaveStatus");
 const ownerStepNote = document.getElementById("ownerStepNote");
 const filePreviewBox = document.getElementById("filePreviewBox");
 
+const mapModal = document.getElementById("mapModal");
+const mapModalBackdrop = document.getElementById("mapModalBackdrop");
+const mapCloseBtn = document.getElementById("mapCloseBtn");
+const mapSearchInput = document.getElementById("mapSearchInput");
+const mapSearchBtn = document.getElementById("mapSearchBtn");
+const mapStatusText = document.getElementById("mapStatusText");
+const mapSelectedAddress = document.getElementById("mapSelectedAddress");
+const confirmMapSelectionBtn = document.getElementById("confirmMapSelectionBtn");
+const useCurrentLocationBtn = document.getElementById("useCurrentLocationBtn");
+
 let currentStep = 0;
+let mapInstance = null;
+let mapMarker = null;
+let activeAddressFieldId = null;
+let currentPickedLocation = null;
 
 const stepHints = [
     "Start with the development summary.",
@@ -283,6 +297,203 @@ Engineer: ${step3.engineer_name || "-"}
     `.trim();
 }
 
+function updateAddressMeta(fieldId, addressText, lat = null, lon = null) {
+    const metaBox = document.getElementById(`${fieldId}_meta`);
+    if (!metaBox) return;
+
+    if (!addressText) {
+        metaBox.textContent = "No GIS location selected yet.";
+        return;
+    }
+
+    if (lat && lon) {
+        metaBox.textContent = `GIS selected location: ${addressText}\nLatitude: ${Number(lat).toFixed(6)}, Longitude: ${Number(lon).toFixed(6)}`;
+    } else {
+        metaBox.textContent = `Address loaded: ${addressText}`;
+    }
+}
+
+function initMapIfNeeded() {
+    if (mapInstance) {
+        setTimeout(() => mapInstance.invalidateSize(), 150);
+        return;
+    }
+
+    mapInstance = L.map("gisMap").setView([7.8731, 80.7718], 7);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(mapInstance);
+
+    mapInstance.on("click", async (event) => {
+        const { lat, lng } = event.latlng;
+        placeMapMarker(lat, lng);
+        await fillSelectedLocationFromCoordinates(lat, lng);
+    });
+
+    setTimeout(() => mapInstance.invalidateSize(), 150);
+}
+
+function placeMapMarker(lat, lon) {
+    if (!mapInstance) return;
+
+    if (mapMarker) {
+        mapMarker.setLatLng([lat, lon]);
+    } else {
+        mapMarker = L.marker([lat, lon]).addTo(mapInstance);
+    }
+
+    mapInstance.setView([lat, lon], 17);
+}
+
+async function searchLocation(query) {
+    const res = await fetch(`/gis-search-location?q=${encodeURIComponent(query)}`);
+    return await res.json();
+}
+
+async function reverseGeocode(lat, lon) {
+    const res = await fetch(`/gis-reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`);
+    return await res.json();
+}
+
+async function fillSelectedLocationFromCoordinates(lat, lon) {
+    mapStatusText.textContent = "Fetching address from selected map point...";
+
+    try {
+        const result = await reverseGeocode(lat, lon);
+
+        if (!result.success) {
+            mapStatusText.textContent = result.message || "Could not identify the selected location.";
+            return;
+        }
+
+        currentPickedLocation = {
+            address: result.address || "",
+            lat: result.lat,
+            lon: result.lon
+        };
+
+        mapSelectedAddress.textContent = `${currentPickedLocation.address}\nLatitude: ${Number(currentPickedLocation.lat).toFixed(6)}, Longitude: ${Number(currentPickedLocation.lon).toFixed(6)}`;
+        mapStatusText.textContent = "Location selected successfully.";
+    } catch (error) {
+        mapStatusText.textContent = "Reverse geocoding failed.";
+    }
+}
+
+function openMapPicker(fieldId) {
+    activeAddressFieldId = fieldId;
+    currentPickedLocation = null;
+    mapSelectedAddress.textContent = "No location selected yet.";
+    mapStatusText.textContent = "Click on the map to choose a location.";
+    mapSearchInput.value = "";
+
+    mapModal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+
+    initMapIfNeeded();
+
+    const targetField = document.getElementById(fieldId);
+    const existingText = targetField?.value?.trim();
+
+    if (existingText) {
+        mapStatusText.textContent = "Existing address found. You can search again or click on the map to update it.";
+        mapSelectedAddress.textContent = existingText;
+    }
+
+    setTimeout(() => {
+        if (mapInstance) mapInstance.invalidateSize();
+    }, 200);
+}
+
+function closeMapPicker() {
+    mapModal.classList.add("hidden");
+    document.body.style.overflow = "";
+}
+
+async function handleMapSearch() {
+    const query = mapSearchInput.value.trim();
+
+    if (!query) {
+        mapStatusText.textContent = "Please enter a location to search.";
+        return;
+    }
+
+    mapStatusText.textContent = "Searching location...";
+
+    try {
+        const result = await searchLocation(query);
+
+        if (!result.success || !result.results?.length) {
+            mapStatusText.textContent = "No matching locations found.";
+            return;
+        }
+
+        const first = result.results[0];
+        const lat = parseFloat(first.lat);
+        const lon = parseFloat(first.lon);
+
+        placeMapMarker(lat, lon);
+        currentPickedLocation = {
+            address: first.display_name || "",
+            lat,
+            lon
+        };
+
+        mapSelectedAddress.textContent = `${currentPickedLocation.address}\nLatitude: ${lat.toFixed(6)}, Longitude: ${lon.toFixed(6)}`;
+        mapStatusText.textContent = "Search result selected. You can confirm or click another point on the map.";
+    } catch (error) {
+        mapStatusText.textContent = "Location search failed.";
+    }
+}
+
+function applySelectedLocationToField() {
+    if (!activeAddressFieldId) return;
+
+    const field = document.getElementById(activeAddressFieldId);
+    if (!field) return;
+
+    if (!currentPickedLocation || !currentPickedLocation.address) {
+        mapStatusText.textContent = "Please select a location from the map first.";
+        return;
+    }
+
+    field.value = currentPickedLocation.address;
+    updateAddressMeta(
+        activeAddressFieldId,
+        currentPickedLocation.address,
+        currentPickedLocation.lat,
+        currentPickedLocation.lon
+    );
+
+    closeMapPicker();
+}
+
+function useBrowserCurrentLocation() {
+    if (!navigator.geolocation) {
+        mapStatusText.textContent = "Geolocation is not supported by this browser.";
+        return;
+    }
+
+    mapStatusText.textContent = "Fetching your current location...";
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            placeMapMarker(lat, lon);
+            await fillSelectedLocationFromCoordinates(lat, lon);
+        },
+        () => {
+            mapStatusText.textContent = "Could not access your current location.";
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000
+        }
+    );
+}
+
 async function loadDraftFromServer() {
     try {
         const res = await fetch("/get-planning-draft");
@@ -331,6 +542,7 @@ async function loadDraftFromServer() {
             fill("applicant1_tel", draft.step2[0].telephone);
             fill("applicant1_email", draft.step2[0].email);
             fill("applicant1_address", draft.step2[0].address);
+            updateAddressMeta("applicant1_address", draft.step2[0].address);
         }
 
         if (draft.step2 && draft.step2[1]) {
@@ -339,6 +551,7 @@ async function loadDraftFromServer() {
             fill("applicant2_tel", draft.step2[1].telephone);
             fill("applicant2_email", draft.step2[1].email);
             fill("applicant2_address", draft.step2[1].address);
+            updateAddressMeta("applicant2_address", draft.step2[1].address);
         }
 
         if (draft.step3) {
@@ -358,6 +571,7 @@ async function loadDraftFromServer() {
             fill("land_owner_tel", draft.step4.owner_tel);
             fill("land_owner_email", draft.step4.owner_email);
             fill("land_owner_address", draft.step4.owner_address);
+            updateAddressMeta("land_owner_address", draft.step4.owner_address);
         }
 
         if (draft.step5) {
@@ -482,6 +696,41 @@ document.querySelectorAll('input[name="applicant_owns_land"]').forEach((radio) =
 form.querySelectorAll('input[type="file"]').forEach((field) => {
     field.addEventListener("change", updateFilePreview);
 });
+
+document.querySelectorAll(".map-picker-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+        openMapPicker(button.dataset.target);
+    });
+});
+
+if (mapModalBackdrop) {
+    mapModalBackdrop.addEventListener("click", closeMapPicker);
+}
+
+if (mapCloseBtn) {
+    mapCloseBtn.addEventListener("click", closeMapPicker);
+}
+
+if (mapSearchBtn) {
+    mapSearchBtn.addEventListener("click", handleMapSearch);
+}
+
+if (mapSearchInput) {
+    mapSearchInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            handleMapSearch();
+        }
+    });
+}
+
+if (confirmMapSelectionBtn) {
+    confirmMapSelectionBtn.addEventListener("click", applySelectedLocationToField);
+}
+
+if (useCurrentLocationBtn) {
+    useCurrentLocationBtn.addEventListener("click", useBrowserCurrentLocation);
+}
 
 form.addEventListener("submit", async (e) => {
     e.preventDefault();

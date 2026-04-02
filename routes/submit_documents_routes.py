@@ -1,4 +1,7 @@
 import os
+import json
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 from flask import Blueprint, render_template, request, jsonify, session
 from werkzeug.utils import secure_filename
 from database.db_connection import get_connection
@@ -36,9 +39,85 @@ def get_or_create_draft_application(user_id):
     return application_id
 
 
+def fetch_json(url, params=None):
+    if params:
+        url = f"{url}?{urlencode(params)}"
+
+    req = Request(
+        url,
+        headers={
+            "User-Agent": "CivicPlan/1.0 (Planning Approval GIS Address Picker)"
+        }
+    )
+
+    with urlopen(req, timeout=15) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
 @submit_documents_bp.route("/submit-documents", methods=["GET"])
 def submit_documents():
     return render_template("plan_approval.html")
+
+
+@submit_documents_bp.route("/gis-search-location", methods=["GET"])
+def gis_search_location():
+    query = request.args.get("q", "").strip()
+
+    if not query:
+        return jsonify({"success": False, "message": "Search query is required"}), 400
+
+    try:
+        results = fetch_json(
+            "https://nominatim.openstreetmap.org/search",
+            {
+                "q": query,
+                "format": "jsonv2",
+                "addressdetails": 1,
+                "limit": 5
+            }
+        )
+
+        formatted = [
+            {
+                "display_name": item.get("display_name", ""),
+                "lat": item.get("lat", ""),
+                "lon": item.get("lon", "")
+            }
+            for item in results
+        ]
+
+        return jsonify({"success": True, "results": formatted})
+    except Exception as error:
+        return jsonify({"success": False, "message": f"Location search failed: {str(error)}"}), 500
+
+
+@submit_documents_bp.route("/gis-reverse-geocode", methods=["GET"])
+def gis_reverse_geocode():
+    lat = request.args.get("lat", "").strip()
+    lon = request.args.get("lon", "").strip()
+
+    if not lat or not lon:
+        return jsonify({"success": False, "message": "Latitude and longitude are required"}), 400
+
+    try:
+        result = fetch_json(
+            "https://nominatim.openstreetmap.org/reverse",
+            {
+                "lat": lat,
+                "lon": lon,
+                "format": "jsonv2",
+                "addressdetails": 1
+            }
+        )
+
+        return jsonify({
+            "success": True,
+            "address": result.get("display_name", ""),
+            "lat": lat,
+            "lon": lon
+        })
+    except Exception as error:
+        return jsonify({"success": False, "message": f"Reverse geocoding failed: {str(error)}"}), 500
 
 
 @submit_documents_bp.route("/save-planning-draft-step", methods=["POST"])

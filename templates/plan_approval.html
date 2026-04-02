@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Civic Plan - Planning Approval Application</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='plan_approval.css') }}">
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
+    >
 </head>
 <body>
     <div class="approval-page">
@@ -143,6 +149,10 @@
                             <div class="form-group full">
                                 <label for="applicant1_address">Postal Address</label>
                                 <textarea id="applicant1_address" name="applicant1_address"></textarea>
+                                <div class="gis-address-tools">
+                                    <button type="button" class="map-picker-btn" data-target="applicant1_address">Select on Map</button>
+                                    <div class="gis-selected-meta" id="applicant1_address_meta">No GIS location selected yet.</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -173,6 +183,10 @@
                             <div class="form-group full">
                                 <label for="applicant2_address">Postal Address</label>
                                 <textarea id="applicant2_address" name="applicant2_address"></textarea>
+                                <div class="gis-address-tools">
+                                    <button type="button" class="map-picker-btn" data-target="applicant2_address">Select on Map</button>
+                                    <div class="gis-selected-meta" id="applicant2_address_meta">No GIS location selected yet.</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -230,6 +244,10 @@
                         <div class="form-group full">
                             <label for="land_owner_address">Postal Address</label>
                             <textarea id="land_owner_address" name="land_owner_address"></textarea>
+                            <div class="gis-address-tools">
+                                <button type="button" class="map-picker-btn" data-target="land_owner_address">Select on Map</button>
+                                <div class="gis-selected-meta" id="land_owner_address_meta">No GIS location selected yet.</div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -454,6 +472,38 @@
         </div>
     </div>
 
+    <div class="map-modal hidden" id="mapModal">
+        <div class="map-modal-backdrop" id="mapModalBackdrop"></div>
+        <div class="map-modal-panel">
+            <div class="map-modal-header">
+                <div>
+                    <h3>Select Address from GIS Map</h3>
+                    <p>Search a location or click directly on the map to fill the address field.</p>
+                </div>
+                <button type="button" class="map-close-btn" id="mapCloseBtn">&times;</button>
+            </div>
+
+            <div class="map-search-row">
+                <input type="text" id="mapSearchInput" placeholder="Search by place, road, address or landmark">
+                <button type="button" class="primary-btn" id="mapSearchBtn">Search</button>
+            </div>
+
+            <div class="map-help-text" id="mapStatusText">Click on the map to choose a location.</div>
+            <div id="gisMap" class="gis-map"></div>
+            <div class="map-selected-address" id="mapSelectedAddress">No location selected yet.</div>
+
+            <div class="map-modal-actions">
+                <button type="button" class="secondary-btn" id="useCurrentLocationBtn">Use My Current Location</button>
+                <button type="button" class="primary-btn" id="confirmMapSelectionBtn">Use Selected Location</button>
+            </div>
+        </div>
+    </div>
+
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
     <script src="{{ url_for('static', filename='plan_approval.js') }}"></script>
 </body>
 </html>

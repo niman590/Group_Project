@@ -374,7 +374,9 @@ textarea {
 .primary-btn,
 .secondary-btn,
 .submit-btn,
-.ghost-btn {
+.ghost-btn,
+.map-picker-btn,
+.map-close-btn {
     border: none;
     border-radius: 12px;
     padding: 13px 18px;
@@ -385,13 +387,15 @@ textarea {
 }
 
 .primary-btn,
-.submit-btn {
+.submit-btn,
+.map-picker-btn {
     background: var(--blue);
     color: var(--white);
 }
 
 .primary-btn:hover,
-.submit-btn:hover {
+.submit-btn:hover,
+.map-picker-btn:hover {
     background: var(--blue-dark);
 }
 
@@ -438,6 +442,124 @@ textarea {
     color: #a02828;
 }
 
+.gis-address-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.gis-selected-meta {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #f5f8ff;
+    border: 1px solid #d9e6fb;
+    color: #42526b;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.map-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.map-modal.hidden {
+    display: none;
+}
+
+.map-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.map-modal-panel {
+    position: relative;
+    width: min(980px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    background: #ffffff;
+    border-radius: 22px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.28);
+    padding: 22px;
+}
+
+.map-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.map-modal-header h3 {
+    margin: 0 0 6px;
+    color: var(--blue-dark);
+}
+
+.map-modal-header p {
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.map-close-btn {
+    background: #eef3fb;
+    color: #1e3a5f;
+    padding: 10px 14px;
+    min-width: 48px;
+}
+
+.map-close-btn:hover {
+    background: #dde8f7;
+}
+
+.map-search-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.map-help-text {
+    color: #4b5f7a;
+    font-size: 0.92rem;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.gis-map {
+    width: 100%;
+    height: 420px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.map-selected-address {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #f8fbff;
+    border: 1px solid #d9e6fb;
+    color: #334155;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.map-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+}
+
 @media (max-width: 1100px) {
     .checkbox-grid,
     .checklist-grid {
@@ -467,13 +589,15 @@ textarea {
     .checkbox-grid,
     .checklist-grid,
     .clearance-grid,
-    .upload-panel {
+    .upload-panel,
+    .map-search-row {
         grid-template-columns: 1fr;
     }
 
     .form-actions,
     .review-actions,
-    .action-group-right {
+    .action-group-right,
+    .map-modal-actions {
         flex-direction: column;
         width: 100%;
     }
@@ -482,12 +606,18 @@ textarea {
     .nav-btn,
     .primary-btn,
     .secondary-btn,
-    .ghost-btn {
+    .ghost-btn,
+    .map-picker-btn,
+    .map-close-btn {
         width: 100%;
     }
 
     .response-box {
         margin-left: 18px;
         margin-right: 18px;
+    }
+
+    .gis-map {
+        height: 320px;
     }
 }
