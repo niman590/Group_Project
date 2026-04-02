@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Documents - Civic Plan</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='support_documents.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="dashboard-shell">
+
+        {% include 'partials/user_sidebar.html' %}
+
+        <main class="main-content">
+            <div class="support-page">
+
+                <header class="support-header">
+                    <div class="header-text">
+                        <h1>Support Documents</h1>
+                        <p>
+                            Access planning approval guidance, project manuals, policy references,
+                            and land management help resources in one place.
+                        </p>
+                    </div>
+
+                    <div class="header-badges">
+                        <span class="header-badge primary">Citizen Support</span>
+                        <span class="header-badge light">Project Knowledge Base</span>
+                    </div>
+                </header>
+
+                <section class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fa-solid fa-folder-open"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ stats.documents_count }}</h3>
+                            <p>Documents in System</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fa-solid fa-landmark"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ stats.properties_count }}</h3>
+                            <p>Property Records</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ stats.transactions_count }}</h3>
+                            <p>Transactions Logged</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fa-solid fa-file-circle-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{ stats.cases_count }}</h3>
+                            <p>Planning Cases</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="top-grid">
+                    <div class="info-panel">
+                        <div class="panel-head">
+                            <h2>Quick Support Topics</h2>
+                            <span class="panel-chip">Most Used</span>
+                        </div>
+
+                        <ul class="support-list">
+                            <li><i class="fa-solid fa-check"></i> Planning approval guidelines</li>
+                            <li><i class="fa-solid fa-check"></i> Required document checklist</li>
+                            <li><i class="fa-solid fa-check"></i> Transaction history support</li>
+                            <li><i class="fa-solid fa-check"></i> Land valuation help guide</li>
+                            <li><i class="fa-solid fa-check"></i> Gazettes, rules and policies</li>
+                        </ul>
+                    </div>
+
+                    <div class="info-panel">
+                        <div class="panel-head">
+                            <h2>Project Documentation</h2>
+                            <span class="panel-chip light">Knowledge</span>
+                        </div>
+
+                        <div class="mini-doc-grid">
+                            <div class="mini-doc">
+                                <i class="fa-solid fa-book-open"></i>
+                                <div>
+                                    <strong>User Guide</strong>
+                                    <p>For citizens using dashboard features and services.</p>
+                                </div>
+                            </div>
+
+                            <div class="mini-doc">
+                                <i class="fa-solid fa-user-shield"></i>
+                                <div>
+                                    <strong>Administrator Guide</strong>
+                                    <p>For admin-side reviews and management actions.</p>
+                                </div>
+                            </div>
+
+                            <div class="mini-doc">
+                                <i class="fa-solid fa-code"></i>
+                                <div>
+                                    <strong>Developer Manual</strong>
+                                    <p>For future maintenance and system extension work.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="toolbar">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="documentSearch" placeholder="Search support documents...">
+                    </div>
+
+                    <select id="categoryFilter">
+                        <option value="all">All Categories</option>
+                        <option value="Planning">Planning</option>
+                        <option value="Policy">Policy</option>
+                        <option value="Help">Help</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Technical">Technical</option>
+                        <option value="Records">Records</option>
+                        <option value="Valuation">Valuation</option>
+                    </select>
+
+                    <select id="audienceFilter">
+                        <option value="all">All Audiences</option>
+                        <option value="Citizens">Citizens</option>
+                        <option value="Citizens / Admin">Citizens / Admin</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Developers">Developers</option>
+                    </select>
+                </section>
+
+                <section class="documents-grid" id="documentsGrid">
+                    {% for doc in documents %}
+                    <article class="document-card" data-title="{{ doc.title|lower }}"
+                        data-description="{{ doc.description|lower }}" data-category="{{ doc.category }}"
+                        data-audience="{{ doc.audience }}">
+                        <div class="doc-top">
+                            <div class="doc-icon">
+                                <i class="fa-solid {{ doc.icon }}"></i>
+                            </div>
+                            <span class="doc-status">{{ doc.status }}</span>
+                        </div>
+
+                        <h3>{{ doc.title }}</h3>
+                        <p class="doc-description">{{ doc.description }}</p>
+
+                        <div class="doc-meta">
+                            <span class="meta-badge category">{{ doc.category }}</span>
+                            <span class="meta-badge audience">{{ doc.audience }}</span>
+                        </div>
+
+                        <div class="doc-actions">
+                            <button type="button" class="view-btn" data-title="{{ doc.title }}"
+                                data-description="{{ doc.description }}" data-category="{{ doc.category }}"
+                                data-audience="{{ doc.audience }}" data-status="{{ doc.status }}">
+                                <i class="fa-solid fa-eye"></i> View Details
+                            </button>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </section>
+
+                <div class="empty-state hidden" id="emptyState">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <h3>No matching documents found</h3>
+                    <p>Try changing the search text or filters.</p>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay hidden" id="docModal">
+        <div class="modal-card">
+            <button class="close-modal" id="closeModalBtn" type="button">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <i class="fa-solid fa-file-lines"></i>
+                </div>
+                <div>
+                    <h2 id="modalTitle">Document Title</h2>
+                    <p id="modalDescription">Document description goes here.</p>
+                </div>
+            </div>
+
+            <div class="modal-meta">
+                <span id="modalCategory">Category</span>
+                <span id="modalAudience">Audience</span>
+                <span id="modalStatus">Status</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='support_documents.js') }}"></script>
+</body>
+
+</html>

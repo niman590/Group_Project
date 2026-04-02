@@ -35,7 +35,8 @@
             class="{% if active_page == 'land_valuation' %}active{% endif %}">
             <i class="fa-solid fa-chart-line"></i> Land Valuation
         </a>
-        <a href="#" class="{% if active_page == 'support_documents' %}active{% endif %}">
+        <a href="{{ url_for('support_documents.support_documents_page') }}"
+            class="{% if active_page == 'support_documents' %}active{% endif %}">
             <i class="fa-solid fa-book"></i> Support Documents
         </a>
         <a href="#" class="{% if active_page == 'notifications' %}active{% endif %}">
