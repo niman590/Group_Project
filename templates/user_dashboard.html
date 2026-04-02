@@ -6,21 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Civic Plan - User Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 
 <body>
     <div class="dashboard-shell">
 
-        <!-- SIDEBAR -->
         {% include 'partials/user_sidebar.html' %}
 
-
-        <!-- MAIN -->
         <main class="main-content">
 
-            <!-- TOP BAR -->
             <header class="topbar">
                 <div>
                     <h1>Welcome back, {{ user['first_name'] if user and user['first_name'] else 'User' }}</h1>
@@ -30,20 +26,22 @@
                 <div class="topbar-actions">
                     <button class="icon-btn"><i class="fa-solid fa-bell"></i></button>
                     <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
+
                     <div class="user-chip">
                         <div class="avatar">
                             {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                         </div>
                         <div>
-                            <strong>{{ user['first_name'] }} {{ user['last_name'] if user else 'Citizen User'
-                                }}</strong>
-                            <span>NIC: {{ user['nic'] if user else '200012345678' }}</span>
+                            <strong>
+                                {{ user['first_name'] if user and user['first_name'] else 'Citizen' }}
+                                {{ user['last_name'] if user and user['last_name'] else 'User' }}
+                            </strong>
+                            <span>NIC: {{ user['nic'] if user and user['nic'] else 'N/A' }}</span>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <!-- QUICK STATS -->
             <section class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon blue"><i class="fa-solid fa-file-circle-check"></i></div>
@@ -78,15 +76,14 @@
                 </div>
             </section>
 
-            <!-- PRIMARY ACTIONS -->
             <section class="action-grid">
-                <a href="#" class="action-card">
+                <a href="{{ url_for('submit_documents.submit_documents') }}" class="action-card">
                     <i class="fa-solid fa-file-arrow-up"></i>
                     <h3>Submit Planning Documents</h3>
                     <p>Upload new planning approval files and supporting documents.</p>
                 </a>
 
-                <a href="#" class="action-card">
+                <a href="{{ url_for('submit_documents.my_applications') }}" class="action-card">
                     <i class="fa-solid fa-folder-open"></i>
                     <h3>Track My Applications</h3>
                     <p>Monitor review progress, approvals, rejections, and updates.</p>
@@ -105,10 +102,8 @@
                 </a>
             </section>
 
-            <!-- TWO COLUMN -->
             <section class="content-grid">
 
-                <!-- LEFT -->
                 <div class="left-column">
 
                     <div class="panel">
@@ -181,7 +176,7 @@
                     <div class="panel">
                         <div class="panel-header">
                             <h2>Application History</h2>
-                            <a href="#">Full history</a>
+                            <a href="{{ url_for('submit_documents.my_applications') }}">Full history</a>
                         </div>
 
                         <div class="table-wrap">
@@ -220,7 +215,6 @@
 
                 </div>
 
-                <!-- RIGHT -->
                 <div class="right-column">
 
                     <div class="panel">
@@ -234,13 +228,13 @@
                                 {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                             </div>
                             <div class="profile-meta">
-                                <h3>{{ user['first_name'] }} {{ user['last_name'] if user else 'R.A.D. Akash Randeniya'
-                                    }}</h3>
-                                <p>Email: {{ user['email'] if user else 'akash@example.com' }}</p>
-                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234
-                                    5678' }}</p>
-                                <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}
-                                </p>
+                                <h3>
+                                    {{ user['first_name'] if user and user['first_name'] else 'Citizen' }}
+                                    {{ user['last_name'] if user and user['last_name'] else 'User' }}
+                                </h3>
+                                <p>Email: {{ user['email'] if user and user['email'] else 'akash@example.com' }}</p>
+                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234 5678' }}</p>
+                                <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}</p>
                             </div>
                         </div>
                     </div>
@@ -301,12 +295,10 @@
         </main>
     </div>
 
-    <!-- CHATBOT BUTTON -->
     <button class="chatbot-button" onclick="toggleChat()" aria-label="Open AI Assistant">
         <i class="fa-solid fa-comment-dots"></i>
     </button>
 
-    <!-- CHATBOT BOX -->
     <div class="chatbot-box" id="chatbotBox">
         <div class="chatbot-header">
             <div class="chatbot-title">
@@ -318,8 +310,7 @@
 
         <div class="chatbot-messages" id="chatMessages">
             <div class="bot-msg">
-                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site
-                navigation.
+                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site navigation.
             </div>
         </div>
 
