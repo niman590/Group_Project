@@ -11,7 +11,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @transaction_history_bp.route("/transaction-history", methods=["GET"])
 def transaction_history_page():
-    return render_template("transaction_history.html")
+    return render_template("transaction_history.html", active_page="transaction_history")
 
 
 @transaction_history_bp.route("/get-transaction-history", methods=["POST"])

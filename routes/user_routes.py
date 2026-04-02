@@ -49,7 +49,6 @@ def user_dashboard():
         flash("User not found. Please sign in again.", "error")
         return redirect(url_for("auth.login"))
 
-    # ✅ ADDED active_page
     return render_template("user_dashboard.html", user=user, active_page="dashboard")
 
 
@@ -76,7 +75,6 @@ def account():
 
         if not first_name or not last_name or not email:
             flash("First name, last name, and email are required.", "error")
-            # ✅ ADDED active_page here too
             return render_template("account.html", user=user, active_page="account")
 
         conn = get_connection()
@@ -135,7 +133,6 @@ def account():
         flash("Your account details were updated successfully.", "success")
         return redirect(url_for("user.account"))
 
-    # ✅ ADDED active_page here
     return render_template("account.html", user=user, active_page="account")
 
 
