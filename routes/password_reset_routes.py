@@ -11,7 +11,7 @@ password_reset_bp = Blueprint("password_reset", __name__)
 
 
 #EMAIL SENDER
-def send_otp_email(to_email, otp):
+def send_otp_email(to_email, first_name, otp):
     sender_email = "planapprovalsystem@gmail.com"
     sender_password = "fikz sauz rsmz zkee"
 
@@ -20,7 +20,18 @@ def send_otp_email(to_email, otp):
     msg["To"] = to_email
     msg["Subject"] = "Password Reset OTP"
 
-    body = f"Your OTP is {otp}. It will expire in 5 minutes."
+    body = f"""Hello {first_name}!
+
+Forgot your password?
+We received a request to reset the password for your account.
+
+This is your OTP: {otp}
+
+Thank you,
+Civic Plan Team
+
+This is an automated email from Civic Plan Team.
+"""
     msg.attach(MIMEText(body, "plain"))
 
     try:
@@ -54,13 +65,15 @@ def send_otp():
     otp = str(random.randint(100000, 999999))
     expiry = datetime.now() + timedelta(minutes=5)
 
+    first_name = user[1]  # change index if your first_name column is in a different position
+
     # store in session (NOT DB)
     session["reset_email"] = email
     session["reset_otp"] = otp
     session["otp_expiry"] = expiry.strftime("%Y-%m-%d %H:%M:%S")
     session["otp_verified"] = False
 
-    send_otp_email(email, otp)
+    send_otp_email(email, first_name, otp)
 
     return jsonify({"success": True})
 
@@ -119,4 +132,3 @@ def reset_password():
     session.pop("otp_verified", None)
 
     return jsonify({"success": True})
-
