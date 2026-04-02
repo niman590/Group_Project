@@ -10,7 +10,7 @@ from email.mime.multipart import MIMEMultipart
 password_reset_bp = Blueprint("password_reset", __name__)
 
 
-# ---------------- EMAIL SENDER ----------------
+#EMAIL SENDER
 def send_otp_email(to_email, otp):
     sender_email = "planapprovalsystem@gmail.com"
     sender_password = "fikz sauz rsmz zkee"
@@ -35,7 +35,7 @@ def send_otp_email(to_email, otp):
         return False
 
 
-# ---------------- SEND OTP ----------------
+#SEND OTP
 @password_reset_bp.route("/send-otp", methods=["POST"])
 def send_otp():
     data = request.get_json()
@@ -65,7 +65,7 @@ def send_otp():
     return jsonify({"success": True})
 
 
-# ---------------- VERIFY OTP ----------------
+#VERIFY OTP
 @password_reset_bp.route("/verify-otp", methods=["POST"])
 def verify_otp():
     data = request.get_json()
@@ -88,7 +88,7 @@ def verify_otp():
     return jsonify({"success": True})
 
 
-# ---------------- RESET PASSWORD ----------------
+#RESET PASSWORD
 @password_reset_bp.route("/reset-password", methods=["POST"])
 def reset_password():
     email = session.get("reset_email")
@@ -120,4 +120,3 @@ def reset_password():
 
     return jsonify({"success": True})
 
-#thenuk is a hero 
