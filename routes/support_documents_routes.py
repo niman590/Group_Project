@@ -1,0 +1,136 @@
+from flask import Blueprint, render_template, redirect, url_for, session, flash
+from database.db_connection import get_connection
+
+support_documents_bp = Blueprint("support_documents", __name__)
+
+
+def get_support_documents_data():
+    """
+    Uses the existing project database only.
+    No new database or table is created here.
+    """
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    stats = {
+        "documents_count": 0,
+        "properties_count": 0,
+        "transactions_count": 0,
+        "cases_count": 0,
+    }
+
+    try:
+        cursor.execute("SELECT COUNT(*) AS total FROM document")
+        row = cursor.fetchone()
+        stats["documents_count"] = row["total"] if row else 0
+    except Exception:
+        stats["documents_count"] = 0
+
+    try:
+        cursor.execute("SELECT COUNT(*) AS total FROM property")
+        row = cursor.fetchone()
+        stats["properties_count"] = row["total"] if row else 0
+    except Exception:
+        stats["properties_count"] = 0
+
+    try:
+        cursor.execute("SELECT COUNT(*) AS total FROM transaction_history")
+        row = cursor.fetchone()
+        stats["transactions_count"] = row["total"] if row else 0
+    except Exception:
+        stats["transactions_count"] = 0
+
+    try:
+        cursor.execute("SELECT COUNT(*) AS total FROM plan_case")
+        row = cursor.fetchone()
+        stats["cases_count"] = row["total"] if row else 0
+    except Exception:
+        stats["cases_count"] = 0
+
+    conn.close()
+
+    documents = [
+        {
+            "title": "Planning Approval Guidelines",
+            "category": "Planning",
+            "icon": "fa-file-lines",
+            "description": "Guidance for citizens on how to prepare and submit planning approval applications correctly.",
+            "audience": "Citizens",
+            "status": "Available",
+        },
+        {
+            "title": "Required Documents Checklist",
+            "category": "Planning",
+            "icon": "fa-list-check",
+            "description": "Checklist of files and information needed before submitting planning approval requests.",
+            "audience": "Citizens",
+            "status": "Available",
+        },
+        {
+            "title": "Gazettes, Rules and Policies",
+            "category": "Policy",
+            "icon": "fa-scale-balanced",
+            "description": "Planning rules, approval policies, and official guidance relevant to land management.",
+            "audience": "Citizens / Admin",
+            "status": "Available",
+        },
+        {
+            "title": "User Guide",
+            "category": "Help",
+            "icon": "fa-book-open",
+            "description": "Guide for using dashboard modules such as profile, applications, valuation, and transaction history.",
+            "audience": "Citizens",
+            "status": "Project Deliverable",
+        },
+        {
+            "title": "Administrator Guide",
+            "category": "Admin",
+            "icon": "fa-user-shield",
+            "description": "Guide for approval workflows, record checks, monitoring, and document review tasks.",
+            "audience": "Admin",
+            "status": "Project Deliverable",
+        },
+        {
+            "title": "Developer Manual",
+            "category": "Technical",
+            "icon": "fa-code",
+            "description": "Technical documentation for code structure, modules, database usage, and maintenance.",
+            "audience": "Developers",
+            "status": "Project Deliverable",
+        },
+        {
+            "title": "Transaction History Guide",
+            "category": "Records",
+            "icon": "fa-clock-rotate-left",
+            "description": "Explains how ownership history and land transaction records are viewed and updated.",
+            "audience": "Citizens",
+            "status": "Available",
+        },
+        {
+            "title": "Land Valuation Help Guide",
+            "category": "Valuation",
+            "icon": "fa-chart-line",
+            "description": "Support document for understanding valuation inputs, outputs, and result interpretation.",
+            "audience": "Citizens",
+            "status": "Available",
+        },
+    ]
+
+    return documents, stats
+
+
+@support_documents_bp.route("/support-documents")
+def support_documents_page():
+    if "user_id" not in session:
+        flash("Please sign in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    documents, stats = get_support_documents_data()
+
+    return render_template(
+        "support_documents.html",
+        documents=documents,
+        stats=stats,
+        active_page="support_documents",
+    )
