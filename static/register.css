@@ -68,7 +68,6 @@ body {
   max-width: 470px;
 }
 
-/* FIXED LOGO */
 .logo-box {
   display: flex;
   justify-content: center;
@@ -82,7 +81,6 @@ body {
   display: block;
 }
 
-/* BRAND TEXT */
 .brand-title {
   text-align: center;
   font-size: 2.8rem;
@@ -106,7 +104,6 @@ body {
   margin-bottom: 12px;
 }
 
-/* FLASH MESSAGES */
 .flash-messages {
   margin-bottom: 16px;
 }
@@ -131,7 +128,6 @@ body {
   border: 1px solid #b7e4c7;
 }
 
-/* FORM */
 .register-form {
   width: 100%;
 }
@@ -179,6 +175,27 @@ body {
 .form-group textarea:focus {
   border-color: #315ea8;
   box-shadow: 0 0 0 2px rgba(49, 94, 168, 0.1);
+}
+
+.form-group input.input-error,
+.form-group textarea.input-error {
+  border-color: #d93025;
+  box-shadow: 0 0 0 2px rgba(217, 48, 37, 0.08);
+}
+
+.hint-text {
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.error-text {
+  min-height: 16px;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: #d93025;
+  line-height: 1.4;
 }
 
 .full-width {
@@ -253,7 +270,6 @@ body {
   background: #acbbd1;
 }
 
-/* RESPONSIVE */
 @media (max-width: 1100px) {
   .left-content h1 {
     font-size: 2.5rem;

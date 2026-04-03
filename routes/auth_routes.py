@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.routing import BuildError
 from database.db_connection import get_connection
+import re
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -82,7 +83,6 @@ def login_post():
 
     user = None
 
-    # 1. Try citizen login by NIC
     cursor.execute(
         """
         SELECT * FROM users
@@ -93,7 +93,6 @@ def login_post():
     )
     user = cursor.fetchone()
 
-    # 2. If not found, try admin login by full name / email / employee_id (if available)
     if not user:
         if "employee_id" in columns:
             cursor.execute(
@@ -163,6 +162,23 @@ def register_post():
 
     if not first_name or not last_name or not nic or not email or not password:
         flash("Please fill all required fields.", "error")
+        return redirect(url_for("auth.register"))
+
+    nic_pattern = r"^(?:\d{9}[VvXx]|\d{12})$"
+    if not re.fullmatch(nic_pattern, nic):
+        flash("NIC must be either 9 digits followed by V/X or 12 digits.", "error")
+        return redirect(url_for("auth.register"))
+
+    if phone_number and not re.fullmatch(r"^\d{10}$", phone_number):
+        flash("Phone number must contain exactly 10 digits.", "error")
+        return redirect(url_for("auth.register"))
+
+    password_pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$"
+    if not re.fullmatch(password_pattern, password):
+        flash(
+            "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.",
+            "error",
+        )
         return redirect(url_for("auth.register"))
 
     if password != confirm_password:
@@ -262,50 +278,6 @@ def register_post():
 @auth_bp.route("/password_reset", methods=["GET"])
 def password_reset():
     return render_template("password_reset.html")
-
-
-@auth_bp.route("/password_reset", methods=["POST"])
-def password_reset_post():
-    email = request.form.get("email", "").strip()
-    otp = request.form.get("otp", "").strip()
-    new_password = request.form.get("new_password", "").strip()
-    confirm_password = request.form.get("confirm_password", "").strip()
-
-    if not email or not new_password:
-        flash("Email and new password are required.", "error")
-        return redirect(url_for("auth.password_reset"))
-
-    if new_password != confirm_password:
-        flash("Passwords do not match.", "error")
-        return redirect(url_for("auth.password_reset"))
-
-    # OTP not implemented yet; kept here for UI compatibility
-    _ = otp
-
-    password_hash = generate_password_hash(new_password)
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        UPDATE users
-        SET password_hash = ?
-        WHERE email = ?
-        """,
-        (password_hash, email),
-    )
-
-    conn.commit()
-    updated_rows = cursor.rowcount
-    conn.close()
-
-    if updated_rows == 0:
-        flash("No account found with that email.", "error")
-        return redirect(url_for("auth.password_reset"))
-
-    flash("Password reset successful. Please sign in.", "success")
-    return redirect(url_for("auth.login"))
 
 
 @auth_bp.route("/logout")
