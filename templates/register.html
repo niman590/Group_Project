@@ -107,8 +107,24 @@
             </div>
 
             <div class="form-group">
-              <label for="date_of_birth">Date of Birth</label>
-              <input type="date" id="date_of_birth" name="date_of_birth" />
+              <label for="dob_month">Date of Birth</label>
+
+              <div class="dob-select-row">
+                <select id="dob_month" aria-label="Birth month">
+                  <option value="">Month</option>
+                </select>
+
+                <select id="dob_day" aria-label="Birth day">
+                  <option value="">Day</option>
+                </select>
+
+                <select id="dob_year" aria-label="Birth year">
+                  <option value="">Year</option>
+                </select>
+              </div>
+
+              <input type="hidden" id="date_of_birth" name="date_of_birth" />
+              <small class="hint-text">Select month, day, and year</small>
               <small class="error-text"></small>
             </div>
           </div>

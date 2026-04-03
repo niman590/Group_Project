@@ -9,6 +9,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const password = document.getElementById("password");
   const confirmPassword = document.getElementById("confirm_password");
 
+  const dobMonth = document.getElementById("dob_month");
+  const dobDay = document.getElementById("dob_day");
+  const dobYear = document.getElementById("dob_year");
+  const dateOfBirth = document.getElementById("date_of_birth");
+
   function getErrorElement(input) {
     return input.parentElement.querySelector(".error-text");
   }
@@ -129,6 +134,135 @@ document.addEventListener("DOMContentLoaded", function () {
     return true;
   }
 
+  function populateDOBFields() {
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    monthNames.forEach((month, index) => {
+      const option = document.createElement("option");
+      option.value = String(index + 1).padStart(2, "0");
+      option.textContent = month;
+      dobMonth.appendChild(option);
+    });
+
+    for (let day = 1; day <= 31; day++) {
+      const option = document.createElement("option");
+      option.value = String(day).padStart(2, "0");
+      option.textContent = day;
+      dobDay.appendChild(option);
+    }
+
+    const currentYear = new Date().getFullYear();
+    const startYear = currentYear - 100;
+    const endYear = currentYear - 18;
+
+    for (let year = endYear; year >= startYear; year--) {
+      const option = document.createElement("option");
+      option.value = String(year);
+      option.textContent = year;
+      dobYear.appendChild(option);
+    }
+  }
+
+  function updateDayOptions() {
+    const selectedMonth = parseInt(dobMonth.value, 10);
+    const selectedYear = parseInt(dobYear.value, 10);
+    const currentSelectedDay = dobDay.value;
+
+    let daysInMonth = 31;
+
+    if (selectedMonth && selectedYear) {
+      daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+    } else if (selectedMonth) {
+      const tempYear = 2000;
+      daysInMonth = new Date(tempYear, selectedMonth, 0).getDate();
+    }
+
+    dobDay.innerHTML = '<option value="">Day</option>';
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const option = document.createElement("option");
+      option.value = String(day).padStart(2, "0");
+      option.textContent = day;
+      if (String(day).padStart(2, "0") === currentSelectedDay) {
+        option.selected = true;
+      }
+      dobDay.appendChild(option);
+    }
+
+    if (currentSelectedDay && parseInt(currentSelectedDay, 10) > daysInMonth) {
+      dobDay.value = "";
+    }
+  }
+
+  function syncDOBHiddenField() {
+    const month = dobMonth.value;
+    const day = dobDay.value;
+    const year = dobYear.value;
+
+    if (year && month && day) {
+      dateOfBirth.value = `${year}-${month}-${day}`;
+    } else {
+      dateOfBirth.value = "";
+    }
+  }
+
+  function validateDOB() {
+    const month = dobMonth.value;
+    const day = dobDay.value;
+    const year = dobYear.value;
+
+    const hasAnyValue = month || day || year;
+
+    if (!hasAnyValue) {
+      clearError(dobMonth);
+      clearError(dobDay);
+      clearError(dobYear);
+      return true;
+    }
+
+    if (!month || !day || !year) {
+      setError(dobMonth, "Please select complete date of birth.");
+      dobDay.classList.add("input-error");
+      dobYear.classList.add("input-error");
+      return false;
+    }
+
+    const selectedDate = new Date(`${year}-${month}-${day}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (Number.isNaN(selectedDate.getTime())) {
+      setError(dobMonth, "Please select a valid date of birth.");
+      dobDay.classList.add("input-error");
+      dobYear.classList.add("input-error");
+      return false;
+    }
+
+    if (selectedDate > today) {
+      setError(dobMonth, "Date of birth cannot be in the future.");
+      dobDay.classList.add("input-error");
+      dobYear.classList.add("input-error");
+      return false;
+    }
+
+    clearError(dobMonth);
+    clearError(dobDay);
+    clearError(dobYear);
+    return true;
+  }
+
+  function handleDOBChange() {
+    updateDayOptions();
+    syncDOBHiddenField();
+    validateDOB();
+  }
+
+  populateDOBFields();
+  updateDayOptions();
+
   nic.addEventListener("input", function () {
     let value = this.value.replace(/\s+/g, "").toUpperCase();
     value = value.replace(/[^0-9VX]/g, "");
@@ -169,6 +303,14 @@ document.addEventListener("DOMContentLoaded", function () {
   password.addEventListener("blur", validatePassword);
   confirmPassword.addEventListener("blur", validateConfirmPassword);
 
+  dobMonth.addEventListener("change", handleDOBChange);
+  dobDay.addEventListener("change", handleDOBChange);
+  dobYear.addEventListener("change", handleDOBChange);
+
+  dobMonth.addEventListener("blur", validateDOB);
+  dobDay.addEventListener("blur", validateDOB);
+  dobYear.addEventListener("blur", validateDOB);
+
   password.addEventListener("input", function () {
     validatePassword();
     if (confirmPassword.value) {
@@ -179,6 +321,8 @@ document.addEventListener("DOMContentLoaded", function () {
   confirmPassword.addEventListener("input", validateConfirmPassword);
 
   form.addEventListener("submit", function (event) {
+    syncDOBHiddenField();
+
     const isFirstNameValid = validateRequired(firstName, "First name is required.");
     const isLastNameValid = validateRequired(lastName, "Last name is required.");
     const isNICValid = validateNIC();
@@ -186,6 +330,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const isEmailValid = validateEmail();
     const isPasswordValid = validatePassword();
     const isConfirmPasswordValid = validateConfirmPassword();
+    const isDOBValid = validateDOB();
 
     if (
       !isFirstNameValid ||
@@ -194,7 +339,8 @@ document.addEventListener("DOMContentLoaded", function () {
       !isPhoneValid ||
       !isEmailValid ||
       !isPasswordValid ||
-      !isConfirmPasswordValid
+      !isConfirmPasswordValid ||
+      !isDOBValid
     ) {
       event.preventDefault();
     }
