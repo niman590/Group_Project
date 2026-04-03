@@ -10,29 +10,83 @@ from email.mime.multipart import MIMEMultipart
 password_reset_bp = Blueprint("password_reset", __name__)
 
 
-#EMAIL SENDER
+# EMAIL SENDER
 def send_otp_email(to_email, first_name, otp):
     sender_email = "planapprovalsystem@gmail.com"
     sender_password = "fikz sauz rsmz zkee"
 
-    msg = MIMEMultipart()
+    msg = MIMEMultipart("alternative")
     msg["From"] = sender_email
     msg["To"] = to_email
-    msg["Subject"] = "Password Reset OTP"
+    msg["Subject"] = "Password Reset OTP - Civic Plan"
 
-    body = f"""Hello {first_name}!
+    # Plain text fallback
+    text_body = f"""Hello {first_name},
 
 Forgot your password?
 We received a request to reset the password for your account.
 
-This is your OTP: {otp}
+Your OTP is: {otp}
+
+This OTP will expire in 5 minutes.
 
 Thank you,
 Civic Plan Team
 
 This is an automated email from Civic Plan Team.
 """
-    msg.attach(MIMEText(body, "plain"))
+
+    # HTML email with banner
+    html_body = f"""
+    <html>
+    <body style="margin:0; padding:0; font-family:Arial, sans-serif; background-color:#f4f6f8;">
+      <div style="max-width:600px; margin:30px auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.08);">
+
+        <div style="background:linear-gradient(135deg, #1e3c72, #2a5298); color:white; text-align:center; padding:30px 20px;">
+          <h1 style="margin:0; font-size:28px;">CIVIC PLAN</h1>
+          <p style="margin:8px 0 0; font-size:14px;">Land Management Portal</p>
+        </div>
+
+        <div style="padding:30px 25px; color:#333;">
+          <h2 style="margin-top:0; color:#1e3c72;">Password Reset Request</h2>
+
+          <p>Hello <strong>{first_name}</strong>,</p>
+
+          <p>
+            We received a request to reset the password for your Civic Plan account.
+            Please use the OTP below to continue:
+          </p>
+
+          <div style="text-align:center; margin:30px 0;">
+            <div style="display:inline-block; background:#f0f4ff; color:#1e3c72; font-size:32px; font-weight:bold; letter-spacing:8px; padding:18px 30px; border-radius:10px; border:2px dashed #2a5298;">
+              {otp}
+            </div>
+          </div>
+
+          <p style="margin-bottom:8px;">
+            <strong>Note:</strong> This OTP will expire in <strong>5 minutes</strong>.
+          </p>
+
+          <p>
+            If you did not request a password reset, please ignore this email.
+          </p>
+
+          <p style="margin-top:30px;">
+            Thank you,<br>
+            <strong>Civic Plan Team</strong>
+          </p>
+        </div>
+
+        <div style="background:#f8f9fb; text-align:center; padding:15px; font-size:12px; color:#777;">
+          This is an automated email from Civic Plan Team.
+        </div>
+      </div>
+    </body>
+    </html>
+    """
+
+    msg.attach(MIMEText(text_body, "plain"))
+    msg.attach(MIMEText(html_body, "html"))
 
     try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
@@ -46,7 +100,7 @@ This is an automated email from Civic Plan Team.
         return False
 
 
-#SEND OTP
+# SEND OTP
 @password_reset_bp.route("/send-otp", methods=["POST"])
 def send_otp():
     data = request.get_json()
@@ -65,20 +119,23 @@ def send_otp():
     otp = str(random.randint(100000, 999999))
     expiry = datetime.now() + timedelta(minutes=5)
 
-    first_name = user[1]  # change index if your first_name column is in a different position
+    first_name = user[1]  # adjust index if needed
 
-    # store in session (NOT DB)
+    # store in session
     session["reset_email"] = email
     session["reset_otp"] = otp
     session["otp_expiry"] = expiry.strftime("%Y-%m-%d %H:%M:%S")
     session["otp_verified"] = False
 
-    send_otp_email(email, first_name, otp)
+    email_sent = send_otp_email(email, first_name, otp)
 
-    return jsonify({"success": True})
+    if not email_sent:
+        return jsonify({"success": False, "message": "Failed to send OTP email"})
+
+    return jsonify({"success": True, "message": "OTP sent successfully"})
 
 
-#VERIFY OTP
+# VERIFY OTP
 @password_reset_bp.route("/verify-otp", methods=["POST"])
 def verify_otp():
     data = request.get_json()
@@ -98,10 +155,10 @@ def verify_otp():
 
     session["otp_verified"] = True
 
-    return jsonify({"success": True})
+    return jsonify({"success": True, "message": "OTP verified successfully"})
 
 
-#RESET PASSWORD
+# RESET PASSWORD
 @password_reset_bp.route("/reset-password", methods=["POST"])
 def reset_password():
     email = session.get("reset_email")
@@ -131,4 +188,4 @@ def reset_password():
     session.pop("otp_expiry", None)
     session.pop("otp_verified", None)
 
-    return jsonify({"success": True})
+    return jsonify({"success": True, "message": "Password reset successfully"})
