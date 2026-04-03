@@ -18,7 +18,7 @@
         }
 
         .box {
-            max-width: 1100px;
+            max-width: 1150px;
             margin: auto;
             background: white;
             border-radius: 18px;
@@ -45,6 +45,7 @@
             padding: 14px;
             border-bottom: 1px solid #e5e7eb;
             text-align: left;
+            vertical-align: top;
         }
 
         th {
@@ -66,13 +67,60 @@
         }
 
         .status-submitted {
+            background: #e8f1ff;
+            color: #1c4b9c;
+        }
+
+        .status-approved {
             background: #e9f8ef;
             color: #1d7d3c;
+        }
+
+        .status-rejected {
+            background: #fdecec;
+            color: #b03030;
         }
 
         .status-other {
             background: #eef3fa;
             color: #334155;
+        }
+
+        .action-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 180px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .btn-edit {
+            background: #123f88;
+            color: white;
+        }
+
+        .btn-pdf {
+            background: #1d7d3c;
+            color: white;
+        }
+
+        .comment-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: #475569;
+            line-height: 1.5;
+            min-width: 220px;
         }
 
         .empty {
@@ -92,8 +140,10 @@
                         <th>Application ID</th>
                         <th>Status</th>
                         <th>Current Step</th>
+                        <th>Admin Comment</th>
                         <th>Created At</th>
                         <th>Updated At</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -105,17 +155,41 @@
                                 <span class="status-badge status-draft">Draft</span>
                             {% elif app['status'] == 'Submitted' %}
                                 <span class="status-badge status-submitted">Submitted</span>
+                            {% elif app['status'] == 'Approved' %}
+                                <span class="status-badge status-approved">Approved</span>
+                            {% elif app['status'] == 'Rejected' %}
+                                <span class="status-badge status-rejected">Rejected</span>
                             {% else %}
                                 <span class="status-badge status-other">{{ app['status'] }}</span>
                             {% endif %}
                         </td>
                         <td>Step {{ app['current_step'] }}</td>
+                        <td>
+                            <div class="comment-box">
+                                {{ app['admin_comment'] if app['admin_comment'] else 'No admin comment yet.' }}
+                            </div>
+                        </td>
                         <td>{{ app['created_at'] }}</td>
                         <td>{{ app['updated_at'] }}</td>
+                        <td>
+                            <div class="action-stack">
+                                {% if app['status'] == 'Draft' %}
+                                    <a class="btn btn-edit" href="{{ url_for('submit_documents.edit_planning_draft', application_id=app['application_id']) }}">
+                                        Edit Draft
+                                    </a>
+                                {% endif %}
+
+                                {% if app['status'] in ['Approved', 'Rejected'] and app['decision_pdf_path'] %}
+                                    <a class="btn btn-pdf" href="{{ url_for('submit_documents.download_decision_pdf', application_id=app['application_id']) }}">
+                                        Download PDF
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="5" class="empty">No applications found.</td>
+                        <td colspan="7" class="empty">No applications found.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

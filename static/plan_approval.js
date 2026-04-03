@@ -496,7 +496,15 @@ function useBrowserCurrentLocation() {
 
 async function loadDraftFromServer() {
     try {
-        const res = await fetch("/get-planning-draft");
+        const params = new URLSearchParams(window.location.search);
+        const applicationId = params.get("application_id");
+
+        let url = "/get-planning-draft";
+        if (applicationId) {
+            url += `?application_id=${applicationId}`;
+        }
+
+        const res = await fetch(url);
         const result = await res.json();
 
         if (!result.success || !result.draft) return;
@@ -542,7 +550,6 @@ async function loadDraftFromServer() {
             fill("applicant1_tel", draft.step2[0].telephone);
             fill("applicant1_email", draft.step2[0].email);
             fill("applicant1_address", draft.step2[0].address);
-            updateAddressMeta("applicant1_address", draft.step2[0].address);
         }
 
         if (draft.step2 && draft.step2[1]) {
@@ -551,7 +558,6 @@ async function loadDraftFromServer() {
             fill("applicant2_tel", draft.step2[1].telephone);
             fill("applicant2_email", draft.step2[1].email);
             fill("applicant2_address", draft.step2[1].address);
-            updateAddressMeta("applicant2_address", draft.step2[1].address);
         }
 
         if (draft.step3) {
@@ -571,7 +577,6 @@ async function loadDraftFromServer() {
             fill("land_owner_tel", draft.step4.owner_tel);
             fill("land_owner_email", draft.step4.owner_email);
             fill("land_owner_address", draft.step4.owner_address);
-            updateAddressMeta("land_owner_address", draft.step4.owner_address);
         }
 
         if (draft.step5) {
