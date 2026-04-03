@@ -1,9 +1,12 @@
 from flask import Blueprint, request, jsonify, render_template, send_file
 from datetime import datetime
 from io import BytesIO
+
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
+from reportlab.pdfbase.pdfmetrics import stringWidth
+
 from routes.Prediction_model.predict_value import predict_land_value
 
 prediction_bp = Blueprint("prediction", __name__)
@@ -64,6 +67,55 @@ def predict_land():
     return jsonify(result)
 
 
+def draw_wrapped_text(pdf, text, x, y, max_width, font_name="Helvetica", font_size=10, line_gap=14):
+    pdf.setFont(font_name, font_size)
+    words = text.split()
+    lines = []
+    current_line = ""
+
+    for word in words:
+        test_line = f"{current_line} {word}".strip()
+        if stringWidth(test_line, font_name, font_size) <= max_width:
+            current_line = test_line
+        else:
+            if current_line:
+                lines.append(current_line)
+            current_line = word
+
+    if current_line:
+        lines.append(current_line)
+
+    for line in lines:
+        pdf.drawString(x, y, line)
+        y -= line_gap
+
+    return y
+
+
+def draw_label_value_row(pdf, label, value, x_label, x_value, y, row_height=22):
+    pdf.setFillColor(colors.HexColor("#1f2937"))
+    pdf.setFont("Helvetica-Bold", 10.5)
+    pdf.drawString(x_label, y, label)
+
+    pdf.setFont("Helvetica", 10.5)
+    pdf.setFillColor(colors.black)
+    pdf.drawString(x_value, y, str(value))
+
+    return y - row_height
+
+
+def draw_result_box(pdf, title, value, x, y, width, height, fill_color, text_color=colors.white):
+    pdf.setFillColor(fill_color)
+    pdf.roundRect(x, y - height, width, height, 10, fill=1, stroke=0)
+
+    pdf.setFillColor(text_color)
+    pdf.setFont("Helvetica", 9.5)
+    pdf.drawString(x + 12, y - 18, title)
+
+    pdf.setFont("Helvetica-Bold", 13)
+    pdf.drawString(x + 12, y - 38, value)
+
+
 @prediction_bp.route("/download-land-valuation-pdf", methods=["POST"])
 def download_land_valuation_pdf():
     data = request.get_json() or {}
@@ -90,77 +142,181 @@ def download_land_valuation_pdf():
     pdf = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
-    pdf.setFillColor(colors.HexColor("#123f88"))
-    pdf.rect(0, height - 80, width, 80, fill=1, stroke=0)
+    # Colors
+    primary = colors.HexColor("#123f88")
+    primary_dark = colors.HexColor("#0f2f66")
+    light_bg = colors.HexColor("#f4f7fb")
+    section_bg = colors.HexColor("#eef4ff")
+    border_color = colors.HexColor("#d6deeb")
+    text_dark = colors.HexColor("#1f2937")
+    muted_text = colors.HexColor("#6b7280")
+    green = colors.HexColor("#1f9d55")
+    green_light = colors.HexColor("#2f9e44")
+    blue_light = colors.HexColor("#2563eb")
+
+    margin = 40
+
+    # Background
+    pdf.setFillColor(light_bg)
+    pdf.rect(0, 0, width, height, fill=1, stroke=0)
+
+    # Header
+    pdf.setFillColor(primary)
+    pdf.rect(0, height - 95, width, 95, fill=1, stroke=0)
 
     pdf.setFillColor(colors.white)
     pdf.setFont("Helvetica-Bold", 22)
-    pdf.drawString(50, height - 45, "CIVIC PLAN")
+    pdf.drawString(margin, height - 38, "CIVIC PLAN")
+
     pdf.setFont("Helvetica", 12)
-    pdf.drawString(50, height - 62, "Land Valuation Report")
+    pdf.drawString(margin, height - 58, "Land Valuation Report")
 
-    y = height - 120
-    pdf.setFillColor(colors.black)
-    pdf.setFont("Helvetica-Bold", 13)
-    pdf.drawString(50, y, "Generated Date:")
-    pdf.setFont("Helvetica", 12)
-    pdf.drawString(150, y, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    pdf.setFont("Helvetica", 9.5)
+    pdf.drawRightString(
+        width - margin,
+        height - 40,
+        f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    )
 
-    y -= 35
-    pdf.setFont("Helvetica-Bold", 15)
-    pdf.setFillColor(colors.HexColor("#123f88"))
-    pdf.drawString(50, y, "Land Details")
+    # Report summary card
+    card_y_top = height - 120
+    card_height = 60
 
-    pdf.setFillColor(colors.black)
-    pdf.setFont("Helvetica", 12)
-    y -= 25
-    pdf.drawString(50, y, f"Land Size (Perches): {cleaned_data['land_size']}")
-    y -= 20
-    pdf.drawString(50, y, f"Access Road Size (ft): {cleaned_data['access_road_size']}")
-    y -= 20
-    pdf.drawString(50, y, f"Location: {cleaned_data['location']}")
-    y -= 20
-    pdf.drawString(50, y, f"Distance to Nearest City (km): {cleaned_data['distance_to_city']}")
-    y -= 20
-    pdf.drawString(50, y, f"Zone Type: {cleaned_data['zone_type']}")
-    y -= 20
-    pdf.drawString(50, y, f"Electricity: {'Available' if cleaned_data['electricity'] == 1 else 'Not Available'}")
-    y -= 20
-    pdf.drawString(50, y, f"Water: {'Available' if cleaned_data['water'] == 1 else 'Not Available'}")
-    y -= 20
-    pdf.drawString(50, y, f"Flood Risk: {'High' if cleaned_data['flood_risk'] == 1 else 'Low'}")
+    pdf.setFillColor(colors.white)
+    pdf.roundRect(margin, card_y_top - card_height, width - (2 * margin), card_height, 10, fill=1, stroke=0)
 
-    y -= 40
-    pdf.setFont("Helvetica-Bold", 15)
-    pdf.setFillColor(colors.HexColor("#123f88"))
-    pdf.drawString(50, y, "Valuation Results")
+    pdf.setStrokeColor(border_color)
+    pdf.roundRect(margin, card_y_top - card_height, width - (2 * margin), card_height, 10, fill=0, stroke=1)
 
-    pdf.setFillColor(colors.black)
-    pdf.setFont("Helvetica", 12)
-    y -= 25
-    pdf.drawString(50, y, f"Current Estimated Value: LKR {result['current_value']:,.2f}")
-    y -= 20
-    pdf.drawString(50, y, f"Predicted Value After 1 Year: LKR {result['predicted_1_year']:,.2f}")
-    y -= 20
-    pdf.drawString(50, y, f"Predicted Value After 5 Years: LKR {result['predicted_5_year']:,.2f}")
+    pdf.setFillColor(text_dark)
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(margin + 16, card_y_top - 22, "Property Valuation Summary")
 
-    y -= 40
-    pdf.setFont("Helvetica-Bold", 13)
-    pdf.setFillColor(colors.HexColor("#123f88"))
-    pdf.drawString(50, y, "Important Note")
+    pdf.setFont("Helvetica", 10)
+    pdf.setFillColor(muted_text)
+    pdf.drawString(
+        margin + 16,
+        card_y_top - 40,
+        f"Location: {cleaned_data['location']}   |   Zone: {cleaned_data['zone_type']}   |   Land Size: {cleaned_data['land_size']} perches"
+    )
 
-    pdf.setFillColor(colors.black)
-    pdf.setFont("Helvetica", 11)
-    y -= 22
-    text = pdf.beginText(50, y)
-    text.textLine("This valuation is an estimated result based on historical data")
-    text.textLine("and location-specific growth trends. It does not replace")
-    text.textLine("an official government valuation report.")
-    pdf.drawText(text)
+    # Section: Land Details
+    details_top = card_y_top - 90
 
-    pdf.setFont("Helvetica-Oblique", 10)
-    pdf.setFillColor(colors.grey)
-    pdf.drawString(50, 30, "Generated by Civic Plan Land Management Portal")
+    pdf.setFillColor(primary_dark)
+    pdf.roundRect(margin, details_top - 255, width - (2 * margin), 255, 10, fill=0, stroke=0)
+
+    pdf.setFillColor(section_bg)
+    pdf.roundRect(margin, details_top - 255, width - (2 * margin), 255, 10, fill=1, stroke=0)
+
+    pdf.setStrokeColor(border_color)
+    pdf.roundRect(margin, details_top - 255, width - (2 * margin), 255, 10, fill=0, stroke=1)
+
+    pdf.setFillColor(primary)
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.drawString(margin + 16, details_top - 22, "Land Details")
+
+    left_x_label = margin + 18
+    left_x_value = margin + 180
+    y = details_top - 52
+
+    electricity_text = "Available" if cleaned_data["electricity"] == 1 else "Not Available"
+    water_text = "Available" if cleaned_data["water"] == 1 else "Not Available"
+    flood_text = "High" if cleaned_data["flood_risk"] == 1 else "Low"
+
+    y = draw_label_value_row(pdf, "Land Size (Perches)", cleaned_data["land_size"], left_x_label, left_x_value, y)
+    y = draw_label_value_row(pdf, "Access Road Size (ft)", cleaned_data["access_road_size"], left_x_label, left_x_value, y)
+    y = draw_label_value_row(pdf, "Location", cleaned_data["location"], left_x_label, left_x_value, y)
+    y = draw_label_value_row(pdf, "Distance to Nearest City (km)", cleaned_data["distance_to_city"], left_x_label, left_x_value, y)
+    y = draw_label_value_row(pdf, "Zone Type", cleaned_data["zone_type"], left_x_label, left_x_value, y)
+    y = draw_label_value_row(pdf, "Electricity", electricity_text, left_x_label, left_x_value, y)
+    y = draw_label_value_row(pdf, "Water", water_text, left_x_label, left_x_value, y)
+    y = draw_label_value_row(pdf, "Flood Risk", flood_text, left_x_label, left_x_value, y)
+
+    # Section: Valuation Results
+    results_top = details_top - 290
+
+    pdf.setFillColor(primary)
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.drawString(margin, results_top, "Valuation Results")
+
+    box_y = results_top - 14
+    box_gap = 12
+    box_width = (width - (2 * margin) - (2 * box_gap)) / 3
+    box_height = 58
+
+    draw_result_box(
+        pdf,
+        "Current Estimated Value",
+        f"LKR {result['current_value']:,.2f}",
+        margin,
+        box_y,
+        box_width,
+        box_height,
+        primary
+    )
+
+    draw_result_box(
+        pdf,
+        "Predicted Value After 1 Year",
+        f"LKR {result['predicted_1_year']:,.2f}",
+        margin + box_width + box_gap,
+        box_y,
+        box_width,
+        box_height,
+        blue_light
+    )
+
+    draw_result_box(
+        pdf,
+        "Predicted Value After 5 Years",
+        f"LKR {result['predicted_5_year']:,.2f}",
+        margin + (2 * (box_width + box_gap)),
+        box_y,
+        box_width,
+        box_height,
+        green_light
+    )
+
+    # Note section
+    note_top = results_top - 110
+
+    pdf.setFillColor(colors.white)
+    pdf.roundRect(margin, note_top - 85, width - (2 * margin), 85, 10, fill=1, stroke=0)
+
+    pdf.setStrokeColor(border_color)
+    pdf.roundRect(margin, note_top - 85, width - (2 * margin), 85, 10, fill=0, stroke=1)
+
+    pdf.setFillColor(primary)
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(margin + 16, note_top - 20, "Important Note")
+
+    pdf.setFillColor(text_dark)
+    note_text = (
+        "This valuation is an estimated result based on historical data and "
+        "location-specific growth trends. It does not replace an official "
+        "government valuation report."
+    )
+
+    draw_wrapped_text(
+        pdf,
+        note_text,
+        margin + 16,
+        note_top - 40,
+        width - (2 * margin) - 32,
+        font_name="Helvetica",
+        font_size=10,
+        line_gap=14
+    )
+
+    # Footer
+    pdf.setStrokeColor(border_color)
+    pdf.line(margin, 40, width - margin, 40)
+
+    pdf.setFont("Helvetica-Oblique", 9)
+    pdf.setFillColor(muted_text)
+    pdf.drawString(margin, 25, "Generated by Civic Plan Land Management Portal")
+    pdf.drawRightString(width - margin, 25, "Confidential Report")
 
     pdf.save()
     buffer.seek(0)
