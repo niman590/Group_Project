@@ -530,7 +530,6 @@ def delete_user(user_id):
             property_ids,
         )
 
-        # Keep these only if those tables still exist in your DB
         try:
             cursor.execute(
                 f"DELETE FROM document WHERE property_id IN ({placeholders})",
@@ -601,6 +600,7 @@ def admin_planning_application_detail(application_id):
     conn = get_connection()
     cursor = conn.cursor()
 
+    # Main application + user
     cursor.execute(
         """
         SELECT pa.*, u.first_name, u.last_name, u.email, u.nic
@@ -617,8 +617,12 @@ def admin_planning_application_detail(application_id):
         flash("Application not found.", "error")
         return redirect(url_for("admin.admin_planning_applications"))
 
+    # Step 1 - Summary
     cursor.execute(
-        "SELECT * FROM planning_application_summary WHERE application_id = ?",
+        """
+        SELECT * FROM planning_application_summary
+        WHERE application_id = ?
+        """,
         (application_id,),
     )
     summary = cursor.fetchone()
@@ -633,6 +637,7 @@ def admin_planning_application_detail(application_id):
     )
     proposed_uses = cursor.fetchall()
 
+    # Step 2 - Applicants
     cursor.execute(
         """
         SELECT * FROM planning_application_applicants
@@ -643,6 +648,88 @@ def admin_planning_application_detail(application_id):
     )
     applicants = cursor.fetchall()
 
+    # Step 3 - Technical details
+    cursor.execute(
+        """
+        SELECT * FROM planning_application_technical_details
+        WHERE application_id = ?
+        """,
+        (application_id,),
+    )
+    technical = cursor.fetchone()
+
+    # Step 4 - Land owner
+    cursor.execute(
+        """
+        SELECT * FROM planning_application_land_owner
+        WHERE application_id = ?
+        """,
+        (application_id,),
+    )
+    land_owner = cursor.fetchone()
+
+    # Step 5 - Clearances
+    cursor.execute(
+        """
+        SELECT * FROM planning_application_clearances
+        WHERE application_id = ?
+        """,
+        (application_id,),
+    )
+    clearances = cursor.fetchone()
+
+    # Step 6 - Site usage / location
+    cursor.execute(
+        """
+        SELECT * FROM planning_application_site_usage
+        WHERE application_id = ?
+        """,
+        (application_id,),
+    )
+    site_usage = cursor.fetchone()
+
+    # Step 7 - Dimensions
+    cursor.execute(
+        """
+        SELECT * FROM planning_application_dimensions
+        WHERE application_id = ?
+        """,
+        (application_id,),
+    )
+    dimensions = cursor.fetchone()
+
+    # Step 8 - Development metrics
+    cursor.execute(
+        """
+        SELECT * FROM planning_application_development_metrics
+        WHERE application_id = ?
+        """,
+        (application_id,),
+    )
+    metrics = cursor.fetchone()
+
+    # Step 9 - Units and parking
+    cursor.execute(
+        """
+        SELECT * FROM planning_application_units_parking
+        WHERE application_id = ?
+        """,
+        (application_id,),
+    )
+    units = cursor.fetchone()
+
+    # Step 10 - Submitted plans
+    cursor.execute(
+        """
+        SELECT plan_name
+        FROM planning_application_submitted_plans
+        WHERE application_id = ?
+        """,
+        (application_id,),
+    )
+    plans = cursor.fetchall()
+
+    # Attachments
     cursor.execute(
         """
         SELECT * FROM planning_application_attachments
@@ -661,6 +748,14 @@ def admin_planning_application_detail(application_id):
         summary=summary,
         proposed_uses=proposed_uses,
         applicants=applicants,
+        technical=technical,
+        land_owner=land_owner,
+        clearances=clearances,
+        site_usage=site_usage,
+        dimensions=dimensions,
+        metrics=metrics,
+        units=units,
+        plans=plans,
         attachments=attachments,
     )
 
