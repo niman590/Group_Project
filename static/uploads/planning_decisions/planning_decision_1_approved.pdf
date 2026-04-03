@@ -32,7 +32,11 @@ endobj
 endobj
 6 0 obj
 <<
+<<<<<<< HEAD
 /Author (anonymous) /CreationDate (D:20260403123448+05'00') /Creator (anonymous) /Keywords () /ModDate (D:20260403123448+05'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+=======
+/Author (anonymous) /CreationDate (D:20260403122806+05'00') /Creator (anonymous) /Keywords () /ModDate (D:20260403122806+05'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+>>>>>>> 84cbf2f46d87824f99a3df13180905219362c659
   /Subject (unspecified) /Title (untitled) /Trapped /False
 >>
 endobj
@@ -43,10 +47,17 @@ endobj
 endobj
 8 0 obj
 <<
+<<<<<<< HEAD
 /Filter [ /ASCII85Decode /FlateDecode ] /Length 530
 >>
 stream
 Gat%_c#28i&;9LtME/*Gm"j/PA_e=f"UkNc%mkgg)/:1sPt6V)h"pCGWD1S^<IeD#=C>b9%CllZ,-^<r*H56AjpM:OW/b9-1-p&D]BX."F0L%^F10:Fo06]=1r:_Tb<0.pW&f=[m_A2!38AFE/9#9Vek//9e+]u-_CMCd,H71gqD5/?W30KJrgb.n,XG2h\DJ$/YO+XobML@J7k$JK:o[9(PiS</r=H:VffFq<"t2qlCJIjTla#lj%QiXK!0;B5Llt1@KCL-\MBm[U#mZBd9%'-m1]EifRZhD^)QtFbGJ@8p5^kMA7K<:7,&"S#%M(sR*)?.L=o<BL^,R0;&rt=C,Dg15<5*p%#b$3f=F(mMV&Id(IB/$e"Qub.+./t,i7eQRcgZp7J$1/%e4'ogBof$o3"CDA"AsA8/*F&(l9qju,YM=h#;L4EM:l\-m3'Fj*,`cjaVBWl39CNCAj)<"*-aG%:lU5d[d'[LZm=9,pNjFiU!Y>DW^b\S)"-`QFc/c<A;-rX"[0f@eSf&1&0C~>endstream
+=======
+/Filter [ /ASCII85Decode /FlateDecode ] /Length 544
+>>
+stream
+Gat$t?#Q2d'RfGR302giUmM-*]ObN8,#qJ]d%ih9k,,Wr-F6FTr;0brZafB8BgMlCjn!a`+Q?%QGLZbe/)5Uh&2C1*6o%J54lAtU2pPohI$hr`RU,(8Kd)L1cc%`e(OW1#LXl7UHA1b(Ee=\,HYJEs:KSYJH`a*qSO#h>4+@!]l5A-M^H2DG%s=%#-Y-JK"iP2f&14],0]TF#/JTZO^AK-[K<gV/RV-o/=.-?_@,N$"(rFto8G.+1QG(>4Pb&?&;4L@TA.m-HIM(a3PeAZ'(GHed8ZsZfMdIiB2fasRkI%&aDE3W,OPd\,ic*bK$p&=&_]t9]L1C)EebJBVEFIYj8NHo_'N'isg,JL1_9d*290[c?H*"TCV5-rkkNUoBOJh^.j-/&cQqk70>?jPOWP0Zbpo^sUotIm<=h!*uk:L=,'$K^a&rYS-RAC^f[:*aPL)q?&LSDm*r*\Ab%o\eEiL.N>Y&AHI/7nptF$5lZGf!&p[2ON>/-F4:J"Da8*Y;=='13XV-gn714HUd6@.J@jTdALm!C]d*D?~>endstream
+>>>>>>> 84cbf2f46d87824f99a3df13180905219362c659
 endobj
 xref
 0 9
@@ -62,7 +73,11 @@ xref
 trailer
 <<
 /ID 
+<<<<<<< HEAD
 [<e8651549c8144113033b975e9989a71b><e8651549c8144113033b975e9989a71b>]
+=======
+[<c83eeec95003ff314e4591e672e2d1c6><c83eeec95003ff314e4591e672e2d1c6>]
+>>>>>>> 84cbf2f46d87824f99a3df13180905219362c659
 % ReportLab generated PDF document -- digest (opensource)
 
 /Info 6 0 R
@@ -70,5 +85,9 @@ trailer
 /Size 9
 >>
 startxref
+<<<<<<< HEAD
 1532
+=======
+1546
+>>>>>>> 84cbf2f46d87824f99a3df13180905219362c659
 %%EOF
