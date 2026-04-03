@@ -476,8 +476,15 @@ tbody td {
     align-items: center;
     justify-content: center;
     box-shadow: 0 14px 28px rgba(18, 63, 130, 0.28);
-    cursor: pointer;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
     z-index: 2000;
+}
+
+.chatbot-button.dragging {
+    cursor: grabbing;
 }
 
 .chatbot-box {
