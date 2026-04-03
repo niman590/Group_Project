@@ -8,7 +8,6 @@ from routes.password_reset_routes import password_reset_bp
 from routes.prediction_routes import prediction_bp
 from routes.chatbot_routes import chatbot_bp
 from routes.transaction_history_routes import transaction_history_bp
-from routes.gis import gis_bp
 from routes.submit_documents_routes import submit_documents_bp
 from routes.support_documents_routes import support_documents_bp
 
@@ -25,7 +24,6 @@ app.register_blueprint(password_reset_bp)
 app.register_blueprint(prediction_bp)
 app.register_blueprint(chatbot_bp)
 app.register_blueprint(transaction_history_bp)
-app.register_blueprint(gis_bp)
 app.register_blueprint(submit_documents_bp)
 app.register_blueprint(support_documents_bp)
 
