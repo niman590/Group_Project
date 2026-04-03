@@ -152,7 +152,8 @@ body {
 }
 
 .form-group input,
-.form-group textarea {
+.form-group textarea,
+.form-group select {
   width: 100%;
   border: 1px solid #d6d6d6;
   border-radius: 6px;
@@ -162,7 +163,8 @@ body {
   outline: none;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   height: 42px;
 }
 
@@ -172,15 +174,34 @@ body {
 }
 
 .form-group input:focus,
-.form-group textarea:focus {
+.form-group textarea:focus,
+.form-group select:focus {
   border-color: #315ea8;
   box-shadow: 0 0 0 2px rgba(49, 94, 168, 0.1);
 }
 
 .form-group input.input-error,
-.form-group textarea.input-error {
+.form-group textarea.input-error,
+.form-group select.input-error {
   border-color: #d93025;
   box-shadow: 0 0 0 2px rgba(217, 48, 37, 0.08);
+}
+
+.dob-select-row {
+  display: flex;
+  gap: 10px;
+}
+
+.dob-select-row select {
+  flex: 1;
+  min-width: 0;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #315ea8 50%), linear-gradient(135deg, #315ea8 50%, transparent 50%);
+  background-position: calc(100% - 18px) calc(50% - 3px), calc(100% - 12px) calc(50% - 3px);
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 34px;
+  cursor: pointer;
 }
 
 .hint-text {
@@ -307,6 +328,11 @@ body {
   .form-row {
     flex-direction: column;
     gap: 14px;
+  }
+
+  .dob-select-row {
+    flex-direction: column;
+    gap: 12px;
   }
 
   .left-content h1 {
