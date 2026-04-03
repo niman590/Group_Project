@@ -12,9 +12,11 @@
 </head>
 
 <body>
-  <div class="dashboard-shell">
+  <div class="dashboard-shell {% if user['is_admin'] %}no-sidebar{% endif %}">
 
-    {% include 'partials/user_sidebar.html' %}
+    {% if not user['is_admin'] %}
+      {% include 'partials/user_sidebar.html' %}
+    {% endif %}
 
     <main class="main-content">
       <div class="account-page">
@@ -106,8 +108,7 @@
               </form>
 
               <p class="back-text">
-                <a
-                  href="{% if user['is_admin'] %}{{ url_for('admin.admin_dashboard') }}{% else %}{{ url_for('user.user_dashboard') }}{% endif %}">
+                <a href="{% if user['is_admin'] %}{{ url_for('admin.admin_dashboard') }}{% else %}{{ url_for('user.user_dashboard') }}{% endif %}">
                   Back to Dashboard
                 </a>
               </p>
