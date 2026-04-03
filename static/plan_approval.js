@@ -494,6 +494,142 @@ function useBrowserCurrentLocation() {
     );
 }
 
+function populateDateSelectOptions(group) {
+    const monthSelect = group.querySelector(".date-month");
+    const daySelect = group.querySelector(".date-day");
+    const yearSelect = group.querySelector(".date-year");
+
+    if (!monthSelect || !daySelect || !yearSelect) return;
+
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    if (monthSelect.options.length === 1) {
+        monthNames.forEach((month, index) => {
+            const option = document.createElement("option");
+            option.value = String(index + 1).padStart(2, "0");
+            option.textContent = month;
+            monthSelect.appendChild(option);
+        });
+    }
+
+    if (yearSelect.options.length === 1) {
+        const currentYear = new Date().getFullYear();
+        for (let year = currentYear + 10; year >= 1950; year--) {
+            const option = document.createElement("option");
+            option.value = String(year);
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        }
+    }
+
+    updateDateDayOptions(group);
+}
+
+function updateDateDayOptions(group) {
+    const monthSelect = group.querySelector(".date-month");
+    const daySelect = group.querySelector(".date-day");
+    const yearSelect = group.querySelector(".date-year");
+
+    if (!monthSelect || !daySelect || !yearSelect) return;
+
+    const selectedMonth = parseInt(monthSelect.value, 10);
+    const selectedYear = parseInt(yearSelect.value, 10);
+    const currentSelectedDay = daySelect.value;
+
+    let daysInMonth = 31;
+
+    if (selectedMonth && selectedYear) {
+        daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate();
+    } else if (selectedMonth) {
+        daysInMonth = new Date(2000, selectedMonth, 0).getDate();
+    }
+
+    daySelect.innerHTML = '<option value="">Day</option>';
+
+    for (let day = 1; day <= daysInMonth; day++) {
+        const option = document.createElement("option");
+        option.value = String(day).padStart(2, "0");
+        option.textContent = day;
+        if (String(day).padStart(2, "0") === currentSelectedDay) {
+            option.selected = true;
+        }
+        daySelect.appendChild(option);
+    }
+
+    if (currentSelectedDay && parseInt(currentSelectedDay, 10) > daysInMonth) {
+        daySelect.value = "";
+    }
+}
+
+function syncHiddenDateField(group) {
+    const hiddenFieldId = group.dataset.dateGroup;
+    const hiddenField = document.getElementById(hiddenFieldId);
+    const monthSelect = group.querySelector(".date-month");
+    const daySelect = group.querySelector(".date-day");
+    const yearSelect = group.querySelector(".date-year");
+
+    if (!hiddenField || !monthSelect || !daySelect || !yearSelect) return;
+
+    if (yearSelect.value && monthSelect.value && daySelect.value) {
+        hiddenField.value = `${yearSelect.value}-${monthSelect.value}-${daySelect.value}`;
+    } else {
+        hiddenField.value = "";
+    }
+}
+
+function setDateGroupValue(group, isoValue) {
+    const monthSelect = group.querySelector(".date-month");
+    const daySelect = group.querySelector(".date-day");
+    const yearSelect = group.querySelector(".date-year");
+    const hiddenFieldId = group.dataset.dateGroup;
+    const hiddenField = document.getElementById(hiddenFieldId);
+
+    if (!monthSelect || !daySelect || !yearSelect || !hiddenField) return;
+
+    if (!isoValue) {
+        monthSelect.value = "";
+        yearSelect.value = "";
+        updateDateDayOptions(group);
+        daySelect.value = "";
+        hiddenField.value = "";
+        return;
+    }
+
+    const parts = isoValue.split("-");
+    if (parts.length !== 3) return;
+
+    const [year, month, day] = parts;
+    yearSelect.value = year;
+    monthSelect.value = month;
+    updateDateDayOptions(group);
+    daySelect.value = day;
+    hiddenField.value = isoValue;
+}
+
+function initializeDateGroups() {
+    const dateGroups = document.querySelectorAll(".date-select-row");
+
+    dateGroups.forEach((group) => {
+        populateDateSelectOptions(group);
+
+        const monthSelect = group.querySelector(".date-month");
+        const daySelect = group.querySelector(".date-day");
+        const yearSelect = group.querySelector(".date-year");
+
+        const handleChange = () => {
+            updateDateDayOptions(group);
+            syncHiddenDateField(group);
+        };
+
+        monthSelect.addEventListener("change", handleChange);
+        daySelect.addEventListener("change", handleChange);
+        yearSelect.addEventListener("change", handleChange);
+    });
+}
+
 async function loadDraftFromServer() {
     try {
         const params = new URLSearchParams(window.location.search);
@@ -581,13 +717,16 @@ async function loadDraftFromServer() {
 
         if (draft.step5) {
             document.querySelector('[name="rate_clearance_ref"]').value = draft.step5.rate_clearance_ref || "";
-            document.querySelector('[name="rate_clearance_date"]').value = draft.step5.rate_clearance_date || "";
+            setDateGroupValue(document.querySelector('[data-date-group="rate_clearance_date"]'), draft.step5.rate_clearance_date || "");
+
             document.querySelector('[name="water_clearance_ref"]').value = draft.step5.water_clearance_ref || "";
-            document.querySelector('[name="water_clearance_date"]').value = draft.step5.water_clearance_date || "";
+            setDateGroupValue(document.querySelector('[data-date-group="water_clearance_date"]'), draft.step5.water_clearance_date || "");
+
             document.querySelector('[name="drainage_clearance_ref"]').value = draft.step5.drainage_clearance_ref || "";
-            document.querySelector('[name="drainage_clearance_date"]').value = draft.step5.drainage_clearance_date || "";
+            setDateGroupValue(document.querySelector('[data-date-group="drainage_clearance_date"]'), draft.step5.drainage_clearance_date || "");
+
             document.querySelector('[name="uda_preliminary_ref"]').value = draft.step5.uda_preliminary_ref || "";
-            document.querySelector('[name="uda_preliminary_date"]').value = draft.step5.uda_preliminary_date || "";
+            setDateGroupValue(document.querySelector('[data-date-group="uda_preliminary_date"]'), draft.step5.uda_preliminary_date || "");
         }
 
         if (draft.step6) {
@@ -757,6 +896,7 @@ form.addEventListener("submit", async (e) => {
     }
 });
 
+initializeDateGroups();
 showStep(currentStep);
 toggleOwnerStep();
 updateFilePreview();
