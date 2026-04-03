@@ -27,10 +27,6 @@
             class="{% if active_page == 'transaction_history' %}active{% endif %}">
             <i class="fa-solid fa-clock-rotate-left"></i> Transaction History
         </a>
-        <a href="{{ url_for('gis.gis_mapping_page') }}"
-            class="{% if active_page == 'gis_map' %}active{% endif %}">
-            <i class="fa-solid fa-map-location-dot"></i> GIS Map
-        </a>
         <a href="{{ url_for('prediction.land_valuation_page') }}"
             class="{% if active_page == 'land_valuation' %}active{% endif %}">
             <i class="fa-solid fa-chart-line"></i> Land Valuation
