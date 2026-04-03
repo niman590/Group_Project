@@ -1,12 +1,5 @@
 import os
-import json
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
-from flask import Blueprint, render_template, request, jsonify, session
+from flask import Blueprint, render_template, request, jsonify, session, send_file, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 from database.db_connection import get_connection
 
@@ -43,117 +36,9 @@ def get_or_create_draft_application(user_id):
     return application_id
 
 
-def fetch_json(url, params=None):
-    if params:
-        url = f"{url}?{urlencode(params)}"
-
-    req = Request(
-        url,
-        headers={
-            "User-Agent": "CivicPlan/1.0 (Planning Approval GIS Address Picker)"
-        }
-    )
-
-    with urlopen(req, timeout=15) as response:
-        return json.loads(response.read().decode("utf-8"))
-
-
-def send_planning_submission_email(to_email, first_name):
-    sender_email = "planapprovalsystem@gmail.com"
-    sender_password = "fikz sauz rsmz zkee"
-
-    msg = MIMEMultipart()
-    msg["From"] = sender_email
-    msg["To"] = to_email
-    msg["Subject"] = "Planning Approval Application Submitted"
-
-    body = f"""Hello {first_name}!
-
-Your planning approval document has been submitted successfully.
-
-Thank you,
-Civic Plan Team
-
-This is an automated email from Civic Plan Team.
-"""
-    msg.attach(MIMEText(body, "plain"))
-
-    try:
-        server = smtplib.SMTP("smtp.gmail.com", 587)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, to_email, msg.as_string())
-        server.quit()
-        return True
-    except Exception as e:
-        print("Planning submission email error:", e)
-        return False
-
-
 @submit_documents_bp.route("/submit-documents", methods=["GET"])
 def submit_documents():
     return render_template("plan_approval.html")
-
-
-@submit_documents_bp.route("/gis-search-location", methods=["GET"])
-def gis_search_location():
-    query = request.args.get("q", "").strip()
-
-    if not query:
-        return jsonify({"success": False, "message": "Search query is required"}), 400
-
-    try:
-        results = fetch_json(
-            "https://nominatim.openstreetmap.org/search",
-            {
-                "q": query,
-                "format": "jsonv2",
-                "addressdetails": 1,
-                "limit": 5
-            }
-        )
-
-        formatted = [
-            {
-                "display_name": item.get("display_name", ""),
-                "lat": item.get("lat", ""),
-                "lon": item.get("lon", "")
-            }
-            for item in results
-        ]
-
-        return jsonify({"success": True, "results": formatted})
-    except Exception as error:
-        return jsonify({"success": False, "message": f"Location search failed: {str(error)}"}), 500
-
-
-@submit_documents_bp.route("/gis-reverse-geocode", methods=["GET"])
-def gis_reverse_geocode():
-    lat = request.args.get("lat", "").strip()
-    lon = request.args.get("lon", "").strip()
-
-    if not lat or not lon:
-        return jsonify({"success": False, "message": "Latitude and longitude are required"}), 400
-
-    try:
-        result = fetch_json(
-            "https://nominatim.openstreetmap.org/reverse",
-            {
-                "lat": lat,
-                "lon": lon,
-                "format": "jsonv2",
-                "addressdetails": 1
-            }
-        )
-
-        return jsonify({
-            "success": True,
-            "address": result.get("display_name", ""),
-            "lat": lat,
-            "lon": lon
-        })
-    except Exception as error:
-        return jsonify({"success": False, "message": f"Reverse geocoding failed: {str(error)}"}), 500
 
 
 @submit_documents_bp.route("/save-planning-draft-step", methods=["POST"])
@@ -430,16 +315,28 @@ def get_planning_draft():
     if not user_id:
         return jsonify({"success": False, "message": "User not logged in"}), 401
 
+    # Optional edit specific draft/application
+    application_id = request.args.get("application_id", type=int)
+
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT application_id, current_step
-        FROM planning_applications
-        WHERE user_id = ? AND status = 'Draft'
-        ORDER BY application_id DESC
-        LIMIT 1
-    """, (user_id,))
+    if application_id:
+        cursor.execute("""
+            SELECT application_id, current_step
+            FROM planning_applications
+            WHERE application_id = ? AND user_id = ?
+            LIMIT 1
+        """, (application_id, user_id))
+    else:
+        cursor.execute("""
+            SELECT application_id, current_step
+            FROM planning_applications
+            WHERE user_id = ? AND status = 'Draft'
+            ORDER BY application_id DESC
+            LIMIT 1
+        """, (user_id,))
+
     app = cursor.fetchone()
 
     if not app:
@@ -547,13 +444,6 @@ def submit_planning_application():
     application_id = row["application_id"] if hasattr(row, "keys") else row[0]
 
     cursor.execute("""
-        SELECT first_name, email
-        FROM users
-        WHERE user_id = ?
-    """, (user_id,))
-    user = cursor.fetchone()
-
-    cursor.execute("""
         UPDATE planning_applications
         SET status = 'Submitted', updated_at = CURRENT_TIMESTAMP
         WHERE application_id = ?
@@ -561,11 +451,6 @@ def submit_planning_application():
 
     conn.commit()
     conn.close()
-
-    if user:
-        first_name = user["first_name"] if hasattr(user, "keys") else user[0]
-        email = user["email"] if hasattr(user, "keys") else user[1]
-        send_planning_submission_email(email, first_name)
 
     return jsonify({
         "success": True,
@@ -583,7 +468,8 @@ def my_applications():
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT application_id, status, current_step, created_at, updated_at
+        SELECT application_id, status, current_step, created_at, updated_at,
+               admin_comment, decision_pdf_path
         FROM planning_applications
         WHERE user_id = ?
         ORDER BY application_id DESC
@@ -592,3 +478,53 @@ def my_applications():
 
     conn.close()
     return render_template("my_applications.html", applications=applications)
+
+
+@submit_documents_bp.route("/edit-planning-draft/<int:application_id>", methods=["GET"])
+def edit_planning_draft(application_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Please log in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT application_id
+        FROM planning_applications
+        WHERE application_id = ? AND user_id = ? AND status = 'Draft'
+    """, (application_id, user_id))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        flash("Draft not found or cannot be edited.", "error")
+        return redirect(url_for("submit_documents.my_applications"))
+
+    return redirect(url_for("submit_documents.submit_documents", application_id=application_id))
+
+
+@submit_documents_bp.route("/download-decision-pdf/<int:application_id>", methods=["GET"])
+def download_decision_pdf(application_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Please log in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT decision_pdf_path
+        FROM planning_applications
+        WHERE application_id = ? AND user_id = ?
+    """, (application_id, user_id))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row or not row["decision_pdf_path"]:
+        flash("Decision PDF not found.", "error")
+        return redirect(url_for("submit_documents.my_applications"))
+
+    return send_file(row["decision_pdf_path"], as_attachment=True)
