@@ -47,7 +47,7 @@ def chat():
         client = get_gemini_client()
         if client is None:
             return jsonify({
-                "reply": "Chatbot is not configured yet. Please set GEMINI_API_KEY in your .env file."
+                "reply": "Chatbot is not available right now!"
             }), 500
 
         response = client.models.generate_content(
