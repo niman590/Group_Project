@@ -246,3 +246,87 @@
 .btn-delete:hover {
     background: #1f2937;
 }
+.dashboard-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #eef3f9;
+}
+
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background: #0d2f63;
+    color: white;
+    padding: 20px 15px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+
+.sidebar-header .logo {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.sidebar-header p {
+    margin: 2px 0 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-menu li {
+    margin-bottom: 12px;
+}
+
+.sidebar-menu a {
+    display: block;
+    text-decoration: none;
+    color: white;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: 0.2s ease;
+}
+
+.sidebar-menu a:hover,
+.sidebar-menu a.active {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.main-content {
+    flex: 1;
+    padding: 30px;
+    box-sizing: border-box;
+}
