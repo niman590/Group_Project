@@ -293,30 +293,6 @@ def admin_dashboard():
     conn = get_connection()
     cursor = conn.cursor()
 
-    total_users = safe_fetchone_value(
-        cursor,
-        "SELECT COUNT(*) AS total_users FROM users",
-        "total_users",
-    )
-
-    total_admins = safe_fetchone_value(
-        cursor,
-        "SELECT COUNT(*) AS total_admins FROM users WHERE is_admin = 1",
-        "total_admins",
-    )
-
-    active_users = safe_fetchone_value(
-        cursor,
-        "SELECT COUNT(*) AS active_users FROM users WHERE is_active = 1",
-        "active_users",
-    )
-
-    inactive_users = safe_fetchone_value(
-        cursor,
-        "SELECT COUNT(*) AS inactive_users FROM users WHERE is_active = 0",
-        "inactive_users",
-    )
-
     application_date_clause, application_date_params = build_date_clause("created_at", start_date, end_date)
 
     total_applications = safe_fetchone_value(
@@ -363,10 +339,6 @@ def admin_dashboard():
     return render_template(
         "admin_dashboard.html",
         user=admin_user,
-        total_users=total_users,
-        total_admins=total_admins,
-        active_users=active_users,
-        inactive_users=inactive_users,
         total_applications=total_applications,
         approved_applications=approved_applications,
         rejected_applications=rejected_applications,
@@ -388,6 +360,30 @@ def admin_users():
 
     conn = get_connection()
     cursor = conn.cursor()
+
+    total_users = safe_fetchone_value(
+        cursor,
+        "SELECT COUNT(*) AS total_users FROM users",
+        "total_users",
+    )
+
+    total_admins = safe_fetchone_value(
+        cursor,
+        "SELECT COUNT(*) AS total_admins FROM users WHERE is_admin = 1",
+        "total_admins",
+    )
+
+    active_users = safe_fetchone_value(
+        cursor,
+        "SELECT COUNT(*) AS active_users FROM users WHERE is_active = 1",
+        "active_users",
+    )
+
+    inactive_users = safe_fetchone_value(
+        cursor,
+        "SELECT COUNT(*) AS inactive_users FROM users WHERE is_active = 0",
+        "inactive_users",
+    )
 
     if search_query:
         like_term = f"%{search_query}%"
@@ -423,6 +419,10 @@ def admin_users():
         user=admin_user,
         users=users,
         search_query=search_query,
+        total_users=total_users,
+        total_admins=total_admins,
+        active_users=active_users,
+        inactive_users=inactive_users,
     )
 
 

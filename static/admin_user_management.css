@@ -99,6 +99,32 @@ body {
     border: 1px solid #f5d48a;
 }
 
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: white;
+    border: 1px solid #d8e3f3;
+    border-radius: 18px;
+    padding: 24px 18px;
+    text-align: center;
+}
+
+.stat-card h3 {
+    margin: 0 0 10px;
+    color: #123f82;
+    font-size: 2rem;
+}
+
+.stat-card p {
+    margin: 0;
+    color: #6c7a92;
+}
+
 .panel {
     background: white;
     border: 1px solid #d8e3f3;
@@ -277,6 +303,12 @@ a.btn {
     background: #d64545;
 }
 
+@media (max-width: 1200px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
 @media (max-width: 860px) {
     .topbar {
         flex-direction: column;
@@ -291,5 +323,9 @@ a.btn {
     .search-input-group {
         width: 100%;
         min-width: 100%;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
     }
 }
