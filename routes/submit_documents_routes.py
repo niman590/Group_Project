@@ -477,7 +477,7 @@ def my_applications():
     applications = cursor.fetchall()
 
     conn.close()
-    return render_template("my_applications.html", applications=applications)
+    return render_template("my_applications.html", applications=applications, active_page="my_applications")
 
 
 @submit_documents_bp.route("/edit-planning-draft/<int:application_id>", methods=["GET"])
