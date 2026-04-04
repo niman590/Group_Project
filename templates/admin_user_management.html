@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin User Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_user_management.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="dashboard-shell">
+        {% include 'partials/admin_sidebar.html' %}
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <h1>User Management</h1>
+                    <p>Manage users, roles, and account status.</p>
+                </div>
+
+                <div class="admin-chip">
+                    <div class="avatar">{{ user['first_name'][0] | upper }}</div>
+                    <div>
+                        <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
+                        <span>User ID: USER-{{ user['user_id'] }}</span>
+                    </div>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>User Management</h2>
+                    <p>Promote users, remove admin rights, activate/deactivate, or delete accounts.</p>
+                </div>
+
+                <form class="search-form" method="GET" action="{{ url_for('admin.admin_users') }}">
+                    <div class="search-input-group">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" name="search" placeholder="Search by name, NIC, or email"
+                            value="{{ search_query if search_query else '' }}">
+                    </div>
+                    <button type="submit" class="btn primary">Search</button>
+                    {% if search_query %}
+                    <a href="{{ url_for('admin.admin_users') }}" class="btn secondary clear-search">Clear</a>
+                    {% endif %}
+                </form>
+
+                {% if search_query %}
+                <div class="search-result-info">
+                    <p>
+                        Showing {{ users|length }} result{{ '' if users|length == 1 else 's' }} for
+                        "<strong>{{ search_query }}</strong>"
+                    </p>
+                </div>
+                {% endif %}
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Name</th>
+                                <th>NIC</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>User ID</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if users %}
+                            {% for u in users %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ u['first_name'] }} {{ u['last_name'] }}</td>
+                                <td>{{ u['nic'] if u['nic'] else '-' }}</td>
+                                <td>{{ u['email'] }}</td>
+                                <td>
+                                    {% if u['is_admin'] %}
+                                    <span class="badge admin">Admin</span>
+                                    {% else %}
+                                    <span class="badge user">User</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if u['is_active'] %}
+                                    <span class="badge active">Active</span>
+                                    {% else %}
+                                    <span class="badge inactive">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>USER-{{ u['user_id'] }}</td>
+                                <td>
+                                    {% set is_system_admin = (u['email'] == 'admin@civicplan.local' and u['nic'] ==
+                                    'ADMIN000000V') %}
+                                    {% if is_system_admin %}
+                                    <div class="action-buttons">
+                                        <span class="badge admin">Protected System Admin</span>
+                                    </div>
+                                    {% else %}
+                                    <div class="action-buttons">
+                                        <form action="{{ url_for('admin.toggle_user_status', user_id=u['user_id']) }}"
+                                            method="POST">
+                                            <button type="submit" class="btn small warning">
+                                                {% if u['is_active'] %}Deactivate{% else %}Activate{% endif %}
+                                            </button>
+                                        </form>
+
+                                        {% if not u['is_admin'] %}
+                                        <form action="{{ url_for('admin.make_admin', user_id=u['user_id']) }}"
+                                            method="POST">
+                                            <button type="submit" class="btn small primary">Make Admin</button>
+                                        </form>
+                                        {% else %}
+                                        <form action="{{ url_for('admin.remove_admin', user_id=u['user_id']) }}"
+                                            method="POST">
+                                            <button type="submit" class="btn small secondary">Remove Admin</button>
+                                        </form>
+                                        {% endif %}
+
+                                        <form action="{{ url_for('admin.delete_user', user_id=u['user_id']) }}"
+                                            method="POST"
+                                            onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                            <button type="submit" class="btn small danger">Delete</button>
+                                        </form>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="no-results">No users found.</td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

@@ -1,40 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Planning Applications</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            margin: 0;
             background: #f4f7fb;
+            color: #1f2937;
+        }
+
+        .dashboard-shell {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
             padding: 30px;
         }
+
         .box {
             max-width: 1200px;
             margin: auto;
             background: white;
             border-radius: 16px;
             padding: 24px;
-            box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
         }
+
         h1 {
             color: #123f88;
             margin-bottom: 20px;
+            font-size: 2rem;
         }
+
+        .page-subtitle {
+            color: #64748b;
+            margin-bottom: 22px;
+            line-height: 1.6;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
-        th, td {
+
+        th,
+        td {
             padding: 14px;
             border-bottom: 1px solid #e5e7eb;
             text-align: left;
+            vertical-align: middle;
         }
+
         th {
             background: #eef3fa;
             color: #123f88;
         }
+
         a.btn {
             display: inline-block;
             padding: 8px 12px;
@@ -43,50 +83,116 @@
             color: white;
             text-decoration: none;
             font-size: 14px;
+            font-weight: 700;
         }
+
+        a.btn:hover {
+            background: #0f3472;
+        }
+
         .status {
             font-weight: 700;
         }
+
+        .status-approved {
+            color: #1d7d3c;
+        }
+
+        .status-submitted {
+            color: #1c4b9c;
+        }
+
+        .status-rejected {
+            color: #b03030;
+        }
+
+        .status-other {
+            color: #475569;
+        }
+
+        .empty {
+            color: #64748b;
+            padding: 18px 14px;
+        }
+
+        @media (max-width: 980px) {
+            .dashboard-shell {
+                flex-direction: column;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+        }
     </style>
 </head>
-<body>
-    <div class="box">
-        <h1>Planning Applications</h1>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Applicant</th>
-                    <th>Email</th>
-                    <th>Status</th>
-                    <th>Current Step</th>
-                    <th>Updated</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for app in applications %}
-                <tr>
-                    <td>{{ app['application_id'] }}</td>
-                    <td>{{ app['first_name'] }} {{ app['last_name'] }}</td>
-                    <td>{{ app['email'] }}</td>
-                    <td class="status">{{ app['status'] }}</td>
-                    <td>{{ app['current_step'] }}</td>
-                    <td>{{ app['updated_at'] }}</td>
-                    <td>
-                        <a class="btn" href="{{ url_for('admin.admin_planning_application_detail', application_id=app['application_id']) }}">
-                            Review
-                        </a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="7">No planning applications found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<body>
+
+    <div class="dashboard-shell">
+
+        <!-- ✅ ADMIN SIDEBAR -->
+        {% include 'partials/admin_sidebar.html' %}
+
+        <!-- ✅ MAIN CONTENT -->
+        <main class="main-content">
+            <div class="box">
+                <h1>Planning Applications</h1>
+                <p class="page-subtitle">
+                    Review submitted planning applications, inspect their details,
+                    and move to the application review page.
+                </p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Applicant</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Current Step</th>
+                                <th>Updated</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                            <tr>
+                                <td>{{ app['application_id'] }}</td>
+                                <td>{{ app['first_name'] }} {{ app['last_name'] }}</td>
+                                <td>{{ app['email'] }}</td>
+
+                                <td class="status
+                                    {% if app['status'] == 'Approved' %}status-approved
+                                    {% elif app['status'] == 'Submitted' %}status-submitted
+                                    {% elif app['status'] == 'Rejected' %}status-rejected
+                                    {% else %}status-other{% endif %}">
+                                    {{ app['status'] }}
+                                </td>
+
+                                <td>{{ app['current_step'] }}</td>
+                                <td>{{ app['updated_at'] }}</td>
+                                <td>
+                                    <a class="btn"
+                                        href="{{ url_for('admin.admin_planning_application_detail', application_id=app['application_id']) }}">
+                                        Review
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="empty">No planning applications found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
     </div>
+
 </body>
+
 </html>

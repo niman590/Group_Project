@@ -287,7 +287,6 @@ def admin_dashboard():
     if redirect_response:
         return redirect_response
 
-    search_query = request.args.get("search", "").strip()
     start_date = normalize_date_input(request.args.get("start_date", "").strip())
     end_date = normalize_date_input(request.args.get("end_date", "").strip())
 
@@ -359,6 +358,37 @@ def admin_dashboard():
     user_chart = get_user_registration_chart(cursor, start_date, end_date)
     planning_chart = get_application_status_chart(cursor, start_date, end_date)
 
+    conn.close()
+
+    return render_template(
+        "admin_dashboard.html",
+        user=admin_user,
+        total_users=total_users,
+        total_admins=total_admins,
+        active_users=active_users,
+        inactive_users=inactive_users,
+        total_applications=total_applications,
+        approved_applications=approved_applications,
+        rejected_applications=rejected_applications,
+        pending_applications=pending_applications,
+        user_chart=user_chart,
+        planning_chart=planning_chart,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+
+@admin_bp.route("/admin/users")
+def admin_users():
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    search_query = request.args.get("search", "").strip()
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
     if search_query:
         like_term = f"%{search_query}%"
         cursor.execute(
@@ -389,28 +419,11 @@ def admin_dashboard():
     conn.close()
 
     return render_template(
-        "admin_dashboard.html",
+        "admin_user_management.html",
         user=admin_user,
         users=users,
-        total_users=total_users,
-        total_admins=total_admins,
-        active_users=active_users,
-        inactive_users=inactive_users,
-        total_applications=total_applications,
-        approved_applications=approved_applications,
-        rejected_applications=rejected_applications,
-        pending_applications=pending_applications,
-        user_chart=user_chart,
-        planning_chart=planning_chart,
         search_query=search_query,
-        start_date=start_date,
-        end_date=end_date,
     )
-
-
-@admin_bp.route("/admin/users")
-def admin_users():
-    return redirect(url_for("admin.admin_dashboard"))
 
 
 @admin_bp.route("/admin/users/<int:user_id>/toggle-status", methods=["POST"])
@@ -421,7 +434,7 @@ def toggle_user_status(user_id):
 
     if admin_user["user_id"] == user_id:
         flash("You cannot deactivate your own admin account.", "error")
-        return redirect(url_for("admin.admin_dashboard"))
+        return redirect(url_for("admin.admin_users"))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -432,12 +445,12 @@ def toggle_user_status(user_id):
     if not target_user:
         conn.close()
         flash("User not found.", "error")
-        return redirect(url_for("admin.admin_dashboard"))
+        return redirect(url_for("admin.admin_users"))
 
     if is_protected_system_admin(target_user):
         conn.close()
         flash("System Admin account cannot be deactivated or changed.", "error")
-        return redirect(url_for("admin.admin_dashboard"))
+        return redirect(url_for("admin.admin_users"))
 
     new_status = 0 if target_user["is_active"] else 1
 
@@ -458,7 +471,7 @@ def toggle_user_status(user_id):
     else:
         flash("User account deactivated successfully.", "success")
 
-    return redirect(url_for("admin.admin_dashboard"))
+    return redirect(url_for("admin.admin_users"))
 
 
 @admin_bp.route("/admin/transaction-history-requests")
@@ -484,7 +497,11 @@ def admin_transaction_history_requests():
 
     conn.close()
 
-    return render_template("admin_transaction_history_requests.html", requests=requests)
+    return render_template(
+        "admin_transaction_history_requests.html",
+        user=admin_user,
+        requests=requests,
+    )
 
 
 @admin_bp.route("/admin/transaction-history-request/<int:request_id>/approve", methods=["POST"])
@@ -646,12 +663,12 @@ def make_admin(user_id):
     if not target_user:
         conn.close()
         flash("User not found.", "error")
-        return redirect(url_for("admin.admin_dashboard"))
+        return redirect(url_for("admin.admin_users"))
 
     if is_protected_system_admin(target_user):
         conn.close()
         flash("System Admin account is already protected.", "error")
-        return redirect(url_for("admin.admin_dashboard"))
+        return redirect(url_for("admin.admin_users"))
 
     cursor.execute(
         """
@@ -666,7 +683,7 @@ def make_admin(user_id):
     conn.close()
 
     flash("User promoted to admin successfully.", "success")
-    return redirect(url_for("admin.admin_dashboard"))
+    return redirect(url_for("admin.admin_users"))
 
 
 @admin_bp.route("/admin/users/<int:user_id>/remove-admin", methods=["POST"])
@@ -677,7 +694,7 @@ def remove_admin(user_id):
 
     if admin_user["user_id"] == user_id:
         flash("You cannot remove your own admin access.", "error")
-        return redirect(url_for("admin.admin_dashboard"))
+        return redirect(url_for("admin.admin_users"))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -688,12 +705,12 @@ def remove_admin(user_id):
     if not target_user:
         conn.close()
         flash("User not found.", "error")
-        return redirect(url_for("admin.admin_dashboard"))
+        return redirect(url_for("admin.admin_users"))
 
     if is_protected_system_admin(target_user):
         conn.close()
         flash("System Admin admin rights cannot be removed.", "error")
-        return redirect(url_for("admin.admin_dashboard"))
+        return redirect(url_for("admin.admin_users"))
 
     cursor.execute(
         """
@@ -708,7 +725,7 @@ def remove_admin(user_id):
     conn.close()
 
     flash("Admin access removed successfully.", "success")
-    return redirect(url_for("admin.admin_dashboard"))
+    return redirect(url_for("admin.admin_users"))
 
 
 @admin_bp.route("/admin/users/<int:user_id>/delete", methods=["POST"])
@@ -719,7 +736,7 @@ def delete_user(user_id):
 
     if admin_user["user_id"] == user_id:
         flash("You cannot delete your own admin account.", "error")
-        return redirect(url_for("admin.admin_dashboard"))
+        return redirect(url_for("admin.admin_users"))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -730,12 +747,12 @@ def delete_user(user_id):
     if not target_user:
         conn.close()
         flash("User not found.", "error")
-        return redirect(url_for("admin.admin_dashboard"))
+        return redirect(url_for("admin.admin_users"))
 
     if is_protected_system_admin(target_user):
         conn.close()
         flash("System Admin account cannot be deleted.", "error")
-        return redirect(url_for("admin.admin_dashboard"))
+        return redirect(url_for("admin.admin_users"))
 
     cursor.execute("SELECT property_id FROM property WHERE owner_id = ?", (user_id,))
     property_ids = [row["property_id"] for row in cursor.fetchall()]
@@ -781,7 +798,7 @@ def delete_user(user_id):
     conn.close()
 
     flash("User deleted successfully.", "success")
-    return redirect(url_for("admin.admin_dashboard"))
+    return redirect(url_for("admin.admin_users"))
 
 
 # =========================================================
@@ -810,7 +827,11 @@ def admin_planning_applications():
     applications = cursor.fetchall()
 
     conn.close()
-    return render_template("admin_planning_applications.html", applications=applications)
+    return render_template(
+        "admin_planning_applications.html",
+        user=admin_user,
+        applications=applications,
+    )
 
 
 @admin_bp.route("/admin/planning-applications/<int:application_id>")
@@ -822,7 +843,6 @@ def admin_planning_application_detail(application_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Main application + user
     cursor.execute(
         """
         SELECT pa.*, u.first_name, u.last_name, u.email, u.nic
@@ -839,7 +859,6 @@ def admin_planning_application_detail(application_id):
         flash("Application not found.", "error")
         return redirect(url_for("admin.admin_planning_applications"))
 
-    # Step 1 - Summary
     cursor.execute(
         """
         SELECT * FROM planning_application_summary
@@ -859,7 +878,6 @@ def admin_planning_application_detail(application_id):
     )
     proposed_uses = cursor.fetchall()
 
-    # Step 2 - Applicants
     cursor.execute(
         """
         SELECT * FROM planning_application_applicants
@@ -870,7 +888,6 @@ def admin_planning_application_detail(application_id):
     )
     applicants = cursor.fetchall()
 
-    # Step 3 - Technical details
     cursor.execute(
         """
         SELECT * FROM planning_application_technical_details
@@ -880,7 +897,6 @@ def admin_planning_application_detail(application_id):
     )
     technical = cursor.fetchone()
 
-    # Step 4 - Land owner
     cursor.execute(
         """
         SELECT * FROM planning_application_land_owner
@@ -890,7 +906,6 @@ def admin_planning_application_detail(application_id):
     )
     land_owner = cursor.fetchone()
 
-    # Step 5 - Clearances
     cursor.execute(
         """
         SELECT * FROM planning_application_clearances
@@ -900,7 +915,6 @@ def admin_planning_application_detail(application_id):
     )
     clearances = cursor.fetchone()
 
-    # Step 6 - Site usage / location
     cursor.execute(
         """
         SELECT * FROM planning_application_site_usage
@@ -910,7 +924,6 @@ def admin_planning_application_detail(application_id):
     )
     site_usage = cursor.fetchone()
 
-    # Step 7 - Dimensions
     cursor.execute(
         """
         SELECT * FROM planning_application_dimensions
@@ -920,7 +933,6 @@ def admin_planning_application_detail(application_id):
     )
     dimensions = cursor.fetchone()
 
-    # Step 8 - Development metrics
     cursor.execute(
         """
         SELECT * FROM planning_application_development_metrics
@@ -930,7 +942,6 @@ def admin_planning_application_detail(application_id):
     )
     metrics = cursor.fetchone()
 
-    # Step 9 - Units and parking
     cursor.execute(
         """
         SELECT * FROM planning_application_units_parking
@@ -940,7 +951,6 @@ def admin_planning_application_detail(application_id):
     )
     units = cursor.fetchone()
 
-    # Step 10 - Submitted plans
     cursor.execute(
         """
         SELECT plan_name
@@ -951,7 +961,6 @@ def admin_planning_application_detail(application_id):
     )
     plans = cursor.fetchall()
 
-    # Attachments
     cursor.execute(
         """
         SELECT * FROM planning_application_attachments
@@ -966,6 +975,7 @@ def admin_planning_application_detail(application_id):
 
     return render_template(
         "admin_planning_application_detail.html",
+        user=admin_user,
         application=application,
         summary=summary,
         proposed_uses=proposed_uses,
