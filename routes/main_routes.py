@@ -12,7 +12,7 @@ def home():
 # Public dashboard
 @main_bp.route("/dashboard")
 def dashboard():
-    return render_template("index.html")
+    return render_template("dashboard.html")
 
 
 # =========================
@@ -36,4 +36,3 @@ def land_record():
 def permit_status():
     return render_template("permit_status.html")
 
-#niman keliya
