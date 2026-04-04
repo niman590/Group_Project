@@ -154,8 +154,10 @@
 
                 <section class="documents-grid" id="documentsGrid">
                     {% for doc in documents %}
-                    <article class="document-card" data-title="{{ doc.title|lower }}"
-                        data-description="{{ doc.description|lower }}" data-category="{{ doc.category }}"
+                    <article class="document-card"
+                        data-title="{{ doc.title|lower }}"
+                        data-description="{{ doc.description|lower }}"
+                        data-category="{{ doc.category }}"
                         data-audience="{{ doc.audience }}">
                         <div class="doc-top">
                             <div class="doc-icon">
@@ -173,9 +175,16 @@
                         </div>
 
                         <div class="doc-actions">
-                            <button type="button" class="view-btn" data-title="{{ doc.title }}"
-                                data-description="{{ doc.description }}" data-category="{{ doc.category }}"
-                                data-audience="{{ doc.audience }}" data-status="{{ doc.status }}">
+                            <button
+                                type="button"
+                                class="view-btn"
+                                data-title="{{ doc.title }}"
+                                data-description="{{ doc.description }}"
+                                data-category="{{ doc.category }}"
+                                data-audience="{{ doc.audience }}"
+                                data-status="{{ doc.status }}"
+                                data-view-url="{{ doc.view_url if doc.view_url else '' }}"
+                                data-download-url="{{ doc.download_url if doc.download_url else '' }}">
                                 <i class="fa-solid fa-eye"></i> View Details
                             </button>
                         </div>
@@ -213,6 +222,16 @@
                 <span id="modalCategory">Category</span>
                 <span id="modalAudience">Audience</span>
                 <span id="modalStatus">Status</span>
+            </div>
+
+            <div class="modal-actions hidden" id="modalActions">
+                <a href="#" target="_blank" class="modal-action-btn primary" id="modalViewLink">
+                    <i class="fa-solid fa-book-open-reader"></i> Open User Manual
+                </a>
+
+                <a href="#" class="modal-action-btn secondary" id="modalDownloadLink">
+                    <i class="fa-solid fa-download"></i> Download User Manual
+                </a>
             </div>
         </div>
     </div>
