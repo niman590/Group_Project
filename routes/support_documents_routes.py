@@ -1,5 +1,16 @@
-from flask import Blueprint, render_template, redirect, url_for, session, flash
+from flask import (
+    Blueprint,
+    render_template,
+    redirect,
+    url_for,
+    session,
+    flash,
+    send_from_directory,
+    abort,
+    current_app,
+)
 from database.db_connection import get_connection
+import os
 
 support_documents_bp = Blueprint("support_documents", __name__)
 
@@ -58,6 +69,8 @@ def get_support_documents_data():
             "description": "Guidance for citizens on how to prepare and submit planning approval applications correctly.",
             "audience": "Citizens",
             "status": "Available",
+            "view_url": "",
+            "download_url": "",
         },
         {
             "title": "Required Documents Checklist",
@@ -66,6 +79,8 @@ def get_support_documents_data():
             "description": "Checklist of files and information needed before submitting planning approval requests.",
             "audience": "Citizens",
             "status": "Available",
+            "view_url": "",
+            "download_url": "",
         },
         {
             "title": "Gazettes, Rules and Policies",
@@ -74,6 +89,8 @@ def get_support_documents_data():
             "description": "Planning rules, approval policies, and official guidance relevant to land management.",
             "audience": "Citizens / Admin",
             "status": "Available",
+            "view_url": "",
+            "download_url": "",
         },
         {
             "title": "User Guide",
@@ -82,6 +99,8 @@ def get_support_documents_data():
             "description": "Guide for using dashboard modules such as profile, applications, valuation, and transaction history.",
             "audience": "Citizens",
             "status": "Project Deliverable",
+            "view_url": url_for("support_documents.view_user_manual"),
+            "download_url": url_for("support_documents.download_user_manual"),
         },
         {
             "title": "Administrator Guide",
@@ -90,6 +109,8 @@ def get_support_documents_data():
             "description": "Guide for approval workflows, record checks, monitoring, and document review tasks.",
             "audience": "Admin",
             "status": "Project Deliverable",
+            "view_url": "",
+            "download_url": "",
         },
         {
             "title": "Developer Manual",
@@ -98,6 +119,8 @@ def get_support_documents_data():
             "description": "Technical documentation for code structure, modules, database usage, and maintenance.",
             "audience": "Developers",
             "status": "Project Deliverable",
+            "view_url": "",
+            "download_url": "",
         },
         {
             "title": "Transaction History Guide",
@@ -106,6 +129,8 @@ def get_support_documents_data():
             "description": "Explains how ownership history and land transaction records are viewed and updated.",
             "audience": "Citizens",
             "status": "Available",
+            "view_url": "",
+            "download_url": "",
         },
         {
             "title": "Land Valuation Help Guide",
@@ -114,6 +139,8 @@ def get_support_documents_data():
             "description": "Support document for understanding valuation inputs, outputs, and result interpretation.",
             "audience": "Citizens",
             "status": "Available",
+            "view_url": "",
+            "download_url": "",
         },
     ]
 
@@ -133,4 +160,53 @@ def support_documents_page():
         documents=documents,
         stats=stats,
         active_page="support_documents",
+    )
+
+
+@support_documents_bp.route("/support-documents/user-manual/view")
+def view_user_manual():
+    if "user_id" not in session:
+        flash("Please sign in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    manual_directory = os.path.join(
+        current_app.root_path,
+        "static",
+        "support_documents"
+    )
+    manual_filename = "civic_plan_user_manual.pdf"
+    manual_path = os.path.join(manual_directory, manual_filename)
+
+    if not os.path.exists(manual_path):
+        abort(404, description="Civic Plan User Manual not found.")
+
+    return send_from_directory(
+        manual_directory,
+        manual_filename,
+        as_attachment=False
+    )
+
+
+@support_documents_bp.route("/support-documents/user-manual/download")
+def download_user_manual():
+    if "user_id" not in session:
+        flash("Please sign in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    manual_directory = os.path.join(
+        current_app.root_path,
+        "static",
+        "support_documents"
+    )
+    manual_filename = "civic_plan_user_manual.pdf"
+    manual_path = os.path.join(manual_directory, manual_filename)
+
+    if not os.path.exists(manual_path):
+        abort(404, description="Civic Plan User Manual not found.")
+
+    return send_from_directory(
+        manual_directory,
+        manual_filename,
+        as_attachment=True,
+        download_name="civic_plan_user_manual.pdf"
     )

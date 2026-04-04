@@ -12,6 +12,10 @@ const modalCategory = document.getElementById("modalCategory");
 const modalAudience = document.getElementById("modalAudience");
 const modalStatus = document.getElementById("modalStatus");
 
+const modalActions = document.getElementById("modalActions");
+const modalViewLink = document.getElementById("modalViewLink");
+const modalDownloadLink = document.getElementById("modalDownloadLink");
+
 function filterDocuments() {
     const searchValue = (searchInput.value || "").toLowerCase().trim();
     const selectedCategory = categoryFilter.value;
@@ -57,6 +61,19 @@ function openModal(button) {
     modalCategory.textContent = button.dataset.category || "";
     modalAudience.textContent = button.dataset.audience || "";
     modalStatus.textContent = button.dataset.status || "";
+
+    const viewUrl = button.dataset.viewUrl || "";
+    const downloadUrl = button.dataset.downloadUrl || "";
+
+    if (viewUrl && downloadUrl) {
+        modalViewLink.href = viewUrl;
+        modalDownloadLink.href = downloadUrl;
+        modalActions.classList.remove("hidden");
+    } else {
+        modalViewLink.href = "#";
+        modalDownloadLink.href = "#";
+        modalActions.classList.add("hidden");
+    }
 
     modal.classList.remove("hidden");
 }
