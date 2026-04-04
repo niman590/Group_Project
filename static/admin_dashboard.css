@@ -381,3 +381,108 @@ tbody td {
         min-width: 100%;
     }
 }
+
+
+.chart-filter-panel {
+    margin-bottom: 24px;
+}
+
+.date-filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: end;
+}
+
+.date-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 220px;
+}
+
+.date-field label {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #123f82;
+}
+
+.date-field input {
+    border: 1px solid #d8e3f3;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    color: #1e2f4d;
+    background: #f7faff;
+}
+
+.date-filter-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-summary {
+    margin-top: 14px;
+}
+
+.application-stats-grid {
+    margin-bottom: 24px;
+}
+
+.app-stat-card.approved {
+    border-color: #b7e4c7;
+}
+
+.app-stat-card.pending {
+    border-color: #ffe3b3;
+}
+
+.app-stat-card.rejected {
+    border-color: #f3c2c2;
+}
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.chart-card {
+    background: white;
+    border: 1px solid #d8e3f3;
+    border-radius: 18px;
+    padding: 22px;
+}
+
+.chart-header {
+    margin-bottom: 14px;
+}
+
+.chart-image {
+    width: 100%;
+    display: block;
+    border-radius: 12px;
+    border: 1px solid #e4ebf5;
+    background: #fff;
+}
+
+.chart-fallback {
+    min-height: 240px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #c6d3e6;
+    border-radius: 12px;
+    color: #6c7a92;
+    background: #f8fbff;
+    text-align: center;
+    padding: 20px;
+}
+
+@media (max-width: 1200px) {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+}

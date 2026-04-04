@@ -37,7 +37,7 @@
                 </a>
 
                 <a href="{{ url_for('admin.admin_planning_applications') }}">Planning Applications</a>
-
+                
                 <a href="{{ url_for('auth.logout') }}">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
@@ -86,6 +86,89 @@
                 <div class="stat-card">
                     <h3>{{ inactive_users }}</h3>
                     <p>Inactive Accounts</p>
+                </div>
+            </section>
+
+
+            <section class="stats-grid application-stats-grid">
+                <div class="stat-card app-stat-card">
+                    <h3>{{ total_applications }}</h3>
+                    <p>Total Planning Applications</p>
+                </div>
+                <div class="stat-card app-stat-card approved">
+                    <h3>{{ approved_applications }}</h3>
+                    <p>Approved Plans</p>
+                </div>
+                <div class="stat-card app-stat-card pending">
+                    <h3>{{ pending_applications }}</h3>
+                    <p>Pending / Review Plans</p>
+                </div>
+                <div class="stat-card app-stat-card rejected">
+                    <h3>{{ rejected_applications }}</h3>
+                    <p>Rejected Plans</p>
+                </div>
+            </section>
+
+            <section class="panel chart-filter-panel">
+                <div class="panel-header">
+                    <h2>Analytics Filter</h2>
+                    <p>Select a date range to update the Python-generated charts and planning application summary cards.</p>
+                </div>
+
+                <form class="date-filter-form" method="GET" action="{{ url_for('admin.admin_dashboard') }}">
+                    <input type="hidden" name="search" value="{{ search_query if search_query else '' }}" />
+
+                    <div class="date-field">
+                        <label for="start_date">Start Date</label>
+                        <input type="date" id="start_date" name="start_date" value="{{ start_date if start_date else '' }}" />
+                    </div>
+
+                    <div class="date-field">
+                        <label for="end_date">End Date</label>
+                        <input type="date" id="end_date" name="end_date" value="{{ end_date if end_date else '' }}" />
+                    </div>
+
+                    <div class="date-filter-actions">
+                        <button type="submit" class="btn primary">Apply Filter</button>
+                        <a href="{{ url_for('admin.admin_dashboard', search=search_query) }}" class="btn secondary clear-search">Clear Dates</a>
+                    </div>
+                </form>
+
+                {% if start_date or end_date %}
+                <div class="filter-summary">
+                    <span class="badge user">
+                        Showing analytics for
+                        {{ start_date if start_date else 'the beginning' }}
+                        to
+                        {{ end_date if end_date else 'today' }}
+                    </span>
+                </div>
+                {% endif %}
+            </section>
+
+            <section class="chart-grid">
+                <div class="chart-card">
+                    <div class="panel-header chart-header">
+                        <h2>User Registration Overview</h2>
+                        <p>Generated with Python (matplotlib) from your database records.</p>
+                    </div>
+                    {% if user_chart %}
+                    <img src="data:image/png;base64,{{ user_chart }}" alt="User registrations chart" class="chart-image">
+                    {% else %}
+                    <div class="chart-fallback">Matplotlib is not installed or no chart data is available.</div>
+                    {% endif %}
+                </div>
+
+                <div class="chart-card">
+                    <div class="panel-header chart-header">
+                        <h2>Planning Approval Overview</h2>
+                        <p>Python-generated chart for approved, pending, and rejected applications.</p>
+                    </div>
+                    {% if planning_chart %}
+                    <img src="data:image/png;base64,{{ planning_chart }}" alt="Planning application status chart" class="chart-image">
+                    {% else %}
+                    <div class="chart-fallback">Matplotlib is not installed or no chart data is available.</div>
+                    {% endif %}
                 </div>
             </section>
 

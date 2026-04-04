@@ -1,5 +1,7 @@
+import base64
 import os
 from datetime import datetime
+from io import BytesIO
 
 from flask import (
     Blueprint,
@@ -122,6 +124,163 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
     return filepath
 
 
+def safe_fetchall(cursor, query, params=()):
+    try:
+        cursor.execute(query, params)
+        return cursor.fetchall()
+    except Exception:
+        return []
+
+
+def safe_fetchone_value(cursor, query, key, default=0, params=()):
+    try:
+        cursor.execute(query, params)
+        row = cursor.fetchone()
+        if row and key in row.keys():
+            return row[key]
+    except Exception:
+        pass
+    return default
+
+
+def build_chart_image(labels, values, title, kind="bar"):
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except Exception:
+        return None
+
+    if not labels:
+        labels = ["No Data"]
+        values = [0]
+
+    fig, ax = plt.subplots(figsize=(7.5, 3.8))
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
+
+    if kind == "pie":
+        pie_values = values if any(v > 0 for v in values) else [1 for _ in values]
+        ax.pie(
+            pie_values,
+            labels=labels,
+            autopct="%1.0f%%",
+            startangle=90,
+            wedgeprops={"linewidth": 1, "edgecolor": "white"},
+        )
+        ax.axis("equal")
+    else:
+        bars = ax.bar(labels, values)
+        ax.set_ylabel("Count")
+        ax.grid(axis="y", linestyle="--", alpha=0.35)
+        ax.set_axisbelow(True)
+        ax.tick_params(axis="x", rotation=20)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        for bar, value in zip(bars, values):
+            ax.text(
+                bar.get_x() + bar.get_width() / 2,
+                bar.get_height() + 0.05,
+                str(value),
+                ha="center",
+                va="bottom",
+                fontsize=9,
+            )
+
+    ax.set_title(title, fontsize=13, fontweight="bold", pad=12)
+    plt.tight_layout()
+
+    image_buffer = BytesIO()
+    fig.savefig(image_buffer, format="png", dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    image_buffer.seek(0)
+    return base64.b64encode(image_buffer.read()).decode("utf-8")
+
+
+def normalize_date_input(value):
+    if not value:
+        return ""
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").strftime("%Y-%m-%d")
+    except Exception:
+        return ""
+
+
+def build_date_clause(column_name, start_date, end_date):
+    conditions = []
+    params = []
+
+    if start_date:
+        conditions.append(f"date({column_name}) >= date(?)")
+        params.append(start_date)
+
+    if end_date:
+        conditions.append(f"date({column_name}) <= date(?)")
+        params.append(end_date)
+
+    if conditions:
+        return " AND " + " AND ".join(conditions), params
+
+    return "", params
+
+
+def get_user_registration_chart(cursor, start_date="", end_date=""):
+    date_clause, params = build_date_clause("created_at", start_date, end_date)
+
+    rows = safe_fetchall(
+        cursor,
+        f"""
+        SELECT strftime('%Y-%m', created_at) AS month_label, COUNT(*) AS total
+        FROM users
+        WHERE created_at IS NOT NULL {date_clause}
+        GROUP BY strftime('%Y-%m', created_at)
+        ORDER BY month_label ASC
+        LIMIT 12
+        """,
+        tuple(params),
+    )
+
+    if not rows:
+        rows = safe_fetchall(
+            cursor,
+            f"""
+            SELECT 'Users' AS month_label, COUNT(*) AS total
+            FROM users
+            WHERE 1=1 {date_clause}
+            """,
+            tuple(params),
+        )
+
+    labels = [row["month_label"] for row in rows]
+    values = [row["total"] for row in rows]
+    return build_chart_image(labels, values, "User Registrations", kind="bar")
+
+
+def get_application_status_chart(cursor, start_date="", end_date=""):
+    date_clause, params = build_date_clause("created_at", start_date, end_date)
+
+    rows = safe_fetchall(
+        cursor,
+        f"""
+        SELECT COALESCE(status, 'Pending') AS status_label, COUNT(*) AS total
+        FROM planning_applications
+        WHERE 1=1 {date_clause}
+        GROUP BY COALESCE(status, 'Pending')
+        ORDER BY total DESC
+        """,
+        tuple(params),
+    )
+
+    if not rows:
+        labels = ["No Applications"]
+        values = [1]
+    else:
+        labels = [row["status_label"] for row in rows]
+        values = [row["total"] for row in rows]
+
+    return build_chart_image(labels, values, "Planning Application Status", kind="pie")
+
+
 @admin_bp.route("/admin/dashboard")
 def admin_dashboard():
     admin_user, redirect_response = admin_required()
@@ -129,21 +288,76 @@ def admin_dashboard():
         return redirect_response
 
     search_query = request.args.get("search", "").strip()
+    start_date = normalize_date_input(request.args.get("start_date", "").strip())
+    end_date = normalize_date_input(request.args.get("end_date", "").strip())
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT COUNT(*) AS total_users FROM users")
-    total_users = cursor.fetchone()["total_users"]
+    total_users = safe_fetchone_value(
+        cursor,
+        "SELECT COUNT(*) AS total_users FROM users",
+        "total_users",
+    )
 
-    cursor.execute("SELECT COUNT(*) AS total_admins FROM users WHERE is_admin = 1")
-    total_admins = cursor.fetchone()["total_admins"]
+    total_admins = safe_fetchone_value(
+        cursor,
+        "SELECT COUNT(*) AS total_admins FROM users WHERE is_admin = 1",
+        "total_admins",
+    )
 
-    cursor.execute("SELECT COUNT(*) AS active_users FROM users WHERE is_active = 1")
-    active_users = cursor.fetchone()["active_users"]
+    active_users = safe_fetchone_value(
+        cursor,
+        "SELECT COUNT(*) AS active_users FROM users WHERE is_active = 1",
+        "active_users",
+    )
 
-    cursor.execute("SELECT COUNT(*) AS inactive_users FROM users WHERE is_active = 0")
-    inactive_users = cursor.fetchone()["inactive_users"]
+    inactive_users = safe_fetchone_value(
+        cursor,
+        "SELECT COUNT(*) AS inactive_users FROM users WHERE is_active = 0",
+        "inactive_users",
+    )
+
+    application_date_clause, application_date_params = build_date_clause("created_at", start_date, end_date)
+
+    total_applications = safe_fetchone_value(
+        cursor,
+        f"SELECT COUNT(*) AS total_applications FROM planning_applications WHERE 1=1 {application_date_clause}",
+        "total_applications",
+        params=tuple(application_date_params),
+    )
+
+    approved_applications = safe_fetchone_value(
+        cursor,
+        f"""SELECT COUNT(*) AS approved_applications
+        FROM planning_applications
+        WHERE status = 'Approved' {application_date_clause}""",
+        "approved_applications",
+        params=tuple(application_date_params),
+    )
+
+    rejected_applications = safe_fetchone_value(
+        cursor,
+        f"""SELECT COUNT(*) AS rejected_applications
+        FROM planning_applications
+        WHERE status = 'Rejected' {application_date_clause}""",
+        "rejected_applications",
+        params=tuple(application_date_params),
+    )
+
+    pending_applications = safe_fetchone_value(
+        cursor,
+        f"""
+        SELECT COUNT(*) AS pending_applications
+        FROM planning_applications
+        WHERE (status IS NULL OR status IN ('Pending', 'Submitted', 'Under Review')) {application_date_clause}
+        """,
+        "pending_applications",
+        params=tuple(application_date_params),
+    )
+
+    user_chart = get_user_registration_chart(cursor, start_date, end_date)
+    planning_chart = get_application_status_chart(cursor, start_date, end_date)
 
     if search_query:
         like_term = f"%{search_query}%"
@@ -182,7 +396,15 @@ def admin_dashboard():
         total_admins=total_admins,
         active_users=active_users,
         inactive_users=inactive_users,
+        total_applications=total_applications,
+        approved_applications=approved_applications,
+        rejected_applications=rejected_applications,
+        pending_applications=pending_applications,
+        user_chart=user_chart,
+        planning_chart=planning_chart,
         search_query=search_query,
+        start_date=start_date,
+        end_date=end_date,
     )
 
 
