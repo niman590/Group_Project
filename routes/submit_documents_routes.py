@@ -38,7 +38,7 @@ def get_or_create_draft_application(user_id):
 
 @submit_documents_bp.route("/submit-documents", methods=["GET"])
 def submit_documents():
-    return render_template("plan_approval.html")
+    return render_template("plan_approval.html", active_page="submit_documents")
 
 
 @submit_documents_bp.route("/save-planning-draft-step", methods=["POST"])
