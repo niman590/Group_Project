@@ -17,7 +17,7 @@
         <a href="#" class="{% if active_page == 'submit_documents' %}active{% endif %}">
             <i class="fa-solid fa-file-arrow-up"></i> Submit Documents
         </a>
-        <a href="#" class="{% if active_page == 'my_applications' %}active{% endif %}">
+        <a href="{{ url_for('submit_documents.my_applications') }}" class="{% if active_page == 'my_applications' %}active{% endif %}">
             <i class="fa-solid fa-folder-open"></i> My Applications
         </a>
         <a href="#" class="{% if active_page == 'property_records' %}active{% endif %}">
