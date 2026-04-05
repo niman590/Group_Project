@@ -12,7 +12,7 @@
 <body>
 
     <!-- HEADER -->
-    <header class="site-header">
+    <header class="site-header" id="siteHeader">
         <div class="container header-wrapper">
             <div class="brand">
                 <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo"
@@ -23,11 +23,16 @@
                 </div>
             </div>
 
-            <nav class="nav-links">
-                <a href="{{ url_for('main.dashboard') }}">Home</a>
-                <a href="#main-services">Services</a>
-                <a href="#useful-information">Public Notices</a>
-                <button class="nav-help-btn" data-modal="helpModal" type="button">Help</button>
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-label="Open navigation"
+                aria-expanded="false" aria-controls="primaryNav">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <nav class="nav-links" id="primaryNav">
+                <a href="{{ url_for('main.dashboard') }}" class="nav-item">Home</a>
+                <a href="#main-services" class="nav-item">Services</a>
+                <a href="#useful-information" class="nav-item">Public Notices</a>
+                <button class="nav-help-btn nav-item" data-modal="helpModal" type="button">Help</button>
             </nav>
 
             <div class="header-actions">
@@ -42,7 +47,7 @@
     <!-- HERO -->
     <section class="hero-section">
         <div class="container hero-grid">
-            <div class="hero-content">
+            <div class="hero-content reveal-up">
                 <span class="hero-badge">SMART DIGITAL LAND SERVICES</span>
                 <h2>Land services made simpler and faster</h2>
                 <p>
@@ -54,11 +59,27 @@
                     <a href="{{ url_for('auth.login') }}" class="btn-primary">Sign in</a>
                     <a href="{{ url_for('auth.register') }}" class="btn-secondary">Create account</a>
                 </div>
+
+                <div class="hero-mini-stats">
+                    <div class="hero-stat">
+                        <strong>3+</strong>
+                        <span>Main services</span>
+                    </div>
+                    <div class="hero-stat">
+                        <strong>24/7</strong>
+                        <span>Digital access</span>
+                    </div>
+                    <div class="hero-stat">
+                        <strong>Secure</strong>
+                        <span>User portal</span>
+                    </div>
+                </div>
             </div>
 
-            <div class="hero-card">
+            <div class="hero-card reveal-up">
                 <div class="hero-card-overlay"></div>
                 <div class="hero-card-content">
+                    <span class="hero-card-label">Digital public access</span>
                     <h3>Public access to essential services</h3>
                     <p>
                         Explore planning approvals, land value prediction, and land transaction history records
@@ -72,13 +93,14 @@
     <!-- MAIN SERVICES -->
     <section class="quick-links-section" id="main-services">
         <div class="container">
-            <div class="section-header">
+            <div class="section-header reveal-up">
                 <span class="section-tag">PUBLIC ACCESS</span>
                 <h2>Main services</h2>
+                <p class="section-subtext">Explore the main public-facing services available through the Civic Plan portal.</p>
             </div>
 
             <div class="quick-links-grid">
-                <div class="quick-card">
+                <div class="quick-card reveal-up">
                     <div class="card-icon"><i class="fa-solid fa-file-circle-check"></i></div>
                     <h3 id="planningModalTitle">Planning approval applications</h3>
                     <p>Start a new application, review required details, and manage approval progress.</p>
@@ -87,7 +109,7 @@
                     </button>
                 </div>
 
-                <div class="quick-card">
+                <div class="quick-card reveal-up">
                     <div class="card-icon"><i class="fa-solid fa-chart-line"></i></div>
                     <h3 id="valueModalTitle">Land Value Prediction</h3>
                     <p>Estimate land value trends using available property-related information.</p>
@@ -96,7 +118,7 @@
                     </button>
                 </div>
 
-                <div class="quick-card">
+                <div class="quick-card reveal-up">
                     <div class="card-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
                     <h3 id="historyModalTitle">Land Transaction History Records</h3>
                     <p>Review past land transaction records and historical activity information.</p>
@@ -111,13 +133,14 @@
     <!-- INFORMATION -->
     <section class="info-section" id="useful-information">
         <div class="container">
-            <div class="section-header light">
+            <div class="section-header light reveal-up">
                 <span class="section-tag">GUIDANCE</span>
                 <h2>Useful information</h2>
+                <p class="section-subtext">Helpful guidance before you start a request or use the portal.</p>
             </div>
 
             <div class="info-grid">
-                <button class="info-card info-card-btn" data-modal="ownershipInfoModal" type="button">
+                <button class="info-card info-card-btn reveal-up" data-modal="ownershipInfoModal" type="button">
                     <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80"
                         alt="Ownership help" />
                     <div class="info-content">
@@ -126,7 +149,7 @@
                     </div>
                 </button>
 
-                <button class="info-card info-card-btn" data-modal="planningInfoModal" type="button">
+                <button class="info-card info-card-btn reveal-up" data-modal="planningInfoModal" type="button">
                     <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80"
                         alt="Checklist" />
                     <div class="info-content">
@@ -135,7 +158,7 @@
                     </div>
                 </button>
 
-                <button class="info-card info-card-btn" data-modal="notificationInfoModal" type="button">
+                <button class="info-card info-card-btn reveal-up" data-modal="notificationInfoModal" type="button">
                     <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80"
                         alt="Notifications" />
                     <div class="info-content">
@@ -150,7 +173,7 @@
     <!-- BENEFITS -->
     <section class="benefits-section" id="help-section">
         <div class="container benefits-grid">
-            <div class="benefit-box">
+            <div class="benefit-box reveal-up">
                 <h3>Why use Civic Plan?</h3>
                 <ul>
                     <li>One secure portal for land and planning services</li>
@@ -160,7 +183,7 @@
                 </ul>
             </div>
 
-            <div class="benefit-box">
+            <div class="benefit-box alt reveal-up">
                 <h3>Before you begin</h3>
                 <ul>
                     <li>Keep your NIC ready for account registration</li>
@@ -174,7 +197,7 @@
 
     <!-- CTA -->
     <section class="cta-section">
-        <div class="container cta-box">
+        <div class="container cta-box reveal-up">
             <div>
                 <h2>Ready to access Civic Plan services?</h2>
                 <p>Sign in to continue or create a new account to access digital land services.</p>
@@ -225,7 +248,7 @@
 
     <!-- PLANNING APPROVAL MODAL -->
     <div class="service-modal" id="planningModal" role="dialog" aria-modal="true" aria-labelledby="planningModalTitle">
-        <button class="close-modal" data-close type="button">&times;</button>
+        <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
             <i class="fa-solid fa-file-circle-check"></i>
         </div>
@@ -247,7 +270,7 @@
 
     <!-- LAND VALUE PREDICTION MODAL -->
     <div class="service-modal" id="valueModal" role="dialog" aria-modal="true" aria-labelledby="valueModalTitle">
-        <button class="close-modal" data-close type="button">&times;</button>
+        <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
             <i class="fa-solid fa-chart-line"></i>
         </div>
@@ -266,7 +289,7 @@
 
     <!-- LAND TRANSACTION HISTORY MODAL -->
     <div class="service-modal" id="historyModal" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
-        <button class="close-modal" data-close type="button">&times;</button>
+        <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
             <i class="fa-solid fa-clock-rotate-left"></i>
         </div>
@@ -286,7 +309,7 @@
     <!-- OWNERSHIP VERIFICATION INFO MODAL -->
     <div class="service-modal large-modal" id="ownershipInfoModal" role="dialog" aria-modal="true"
         aria-labelledby="ownershipInfoModalTitle">
-        <button class="close-modal" data-close type="button">&times;</button>
+        <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
             <i class="fa-solid fa-file-signature"></i>
         </div>
@@ -320,7 +343,7 @@
     <!-- PLANNING SUBMISSION INFO MODAL -->
     <div class="service-modal large-modal" id="planningInfoModal" role="dialog" aria-modal="true"
         aria-labelledby="planningInfoModalTitle">
-        <button class="close-modal" data-close type="button">&times;</button>
+        <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
             <i class="fa-solid fa-clipboard-list"></i>
         </div>
@@ -353,7 +376,7 @@
     <!-- NOTIFICATION INFO MODAL -->
     <div class="service-modal large-modal" id="notificationInfoModal" role="dialog" aria-modal="true"
         aria-labelledby="notificationInfoModalTitle">
-        <button class="close-modal" data-close type="button">&times;</button>
+        <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
             <i class="fa-solid fa-bell"></i>
         </div>
@@ -386,7 +409,7 @@
     <!-- HELP MODAL -->
     <div class="service-modal large-modal" id="helpModal" role="dialog" aria-modal="true"
         aria-labelledby="helpModalTitle">
-        <button class="close-modal" data-close type="button">&times;</button>
+        <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
             <i class="fa-solid fa-circle-question"></i>
         </div>
@@ -433,7 +456,7 @@
     <!-- PRIVACY MODAL -->
     <div class="service-modal large-modal" id="privacyModal" role="dialog" aria-modal="true"
         aria-labelledby="privacyModalTitle">
-        <button class="close-modal" data-close type="button">&times;</button>
+        <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
             <i class="fa-solid fa-shield-halved"></i>
         </div>
@@ -490,7 +513,7 @@
     <!-- TERMS MODAL -->
     <div class="service-modal large-modal" id="termsModal" role="dialog" aria-modal="true"
         aria-labelledby="termsModalTitle">
-        <button class="close-modal" data-close type="button">&times;</button>
+        <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
             <i class="fa-solid fa-scale-balanced"></i>
         </div>
@@ -503,33 +526,25 @@
 
         <h4>Use of the portal</h4>
         <ul>
-            <li>The portal is intended for lawful access to information, account services, and planning-related requests
-            </li>
+            <li>The portal is intended for lawful access to information, account services, and planning-related requests</li>
             <li>Users must not submit false, misleading, incomplete, or unauthorized information</li>
             <li>Users must not attempt to damage, disrupt, probe, or gain unauthorized access to the system</li>
-            <li>Availability of online information does not by itself guarantee approval, registration, or legal
-                entitlement</li>
+            <li>Availability of online information does not by itself guarantee approval, registration, or legal entitlement</li>
         </ul>
 
         <h4>Applications and decisions</h4>
         <ul>
-            <li>Planning and land-related requests remain subject to document review, validation rules, and relevant
-                regulations</li>
-            <li>Authorities may request additional information, corrections, or supporting records before decisions are
-                made</li>
-            <li>Submission through the portal does not replace statutory processes, inspections, or legal obligations
-                where applicable</li>
-            <li>Processing times may vary depending on document completeness, review requirements, and case complexity
-            </li>
+            <li>Planning and land-related requests remain subject to document review, validation rules, and relevant regulations</li>
+            <li>Authorities may request additional information, corrections, or supporting records before decisions are made</li>
+            <li>Submission through the portal does not replace statutory processes, inspections, or legal obligations where applicable</li>
+            <li>Processing times may vary depending on document completeness, review requirements, and case complexity</li>
         </ul>
 
         <h4>Documents and records</h4>
         <ul>
-            <li>Users are responsible for ensuring uploaded files are accurate, readable, and relevant to the request
-            </li>
+            <li>Users are responsible for ensuring uploaded files are accurate, readable, and relevant to the request</li>
             <li>Reference materials, notices, and guidance content are provided for general service support</li>
-            <li>Official laws, regulations, gazettes, and authority directions take precedence over portal summaries
-            </li>
+            <li>Official laws, regulations, gazettes, and authority directions take precedence over portal summaries</li>
         </ul>
 
         <h4>Account and security</h4>
@@ -547,50 +562,11 @@
         </p>
     </div>
 
-    <script>
-        const modalButtons = document.querySelectorAll(".read-more-btn, .info-card-btn, .nav-help-btn, .footer-help-btn");
-        const modals = document.querySelectorAll(".service-modal");
-        const overlay = document.getElementById("modalOverlay");
-        const closeButtons = document.querySelectorAll("[data-close]");
+    <button class="scroll-top-btn" id="scrollTopBtn" type="button" aria-label="Scroll to top">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
 
-        function closeAllModals() {
-            modals.forEach(modal => modal.classList.remove("active"));
-            overlay.classList.remove("active");
-            document.body.classList.remove("modal-open");
-            document.documentElement.classList.remove("modal-open");
-        }
-
-        modalButtons.forEach(button => {
-            button.addEventListener("click", () => {
-                const modalId = button.getAttribute("data-modal");
-                const targetModal = document.getElementById(modalId);
-
-                closeAllModals();
-
-                if (targetModal) {
-                    targetModal.scrollTop = 0;
-                    overlay.scrollTop = 0;
-                    targetModal.classList.add("active");
-                    overlay.classList.add("active");
-                    document.body.classList.add("modal-open");
-                    document.documentElement.classList.add("modal-open");
-                }
-            });
-        });
-
-        closeButtons.forEach(button => {
-            button.addEventListener("click", closeAllModals);
-        });
-
-        overlay.addEventListener("click", closeAllModals);
-
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
-                closeAllModals();
-            }
-        });
-    </script>
-
+    <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </body>
 
 </html>
