@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_reports.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 </head>
 
 <body>
@@ -202,14 +203,22 @@
 
                     <div class="filter-field">
                         <label for="user_start_date">Start Date</label>
-                        <input type="date" id="user_start_date" name="user_start_date" class="friendly-date-input"
-                            value="{{ user_start_date if user_start_date else '' }}">
+                        <div class="calendar-input-wrap">
+                            <i class="fa-regular fa-calendar"></i>
+                            <input type="text" id="user_start_date" name="user_start_date" class="friendly-date-input js-friendly-calendar"
+                                placeholder="Select start date" autocomplete="off"
+                                value="{{ user_start_date if user_start_date else '' }}">
+                        </div>
                     </div>
 
                     <div class="filter-field">
                         <label for="user_end_date">End Date</label>
-                        <input type="date" id="user_end_date" name="user_end_date" class="friendly-date-input"
-                            value="{{ user_end_date if user_end_date else '' }}">
+                        <div class="calendar-input-wrap">
+                            <i class="fa-regular fa-calendar"></i>
+                            <input type="text" id="user_end_date" name="user_end_date" class="friendly-date-input js-friendly-calendar"
+                                placeholder="Select end date" autocomplete="off"
+                                value="{{ user_end_date if user_end_date else '' }}">
+                        </div>
                     </div>
 
                     <div class="filter-button-group">
@@ -221,13 +230,23 @@
                     </div>
                 </form>
 
+                {% if filtered_user_chart %}
+                <div class="inline-report-visual">
+                    <div class="panel-header chart-header compact">
+                        <h3>User Registration Graph</h3>
+                        <p>Filtered using the selected user registration date range.</p>
+                    </div>
+                    <img src="data:image/png;base64,{{ filtered_user_chart }}" alt="Filtered user registration chart" class="chart-image">
+                </div>
+                {% endif %}
+
                 {% if user_start_date or user_end_date %}
                 <div class="filter-pill-row">
                     <span class="badge user">
                         Users filter:
-                        {{ user_start_date if user_start_date else 'the beginning' }}
+                        {{ user_start_date_display if user_start_date else 'the beginning' }}
                         to
-                        {{ user_end_date if user_end_date else 'today' }}
+                        {{ user_end_date_display if user_end_date else 'today' }}
                     </span>
                 </div>
                 {% endif %}
@@ -283,14 +302,22 @@
 
                     <div class="filter-field">
                         <label for="applicant_start_date">Start Date</label>
-                        <input type="date" id="applicant_start_date" name="applicant_start_date" class="friendly-date-input"
-                            value="{{ applicant_start_date if applicant_start_date else '' }}">
+                        <div class="calendar-input-wrap">
+                            <i class="fa-regular fa-calendar"></i>
+                            <input type="text" id="applicant_start_date" name="applicant_start_date" class="friendly-date-input js-friendly-calendar"
+                                placeholder="Select start date" autocomplete="off"
+                                value="{{ applicant_start_date if applicant_start_date else '' }}">
+                        </div>
                     </div>
 
                     <div class="filter-field">
                         <label for="applicant_end_date">End Date</label>
-                        <input type="date" id="applicant_end_date" name="applicant_end_date" class="friendly-date-input"
-                            value="{{ applicant_end_date if applicant_end_date else '' }}">
+                        <div class="calendar-input-wrap">
+                            <i class="fa-regular fa-calendar"></i>
+                            <input type="text" id="applicant_end_date" name="applicant_end_date" class="friendly-date-input js-friendly-calendar"
+                                placeholder="Select end date" autocomplete="off"
+                                value="{{ applicant_end_date if applicant_end_date else '' }}">
+                        </div>
                     </div>
 
                     <div class="filter-button-group">
@@ -302,13 +329,23 @@
                     </div>
                 </form>
 
+                {% if filtered_planning_chart %}
+                <div class="inline-report-visual">
+                    <div class="panel-header chart-header compact">
+                        <h3>Application Status Diagram</h3>
+                        <p>Filtered using the selected applicant submission date range.</p>
+                    </div>
+                    <img src="data:image/png;base64,{{ filtered_planning_chart }}" alt="Filtered application status chart" class="chart-image">
+                </div>
+                {% endif %}
+
                 {% if applicant_start_date or applicant_end_date %}
                 <div class="filter-pill-row">
                     <span class="badge user">
                         Applicants filter:
-                        {{ applicant_start_date if applicant_start_date else 'the beginning' }}
+                        {{ applicant_start_date_display if applicant_start_date else 'the beginning' }}
                         to
-                        {{ applicant_end_date if applicant_end_date else 'today' }}
+                        {{ applicant_end_date_display if applicant_end_date else 'today' }}
                     </span>
                 </div>
                 {% endif %}
@@ -356,6 +393,8 @@
             </section>
         </main>
     </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <script src="{{ url_for('static', filename='admin_reports.js') }}"></script>
 </body>

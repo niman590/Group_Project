@@ -11,19 +11,27 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             targetElement.classList.toggle("show");
-
-            if (targetElement.classList.contains("show")) {
-                this.textContent = "Hide Details";
-            } else {
-                this.textContent = "View Details";
-            }
+            this.textContent = targetElement.classList.contains("show") ? "Hide Details" : "View Details";
         });
     });
 
-    const dateInputs = document.querySelectorAll(".friendly-date-input");
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date();
+    const calendarInputs = document.querySelectorAll(".js-friendly-calendar");
 
-    dateInputs.forEach(function (input) {
-        input.setAttribute("max", today);
-    });
+    if (window.flatpickr) {
+        calendarInputs.forEach(function (input) {
+            flatpickr(input, {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "F j, Y",
+                allowInput: false,
+                maxDate: today,
+            });
+        });
+    } else {
+        calendarInputs.forEach(function (input) {
+            input.setAttribute("type", "date");
+            input.setAttribute("max", today.toISOString().split("T")[0]);
+        });
+    }
 });
