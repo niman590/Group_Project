@@ -14,13 +14,30 @@ document.addEventListener("DOMContentLoaded", function () {
   const dobYear = document.getElementById("dob_year");
   const dateOfBirth = document.getElementById("date_of_birth");
 
+  const registerSubmitBtn = document.getElementById("registerSubmitBtn");
+  const passwordStrengthText = document.getElementById("passwordStrengthText");
+  const flashMessages = document.querySelectorAll("[data-flash]");
+  const flashCloseButtons = document.querySelectorAll("[data-flash-close]");
+  const passwordToggles = document.querySelectorAll(".password-toggle");
+
   function getErrorElement(input) {
-    return input.parentElement.querySelector(".error-text");
+    return input.parentElement.parentElement.querySelector(".error-text") ||
+           input.parentElement.querySelector(".error-text");
+  }
+
+  function getFieldWrap(input) {
+    return input.closest(".input-wrap");
   }
 
   function setError(input, message) {
     const errorEl = getErrorElement(input);
+    const wrap = getFieldWrap(input);
+
     input.classList.add("input-error");
+    if (wrap) {
+      wrap.classList.add("has-error");
+    }
+
     if (errorEl) {
       errorEl.textContent = message;
     }
@@ -28,10 +45,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function clearError(input) {
     const errorEl = getErrorElement(input);
+    const wrap = getFieldWrap(input);
+
     input.classList.remove("input-error");
+    if (wrap) {
+      wrap.classList.remove("has-error");
+    }
+
     if (errorEl) {
       errorEl.textContent = "";
     }
+  }
+
+  function hideFlash(flash, duration = 250) {
+    if (!flash) return;
+    flash.style.transition = `opacity ${duration}ms ease, transform ${duration}ms ease`;
+    flash.style.opacity = "0";
+    flash.style.transform = "translateY(-6px)";
+    setTimeout(() => {
+      if (flash.parentNode) {
+        flash.remove();
+      }
+    }, duration);
   }
 
   function validateRequired(input, message) {
@@ -134,6 +169,27 @@ document.addEventListener("DOMContentLoaded", function () {
     return true;
   }
 
+  function getPasswordStrength(passwordValue) {
+    let score = 0;
+    if (passwordValue.length >= 8) score += 1;
+    if (/[A-Z]/.test(passwordValue)) score += 1;
+    if (/[a-z]/.test(passwordValue)) score += 1;
+    if (/[0-9]/.test(passwordValue)) score += 1;
+    if (/[^A-Za-z0-9]/.test(passwordValue)) score += 1;
+
+    if (!passwordValue) return { label: "—", color: "#66758c" };
+    if (score <= 2) return { label: "Weak", color: "#b26a00" };
+    if (score <= 4) return { label: "Medium", color: "#1f7a46" };
+    return { label: "Strong", color: "#1f7a46" };
+  }
+
+  function updatePasswordStrength() {
+    if (!passwordStrengthText) return;
+    const result = getPasswordStrength(password.value.trim());
+    passwordStrengthText.textContent = `Password strength: ${result.label}`;
+    passwordStrengthText.style.color = result.color;
+  }
+
   function populateDOBFields() {
     const monthNames = [
       "January", "February", "March", "April", "May", "June",
@@ -209,6 +265,28 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function clearDOBError() {
+    dobMonth.classList.remove("input-error");
+    dobDay.classList.remove("input-error");
+    dobYear.classList.remove("input-error");
+
+    const errorEl = dobYear.parentElement.parentElement.querySelector(".error-text");
+    if (errorEl) {
+      errorEl.textContent = "";
+    }
+  }
+
+  function setDOBError(message) {
+    dobMonth.classList.add("input-error");
+    dobDay.classList.add("input-error");
+    dobYear.classList.add("input-error");
+
+    const errorEl = dobYear.parentElement.parentElement.querySelector(".error-text");
+    if (errorEl) {
+      errorEl.textContent = message;
+    }
+  }
+
   function validateDOB() {
     const month = dobMonth.value;
     const day = dobDay.value;
@@ -217,16 +295,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const hasAnyValue = month || day || year;
 
     if (!hasAnyValue) {
-      clearError(dobMonth);
-      clearError(dobDay);
-      clearError(dobYear);
+      clearDOBError();
       return true;
     }
 
     if (!month || !day || !year) {
-      setError(dobMonth, "Please select complete date of birth.");
-      dobDay.classList.add("input-error");
-      dobYear.classList.add("input-error");
+      setDOBError("Please select complete date of birth.");
       return false;
     }
 
@@ -235,22 +309,16 @@ document.addEventListener("DOMContentLoaded", function () {
     today.setHours(0, 0, 0, 0);
 
     if (Number.isNaN(selectedDate.getTime())) {
-      setError(dobMonth, "Please select a valid date of birth.");
-      dobDay.classList.add("input-error");
-      dobYear.classList.add("input-error");
+      setDOBError("Please select a valid date of birth.");
       return false;
     }
 
     if (selectedDate > today) {
-      setError(dobMonth, "Date of birth cannot be in the future.");
-      dobDay.classList.add("input-error");
-      dobYear.classList.add("input-error");
+      setDOBError("Date of birth cannot be in the future.");
       return false;
     }
 
-    clearError(dobMonth);
-    clearError(dobDay);
-    clearError(dobYear);
+    clearDOBError();
     return true;
   }
 
@@ -262,6 +330,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
   populateDOBFields();
   updateDayOptions();
+  updatePasswordStrength();
+
+  flashMessages.forEach((flash) => {
+    setTimeout(() => {
+      if (flash.parentNode) {
+        hideFlash(flash, 300);
+      }
+    }, 4500);
+  });
+
+  flashCloseButtons.forEach((button) => {
+    button.addEventListener("click", function () {
+      const flash = this.closest("[data-flash]");
+      hideFlash(flash, 250);
+    });
+  });
+
+  passwordToggles.forEach((toggle) => {
+    toggle.addEventListener("click", function () {
+      const targetId = this.getAttribute("data-target");
+      const input = document.getElementById(targetId);
+      if (!input) return;
+
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+      this.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
+
+      const icon = this.querySelector("i");
+      if (icon) {
+        icon.className = isPassword ? "fa-regular fa-eye-slash" : "fa-regular fa-eye";
+      }
+    });
+  });
 
   nic.addEventListener("input", function () {
     let value = this.value.replace(/\s+/g, "").toUpperCase();
@@ -313,6 +414,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   password.addEventListener("input", function () {
     validatePassword();
+    updatePasswordStrength();
     if (confirmPassword.value) {
       validateConfirmPassword();
     }
@@ -343,6 +445,25 @@ document.addEventListener("DOMContentLoaded", function () {
       !isDOBValid
     ) {
       event.preventDefault();
+      return;
+    }
+
+    if (registerSubmitBtn) {
+      registerSubmitBtn.classList.add("loading");
+      const btnText = registerSubmitBtn.querySelector(".btn-text");
+      if (btnText) {
+        btnText.textContent = "Creating account...";
+      }
+    }
+  });
+
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "/" && document.activeElement !== firstName && firstName) {
+      const tag = document.activeElement ? document.activeElement.tagName : "";
+      if (tag !== "INPUT" && tag !== "TEXTAREA" && tag !== "SELECT") {
+        event.preventDefault();
+        firstName.focus();
+      }
     }
   });
 });

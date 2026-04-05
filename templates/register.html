@@ -6,170 +6,248 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Civic Plan - Registration</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='register.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
   <div class="register-page">
-    <div class="left-side">
-      <div class="overlay"></div>
+    <div class="register-shell">
+      <div class="register-container">
 
-      <div class="left-content">
-        <h1>
-          Smart Digital
-          Land
-          Management
-          and Planning
-          Approval System
-        </h1>
+        <div class="left-side">
+          <div class="overlay"></div>
 
-        <p>
-          Secure citizen registration portal for accessing land records,
-          planning approvals, and related digital services.
-        </p>
-      </div>
-    </div>
+          <div class="left-content">
+            <div class="left-topbar">
+              <a href="{{ url_for('auth.login') }}" class="back-link" aria-label="Back to login">
+                <i class="fa-solid fa-arrow-left"></i>
+              </a>
+              <span class="hero-badge">Citizen Registration</span>
+            </div>
 
-    <div class="right-side">
-      <div class="form-container">
-        <div class="logo-box">
-          <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
+            <h1>
+              Smart Digital
+              Land Management
+              and Planning
+              Approval System
+            </h1>
+
+            <p>
+              Secure citizen registration portal for accessing land records,
+              planning approvals, and related digital services.
+            </p>
+
+            <div class="feature-list">
+              <div class="feature-item">
+                <i class="fa-solid fa-user-shield"></i>
+                <span>Protected account creation</span>
+              </div>
+              <div class="feature-item">
+                <i class="fa-solid fa-file-circle-check"></i>
+                <span>Access to land and planning services</span>
+              </div>
+              <div class="feature-item">
+                <i class="fa-solid fa-bell"></i>
+                <span>Get updates and digital notifications</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <h2 class="brand-title">CIVIC PLAN</h2>
-        <p class="brand-subtitle">Land Management Portal</p>
-
-        <p class="section-title">Registration</p>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="flash-messages">
-          {% for category, message in messages %}
-          <div class="flash {{ category }}">{{ message }}</div>
-          {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
-
-        <form class="register-form" id="registerForm" method="POST" action="{{ url_for('auth.register_post') }}" novalidate>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="first_name">First Name</label>
-              <input type="text" id="first_name" name="first_name" required />
-              <small class="error-text"></small>
+        <div class="right-side">
+          <div class="form-container">
+            <div class="logo-box">
+              <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
             </div>
 
-            <div class="form-group">
-              <label for="last_name">Last Name</label>
-              <input type="text" id="last_name" name="last_name" required />
-              <small class="error-text"></small>
-            </div>
-          </div>
+            <h2 class="brand-title">CIVIC PLAN</h2>
+            <p class="brand-subtitle">Land Management Portal</p>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="nic">NIC Number</label>
-              <input
-                type="text"
-                id="nic"
-                name="nic"
-                required
-                maxlength="12"
-                autocomplete="off" />
-              <small class="hint-text">Old: 855420159V / New: 198554200159</small>
-              <small class="error-text"></small>
+            <div class="section-header">
+              <p class="section-kicker">Account Setup</p>
+              <p class="section-title">Registration</p>
             </div>
 
-            <div class="form-group">
-              <label for="phone">Phone Number</label>
-              <input
-                type="text"
-                id="phone"
-                name="phone"
-                inputmode="numeric"
-                maxlength="10"
-                autocomplete="off" />
-              <small class="hint-text">Phone number must be exactly 10 digits</small>
-              <small class="error-text"></small>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+              <div class="flash {{ category }}" data-flash>
+                <div class="flash-inner">
+                  <i class="fa-solid
+                    {% if category == 'success' %}fa-circle-check
+                    {% elif category == 'error' %}fa-circle-xmark
+                    {% else %}fa-circle-info
+                    {% endif %}"></i>
+                  <span>{{ message }}</span>
+                </div>
+                <button type="button" class="flash-close" data-flash-close aria-label="Close message">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+              {% endfor %}
             </div>
-          </div>
+            {% endif %}
+            {% endwith %}
 
-          <div class="form-group full-width">
-            <label for="address">Residential Address</label>
-            <textarea id="address" name="address"></textarea>
-            <small class="error-text"></small>
-          </div>
+            <form class="register-form" id="registerForm" method="POST" action="{{ url_for('auth.register_post') }}" novalidate>
+              <div class="form-row two-col">
+                <div class="form-group">
+                  <label for="first_name">First Name</label>
+                  <div class="input-wrap">
+                    <span class="input-icon"><i class="fa-regular fa-user"></i></span>
+                    <input type="text" id="first_name" name="first_name" required />
+                  </div>
+                  <small class="error-text"></small>
+                </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="city">City</label>
-              <input type="text" id="city" name="city" />
-              <small class="error-text"></small>
-            </div>
-
-            <div class="form-group">
-              <label for="dob_month">Date of Birth</label>
-
-              <div class="dob-select-row">
-                <select id="dob_month" aria-label="Birth month">
-                  <option value="">Month</option>
-                </select>
-
-                <select id="dob_day" aria-label="Birth day">
-                  <option value="">Day</option>
-                </select>
-
-                <select id="dob_year" aria-label="Birth year">
-                  <option value="">Year</option>
-                </select>
+                <div class="form-group">
+                  <label for="last_name">Last Name</label>
+                  <div class="input-wrap">
+                    <span class="input-icon"><i class="fa-regular fa-user"></i></span>
+                    <input type="text" id="last_name" name="last_name" required />
+                  </div>
+                  <small class="error-text"></small>
+                </div>
               </div>
 
-              <input type="hidden" id="date_of_birth" name="date_of_birth" />
-              <small class="hint-text">Select month, day, and year</small>
-              <small class="error-text"></small>
-            </div>
+              <div class="form-row two-col">
+                <div class="form-group">
+                  <label for="nic">NIC Number</label>
+                  <div class="input-wrap">
+                    <span class="input-icon"><i class="fa-regular fa-id-card"></i></span>
+                    <input
+                      type="text"
+                      id="nic"
+                      name="nic"
+                      required
+                      maxlength="12"
+                      autocomplete="off" />
+                  </div>
+                  <small class="hint-text">Old: 855420159V / New: 198554200159</small>
+                  <small class="error-text"></small>
+                </div>
+
+                <div class="form-group">
+                  <label for="phone">Phone Number</label>
+                  <div class="input-wrap">
+                    <span class="input-icon"><i class="fa-solid fa-phone"></i></span>
+                    <input
+                      type="text"
+                      id="phone"
+                      name="phone"
+                      inputmode="numeric"
+                      maxlength="10"
+                      autocomplete="off" />
+                  </div>
+                  <small class="hint-text">Phone number must be exactly 10 digits</small>
+                  <small class="error-text"></small>
+                </div>
+              </div>
+
+              <div class="form-group full-width">
+                <label for="address">Residential Address</label>
+                <div class="input-wrap textarea-wrap">
+                  <span class="input-icon textarea-icon"><i class="fa-solid fa-location-dot"></i></span>
+                  <textarea id="address" name="address"></textarea>
+                </div>
+                <small class="error-text"></small>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="form-group">
+                  <label for="city">City</label>
+                  <div class="input-wrap">
+                    <span class="input-icon"><i class="fa-solid fa-city"></i></span>
+                    <input type="text" id="city" name="city" />
+                  </div>
+                  <small class="error-text"></small>
+                </div>
+
+                <div class="form-group">
+                  <label for="dob_month">Date of Birth</label>
+
+                  <div class="dob-select-row">
+                    <select id="dob_month" aria-label="Birth month">
+                      <option value="">Month</option>
+                    </select>
+
+                    <select id="dob_day" aria-label="Birth day">
+                      <option value="">Day</option>
+                    </select>
+
+                    <select id="dob_year" aria-label="Birth year">
+                      <option value="">Year</option>
+                    </select>
+                  </div>
+
+                  <input type="hidden" id="date_of_birth" name="date_of_birth" />
+                  <small class="hint-text">Select month, day, and year</small>
+                  <small class="error-text"></small>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="email">Email Address</label>
+                  <div class="input-wrap">
+                    <span class="input-icon"><i class="fa-regular fa-envelope"></i></span>
+                    <input type="email" id="email" name="email" required />
+                  </div>
+                  <small class="error-text"></small>
+                </div>
+              </div>
+
+              <div class="form-row two-col">
+                <div class="form-group">
+                  <label for="password">Password</label>
+                  <div class="input-wrap password-wrap">
+                    <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" id="password" name="password" required />
+                    <button type="button" class="password-toggle" data-target="password" aria-label="Show password">
+                      <i class="fa-regular fa-eye"></i>
+                    </button>
+                  </div>
+                  <small class="hint-text">Minimum 8 characters with uppercase, lowercase, number, and symbol</small>
+                  <small class="error-text"></small>
+                </div>
+
+                <div class="form-group">
+                  <label for="confirm_password">Confirm Password</label>
+                  <div class="input-wrap password-wrap">
+                    <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" id="confirm_password" name="confirm_password" required />
+                    <button type="button" class="password-toggle" data-target="confirm_password" aria-label="Show password">
+                      <i class="fa-regular fa-eye"></i>
+                    </button>
+                  </div>
+                  <small class="error-text"></small>
+                </div>
+              </div>
+
+              <div class="password-strength" id="passwordStrengthText">Password strength: —</div>
+
+              <div class="remember-row">
+                <label class="remember-me">
+                  <input type="checkbox" />
+                  <span>Remember me</span>
+                </label>
+              </div>
+
+              <button type="submit" class="register-btn" id="registerSubmitBtn">
+                <span class="btn-text">Register</span>
+              </button>
+
+              <p class="login-text">
+                Already have an account?
+                <a href="{{ url_for('auth.login') }}">Login here</a>
+              </p>
+
+              <a href="{{ url_for('auth.login') }}" class="back-btn">Back</a>
+            </form>
           </div>
+        </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="email">Email Address</label>
-              <input type="email" id="email" name="email" required />
-              <small class="error-text"></small>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="password">Password</label>
-              <input type="password" id="password" name="password" required />
-              <small class="hint-text">Minimum 8 characters with uppercase, lowercase, number, and symbol</small>
-              <small class="error-text"></small>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="confirm_password">Confirm Password</label>
-              <input type="password" id="confirm_password" name="confirm_password" required />
-              <small class="error-text"></small>
-            </div>
-          </div>
-
-          <div class="remember-row">
-            <label class="remember-me">
-              <input type="checkbox" />
-              <span>Remember me</span>
-            </label>
-          </div>
-
-          <button type="submit" class="register-btn">Register</button>
-
-          <p class="login-text">
-            Already have an account?
-            <a href="{{ url_for('auth.login') }}">Login here</a>
-          </p>
-
-          <a href="{{ url_for('auth.login') }}" class="back-btn">Back</a>
-        </form>
       </div>
     </div>
   </div>
