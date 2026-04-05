@@ -142,7 +142,7 @@
                         <div class="panel-header">
                             <h2>My Property Records</h2>
                             {% if gis_map_url %}
-                            <a href="{{ gis_map_url }}" target="_blank">Open the latest predicted city location</a>
+                            <a href="{{ gis_map_url }}" target="_blank">Open records</a>
                             {% else %}
                             <a href="{{ url_for('user.account') }}">Update profile</a>
                             {% endif %}
@@ -286,12 +286,26 @@
                         <div class="panel-header">
                             <h2>GIS Map Preview</h2>
                             {% if gis_map_url %}
-                            <a href="/support-documents" target="_blank">Expand</a>
+                            <a href="{{ gis_map_url }}" target="_blank">Expand</a>
                             {% else %}
                             <a href="{{ url_for('user.account') }}">Add location</a>
                             {% endif %}
                         </div>
 
+                        {% if gis_map_url %}
+                        <a href="{{ gis_map_url }}" target="_blank" class="map-placeholder map-link">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <h3>Land Parcel Map</h3>
+                            <p>Open real map location in Google Maps</p>
+                        </a>
+                        {% else %}
+                        <div class="map-placeholder">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <h3>No map location yet</h3>
+                            <p>Add a property location or address to enable map preview.</p>
+                        </div>
+                        {% endif %}
+                    </div>
 
                     <div class="panel">
                         <div class="panel-header">
@@ -356,6 +370,8 @@
     <script>
         const chatbotButton = document.getElementById("chatbotButton");
         const chatbotBox = document.getElementById("chatbotBox");
+        const chatInput = document.getElementById("chatInput");
+
         let isDragging = false;
         let hasMoved = false;
         let dragOffsetX = 0;
@@ -400,7 +416,7 @@
 
             chatbotBox.style.display = "flex";
             positionChatBox();
-            document.getElementById("chatInput").focus();
+            chatInput.focus();
         }
 
         function startDrag(clientX, clientY) {
@@ -436,6 +452,34 @@
             if (!isDragging) return;
             chatbotButton.classList.remove("dragging");
             isDragging = false;
+        }
+
+        function saveDashboardScroll() {
+            sessionStorage.setItem("dashboardScrollY", String(window.scrollY));
+        }
+
+        function restoreDashboardScroll() {
+            const savedY = sessionStorage.getItem("dashboardScrollY");
+            if (savedY !== null) {
+                window.scrollTo(0, parseInt(savedY, 10) || 0);
+            }
+        }
+
+        function shouldRefreshOnReturn() {
+            if (chatbotBox.style.display === "flex") return false;
+            if (document.activeElement === chatInput) return false;
+            return true;
+        }
+
+        function refreshDashboardOnReturn() {
+            if (!shouldRefreshOnReturn()) return;
+
+            const alreadyRefreshed = sessionStorage.getItem("dashboardReturnRefreshDone");
+            if (alreadyRefreshed === "1") return;
+
+            sessionStorage.setItem("dashboardReturnRefreshDone", "1");
+            saveDashboardScroll();
+            window.location.reload();
         }
 
         chatbotButton.addEventListener("mousedown", function (e) {
@@ -480,6 +524,30 @@
             }
         });
 
+        window.addEventListener("beforeunload", function () {
+            saveDashboardScroll();
+            sessionStorage.removeItem("dashboardReturnRefreshDone");
+        });
+
+        window.addEventListener("pageshow", function (event) {
+            restoreDashboardScroll();
+
+            if (event.persisted) {
+                refreshDashboardOnReturn();
+            }
+        });
+
+        document.addEventListener("visibilitychange", function () {
+            if (!document.hidden) {
+                refreshDashboardOnReturn();
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            restoreDashboardScroll();
+            sessionStorage.removeItem("dashboardReturnRefreshDone");
+        });
+
         async function sendMessage() {
             const input = document.getElementById("chatInput");
             const messages = document.getElementById("chatMessages");
@@ -509,7 +577,7 @@
             }
         }
 
-        document.getElementById("chatInput").addEventListener("keypress", function (e) {
+        chatInput.addEventListener("keypress", function (e) {
             if (e.key === "Enter") {
                 sendMessage();
             }
