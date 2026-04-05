@@ -182,6 +182,12 @@ a {
     padding: 24px 20px;
     min-height: 180px;
     box-shadow: 0 12px 24px rgba(18, 63, 130, 0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 28px rgba(18, 63, 130, 0.22);
 }
 
 .action-card i {
@@ -197,6 +203,7 @@ a {
 .action-card p {
     color: #e6efff;
     font-size: 0.95rem;
+    line-height: 1.5;
 }
 
 /* CONTENT GRID */
@@ -241,6 +248,10 @@ a {
     font-size: 0.92rem;
 }
 
+.panel-header a:hover {
+    text-decoration: underline;
+}
+
 /* ALERTS */
 .alert-list {
     display: flex;
@@ -250,7 +261,7 @@ a {
 
 .alert-item {
     border-radius: 14px;
-    padding: 16px 16px;
+    padding: 16px;
     display: flex;
     justify-content: space-between;
     gap: 18px;
@@ -265,6 +276,7 @@ a {
 .alert-item p {
     color: var(--theme-muted);
     font-size: 0.94rem;
+    line-height: 1.5;
 }
 
 .alert-item span {
@@ -310,6 +322,12 @@ tbody td {
     font-size: 0.94rem;
 }
 
+.empty-cell {
+    text-align: center;
+    color: var(--theme-muted);
+    padding: 18px 12px;
+}
+
 .badge {
     display: inline-block;
     padding: 6px 10px;
@@ -331,6 +349,11 @@ tbody td {
 .badge.review {
     background: #e9f2ff;
     color: #1d5eb8;
+}
+
+.badge.neutral {
+    background: #edf0f5;
+    color: #5f6b7a;
 }
 
 /* PROFILE */
@@ -386,6 +409,7 @@ tbody td {
 .valuation-card p {
     color: #dbe8ff;
     margin-bottom: 18px;
+    line-height: 1.5;
 }
 
 .mini-stats {
@@ -439,6 +463,17 @@ tbody td {
 
 .map-placeholder p {
     color: #dce9ff;
+    line-height: 1.5;
+}
+
+.map-link {
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.map-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 26px rgba(18, 63, 130, 0.18);
 }
 
 /* DOC LIST */
@@ -450,14 +485,34 @@ tbody td {
 }
 
 .doc-list li {
-    padding: 13px 14px;
     background: var(--theme-soft);
     border-radius: 12px;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.doc-list li:hover {
+    background: #e6eef9;
+    transform: translateY(-1px);
+}
+
+.doc-link {
+    padding: 13px 14px;
     color: var(--theme-blue-dark);
     font-weight: 600;
     display: flex;
     align-items: center;
     gap: 10px;
+    width: 100%;
+    text-decoration: none;
+}
+
+.doc-link i {
+    width: 18px;
+    text-align: center;
+}
+
+.doc-link:hover {
+    color: var(--theme-blue);
 }
 
 /* CHATBOT */

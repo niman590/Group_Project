@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from database.db_connection import get_connection
+from urllib.parse import quote_plus
 
 user_bp = Blueprint("user", __name__)
 
@@ -36,6 +37,336 @@ def sync_session_user(user):
     session["is_admin"] = user["is_admin"]
 
 
+def safe_date(value):
+    if not value:
+        return "N/A"
+
+    value = str(value)
+    if " " in value:
+        return value.split(" ")[0]
+    return value
+
+
+def status_to_badge(status):
+    s = (status or "").strip().lower()
+
+    if s in ["approved", "completed", "verified"]:
+        return "ok"
+
+    if s in ["draft", "submitted", "pending", "pending review", "under review", "in review"]:
+        return "review"
+
+    if s in ["need documents", "needs documents", "revision requested", "rejected"]:
+        return "pending"
+
+    return "neutral"
+
+
+def build_application_alerts(applications):
+    alerts = []
+
+    for app in applications:
+        status = (app["status"] or "").strip().lower()
+        reference = f"CP-APP-{app['application_id']:04d}"
+        activity_date = safe_date(app["updated_at"] or app["created_at"])
+
+        if status in ["need documents", "needs documents", "revision requested"]:
+            alerts.append({
+                "type": "warning",
+                "title": "Additional document requested",
+                "message": f"Your planning file {reference} requires additional or revised documents.",
+                "time": activity_date,
+            })
+        elif status in ["submitted", "pending", "pending review", "under review", "in review"]:
+            alerts.append({
+                "type": "info",
+                "title": "Application under review",
+                "message": f"Case {reference} is currently being reviewed.",
+                "time": activity_date,
+            })
+        elif status in ["approved", "verified", "completed"]:
+            alerts.append({
+                "type": "success",
+                "title": "Application approved",
+                "message": f"Case {reference} has been approved successfully.",
+                "time": activity_date,
+            })
+
+    return alerts[:5]
+
+
+def get_dashboard_data(user_id, user):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # -----------------------------
+    # Applications
+    # -----------------------------
+    cursor.execute(
+        """
+        SELECT
+            application_id,
+            status,
+            current_step,
+            created_at,
+            updated_at,
+            admin_comment,
+            decision_pdf_path
+        FROM planning_applications
+        WHERE user_id = ?
+        ORDER BY application_id DESC
+        """,
+        (user_id,),
+    )
+    applications = cursor.fetchall()
+
+    application_history = []
+    total_applications = 0
+    approved_cases = 0
+    pending_reviews = 0
+
+    for app in applications:
+        total_applications += 1
+        status = (app["status"] or "").strip().lower()
+
+        if status in ["approved", "verified", "completed"]:
+            approved_cases += 1
+
+        if status in [
+            "submitted",
+            "pending",
+            "pending review",
+            "under review",
+            "in review",
+            "need documents",
+            "needs documents",
+        ]:
+            pending_reviews += 1
+
+        application_history.append({
+            "case_id": f"CP-APP-{app['application_id']:04d}",
+            "type": "Planning Application",
+            "submitted": safe_date(app["updated_at"] or app["created_at"]),
+            "status": app["status"] or "Draft",
+            "badge": status_to_badge(app["status"]),
+        })
+
+    application_history = application_history[:5]
+
+    # -----------------------------
+    # Property records
+    # -----------------------------
+    property_records = []
+    map_query = None
+
+    try:
+        cursor.execute(
+            """
+            SELECT
+                property_id,
+                property_address,
+                current_value,
+                property_size,
+                created_at
+            FROM property
+            WHERE owner_id = ?
+            ORDER BY property_id DESC
+            """,
+            (user_id,),
+        )
+        properties = cursor.fetchall()
+
+        for prop in properties:
+            current_value = prop["current_value"] if prop["current_value"] is not None else 0
+            status_text = "Valued" if float(current_value or 0) > 0 else "Registered"
+            record_location = prop["property_address"] or "N/A"
+
+            property_records.append({
+                "land_id": f"LR-{prop['property_id']}",
+                "location": record_location,
+                "status": status_text,
+                "owner_since": safe_date(prop["created_at"]),
+                "badge": status_to_badge("verified" if float(current_value or 0) > 0 else "pending"),
+            })
+
+        if property_records:
+            map_query = property_records[0]["location"]
+    except Exception:
+        property_records = []
+
+    # fallback map source from user profile
+    if not map_query:
+        if user["address"]:
+            map_query = user["address"]
+        elif user["city"]:
+            map_query = user["city"]
+
+    # -----------------------------
+    # Alerts from applications
+    # -----------------------------
+    alerts = build_application_alerts(applications)
+
+    # -----------------------------
+    # Extra alerts from transaction history update requests
+    # Use safe column names that exist in your schema
+    # -----------------------------
+    try:
+        cursor.execute(
+            """
+            SELECT *
+            FROM transaction_history_update_request
+            WHERE user_id = ?
+            ORDER BY request_id DESC
+            LIMIT 3
+            """,
+            (user_id,),
+        )
+        update_requests = cursor.fetchall()
+
+        for req in update_requests:
+            req_status = ""
+            req_time = "N/A"
+
+            if "status" in req.keys():
+                req_status = (req["status"] or "").strip().lower()
+
+            if "submitted_at" in req.keys():
+                req_time = safe_date(req["submitted_at"])
+            elif "created_at" in req.keys():
+                req_time = safe_date(req["created_at"])
+
+            if req_status in ["pending", "under review", "submitted"]:
+                alerts.append({
+                    "type": "info",
+                    "title": "Transaction update request pending",
+                    "message": f"Your transaction history update request #{req['request_id']} is being processed.",
+                    "time": req_time,
+                })
+            elif req_status in ["approved", "completed"]:
+                alerts.append({
+                    "type": "success",
+                    "title": "Transaction update request approved",
+                    "message": f"Your transaction history update request #{req['request_id']} was approved.",
+                    "time": req_time,
+                })
+    except Exception:
+        pass
+
+    alerts = alerts[:5]
+    alerts_count = len(alerts)
+
+    # -----------------------------
+    # Latest land valuation
+    # -----------------------------
+    latest_valuation = None
+    try:
+        cursor.execute(
+            """
+            SELECT
+                vp.prediction_id,
+                vp.predicted_value,
+                vp.prediction_date,
+                p.property_id,
+                p.property_address
+            FROM value_prediction vp
+            INNER JOIN property p ON p.property_id = vp.property_id
+            WHERE p.owner_id = ?
+            ORDER BY vp.prediction_date DESC, vp.prediction_id DESC
+            LIMIT 1
+            """,
+            (user_id,),
+        )
+        valuation_row = cursor.fetchone()
+
+        if valuation_row:
+            current_value = float(valuation_row["predicted_value"] or 0)
+            future_estimate = round(current_value * 1.08, 2)
+
+            latest_valuation = {
+                "property_label": valuation_row["property_address"] or f"LR-{valuation_row['property_id']}",
+                "current_value": f"{current_value:,.0f}",
+                "future_estimate": f"{future_estimate:,.0f}",
+                "trend": "+8.0%",
+                "prediction_date": safe_date(valuation_row["prediction_date"]),
+            }
+        else:
+            # fallback to property.current_value if there is no saved prediction row
+            cursor.execute(
+                """
+                SELECT
+                    property_id,
+                    property_address,
+                    current_value,
+                    created_at
+                FROM property
+                WHERE owner_id = ? AND current_value IS NOT NULL
+                ORDER BY property_id DESC
+                LIMIT 1
+                """,
+                (user_id,),
+            )
+            property_value_row = cursor.fetchone()
+
+            if property_value_row and property_value_row["current_value"] is not None:
+                current_value = float(property_value_row["current_value"] or 0)
+                future_estimate = round(current_value * 1.08, 2)
+
+                latest_valuation = {
+                    "property_label": property_value_row["property_address"] or f"LR-{property_value_row['property_id']}",
+                    "current_value": f"{current_value:,.0f}",
+                    "future_estimate": f"{future_estimate:,.0f}",
+                    "trend": "+8.0%",
+                    "prediction_date": safe_date(property_value_row["created_at"]),
+                }
+    except Exception:
+        latest_valuation = None
+
+    # -----------------------------
+    # GIS map preview
+    # -----------------------------
+    gis_map_url = f"https://www.google.com/maps/search/{quote_plus(map_query)}" if map_query else None
+
+    # -----------------------------
+    # Support documents shortcuts
+    # -----------------------------
+    support_documents = [
+        {
+            "title": "Planning Approval Guidelines",
+            "icon": "fa-file-pdf",
+            "url": "/support_documents",
+        },
+        {
+            "title": "Required Documents Checklist",
+            "icon": "fa-file-lines",
+            "url": "/support_documents",
+        },
+        {
+            "title": "Gazettes and Rules",
+            "icon": "fa-book-open",
+            "url": "/support_documents",
+        },
+    ]
+
+    conn.close()
+
+    stats = {
+        "total_applications": total_applications,
+        "approved_cases": approved_cases,
+        "pending_reviews": pending_reviews,
+        "alerts_count": alerts_count,
+    }
+
+    return {
+        "stats": stats,
+        "alerts": alerts,
+        "property_records": property_records[:5],
+        "application_history": application_history,
+        "latest_valuation": latest_valuation,
+        "gis_map_url": gis_map_url,
+        "support_documents": support_documents,
+    }
+
+
 @user_bp.route("/user_dashboard")
 def user_dashboard():
     if "user_id" not in session:
@@ -49,7 +380,20 @@ def user_dashboard():
         flash("User not found. Please sign in again.", "error")
         return redirect(url_for("auth.login"))
 
-    return render_template("user_dashboard.html", user=user, active_page="dashboard")
+    dashboard_data = get_dashboard_data(session["user_id"], user)
+
+    return render_template(
+        "user_dashboard.html",
+        user=user,
+        active_page="dashboard",
+        stats=dashboard_data["stats"],
+        alerts=dashboard_data["alerts"],
+        property_records=dashboard_data["property_records"],
+        application_history=dashboard_data["application_history"],
+        latest_valuation=dashboard_data["latest_valuation"],
+        gis_map_url=dashboard_data["gis_map_url"],
+        support_documents=dashboard_data["support_documents"],
+    )
 
 
 @user_bp.route("/account", methods=["GET", "POST"])

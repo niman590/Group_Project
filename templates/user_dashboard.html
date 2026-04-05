@@ -24,8 +24,12 @@
                 </div>
 
                 <div class="topbar-actions">
-                    <button class="icon-btn"><i class="fa-solid fa-bell"></i></button>
-                    <button class="icon-btn"><i class="fa-solid fa-gear"></i></button>
+                    <button class="icon-btn" type="button" aria-label="Notifications">
+                        <i class="fa-solid fa-bell"></i>
+                    </button>
+                    <button class="icon-btn" type="button" aria-label="Settings">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
 
                     <div class="user-chip">
                         <div class="avatar">
@@ -46,7 +50,7 @@
                 <div class="stat-card">
                     <div class="stat-icon blue"><i class="fa-solid fa-file-circle-check"></i></div>
                     <div>
-                        <h3>04</h3>
+                        <h3>{{ stats.total_applications }}</h3>
                         <p>Total Applications</p>
                     </div>
                 </div>
@@ -54,7 +58,7 @@
                 <div class="stat-card">
                     <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
                     <div>
-                        <h3>02</h3>
+                        <h3>{{ stats.approved_cases }}</h3>
                         <p>Approved Cases</p>
                     </div>
                 </div>
@@ -62,7 +66,7 @@
                 <div class="stat-card">
                     <div class="stat-icon orange"><i class="fa-solid fa-hourglass-half"></i></div>
                     <div>
-                        <h3>02</h3>
+                        <h3>{{ stats.pending_reviews }}</h3>
                         <p>Pending Reviews</p>
                     </div>
                 </div>
@@ -70,7 +74,7 @@
                 <div class="stat-card">
                     <div class="stat-icon red"><i class="fa-solid fa-bell"></i></div>
                     <div>
-                        <h3>03</h3>
+                        <h3>{{ stats.alerts_count }}</h3>
                         <p>Alerts & Notifications</p>
                     </div>
                 </div>
@@ -103,46 +107,45 @@
             </section>
 
             <section class="content-grid">
-
                 <div class="left-column">
 
                     <div class="panel">
                         <div class="panel-header">
                             <h2>Pending Requests & Alerts</h2>
-                            <a href="#">View all</a>
+                            <a href="{{ url_for('submit_documents.my_applications') }}">View all</a>
                         </div>
 
                         <div class="alert-list">
-                            <div class="alert-item warning">
+                            {% if alerts %}
+                            {% for alert in alerts %}
+                            <div class="alert-item {{ alert.type }}">
                                 <div>
-                                    <h4>Additional document requested</h4>
-                                    <p>Your planning file CP-PLN-2026-014 requires a revised site plan.</p>
+                                    <h4>{{ alert.title }}</h4>
+                                    <p>{{ alert.message }}</p>
                                 </div>
-                                <span>Today</span>
+                                <span>{{ alert.time }}</span>
                             </div>
-
+                            {% endfor %}
+                            {% else %}
                             <div class="alert-item info">
                                 <div>
-                                    <h4>Application under review</h4>
-                                    <p>Case CP-PLN-2026-012 is currently being reviewed by the planning officer.</p>
+                                    <h4>No alerts right now</h4>
+                                    <p>You do not have any active application or property alerts yet.</p>
                                 </div>
-                                <span>1 day ago</span>
+                                <span>—</span>
                             </div>
-
-                            <div class="alert-item success">
-                                <div>
-                                    <h4>Property record verified</h4>
-                                    <p>Land record LR-9082 has been verified successfully.</p>
-                                </div>
-                                <span>3 days ago</span>
-                            </div>
+                            {% endif %}
                         </div>
                     </div>
 
                     <div class="panel">
                         <div class="panel-header">
                             <h2>My Property Records</h2>
-                            <a href="#">Open records</a>
+                            {% if gis_map_url %}
+                            <a href="{{ gis_map_url }}" target="_blank">Open records</a>
+                            {% else %}
+                            <a href="{{ url_for('user.account') }}">Update profile</a>
+                            {% endif %}
                         </div>
 
                         <div class="table-wrap">
@@ -156,18 +159,21 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    {% if property_records %}
+                                    {% for record in property_records %}
                                     <tr>
-                                        <td>LR-9082</td>
-                                        <td>Maharagama</td>
-                                        <td><span class="badge ok">Verified</span></td>
-                                        <td>2019</td>
+                                        <td>{{ record.land_id }}</td>
+                                        <td>{{ record.location }}</td>
+                                        <td><span class="badge {{ record.badge }}">{{ record.status }}</span></td>
+                                        <td>{{ record.owner_since }}</td>
                                     </tr>
+                                    {% endfor %}
+                                    {% else %}
                                     <tr>
-                                        <td>LR-7741</td>
-                                        <td>Kaduwela</td>
-                                        <td><span class="badge pending">Pending Update</span></td>
-                                        <td>2021</td>
+                                        <td colspan="4" class="empty-cell">No real property records found for this
+                                            account yet.</td>
                                     </tr>
+                                    {% endif %}
                                 </tbody>
                             </table>
                         </div>
@@ -190,24 +196,20 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    {% if application_history %}
+                                    {% for app in application_history %}
                                     <tr>
-                                        <td>CP-PLN-2026-014</td>
-                                        <td>Planning Approval</td>
-                                        <td>2026-03-20</td>
-                                        <td><span class="badge pending">Need Documents</span></td>
+                                        <td>{{ app.case_id }}</td>
+                                        <td>{{ app.type }}</td>
+                                        <td>{{ app.submitted }}</td>
+                                        <td><span class="badge {{ app.badge }}">{{ app.status }}</span></td>
                                     </tr>
+                                    {% endfor %}
+                                    {% else %}
                                     <tr>
-                                        <td>CP-PLN-2026-012</td>
-                                        <td>Building Permit</td>
-                                        <td>2026-03-12</td>
-                                        <td><span class="badge review">Under Review</span></td>
+                                        <td colspan="4" class="empty-cell">No real applications found yet.</td>
                                     </tr>
-                                    <tr>
-                                        <td>CP-PLN-2026-007</td>
-                                        <td>Land Clearance</td>
-                                        <td>2026-02-26</td>
-                                        <td><span class="badge ok">Approved</span></td>
-                                    </tr>
+                                    {% endif %}
                                 </tbody>
                             </table>
                         </div>
@@ -232,9 +234,9 @@
                                     {{ user['first_name'] if user and user['first_name'] else 'Citizen' }}
                                     {{ user['last_name'] if user and user['last_name'] else 'User' }}
                                 </h3>
-                                <p>Email: {{ user['email'] if user and user['email'] else 'akash@example.com' }}</p>
-                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else '+94 71 234 5678' }}</p>
-                                <p>Address: {{ user['address'] if user and user['address'] else 'Colombo, Sri Lanka' }}</p>
+                                <p>Email: {{ user['email'] if user and user['email'] else 'N/A' }}</p>
+                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else 'N/A' }}</p>
+                                <p>Address: {{ user['address'] if user and user['address'] else 'N/A' }}</p>
                             </div>
                         </div>
                     </div>
@@ -246,46 +248,90 @@
                         </div>
 
                         <div class="valuation-card">
+                            {% if latest_valuation %}
                             <h3>Estimated Current Value</h3>
-                            <div class="value-number">LKR 8.4M</div>
-                            <p>Property: LR-9082</p>
+                            <div class="value-number">LKR {{ latest_valuation.current_value }}</div>
+                            <p>Property: {{ latest_valuation.property_label }}</p>
 
                             <div class="mini-stats">
                                 <div>
                                     <span>Future Estimate</span>
-                                    <strong>LKR 9.1M</strong>
+                                    <strong>LKR {{ latest_valuation.future_estimate }}</strong>
                                 </div>
                                 <div>
                                     <span>Trend</span>
-                                    <strong>+8.3%</strong>
+                                    <strong>{{ latest_valuation.trend }}</strong>
                                 </div>
                             </div>
+                            {% else %}
+                            <h3>No valuation data yet</h3>
+                            <div class="value-number">LKR 0</div>
+                            <p>Run a land valuation to see real saved results here.</p>
+
+                            <div class="mini-stats">
+                                <div>
+                                    <span>Future Estimate</span>
+                                    <strong>—</strong>
+                                </div>
+                                <div>
+                                    <span>Trend</span>
+                                    <strong>—</strong>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
 
                     <div class="panel">
                         <div class="panel-header">
                             <h2>GIS Map Preview</h2>
-                            <a href="#">Expand</a>
+                            {% if gis_map_url %}
+                            <a href="{{ gis_map_url }}" target="_blank">Expand</a>
+                            {% else %}
+                            <a href="{{ url_for('user.account') }}">Add location</a>
+                            {% endif %}
                         </div>
 
-                        <div class="map-placeholder">
+                        {% if gis_map_url %}
+                        <a href="{{ gis_map_url }}" target="_blank" class="map-placeholder map-link">
                             <i class="fa-solid fa-map-location-dot"></i>
                             <h3>Land Parcel Map</h3>
-                            <p>OpenStreetMap / Google Maps integration area</p>
+                            <p>Open real map location in Google Maps</p>
+                        </a>
+                        {% else %}
+                        <div class="map-placeholder">
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <h3>No map location yet</h3>
+                            <p>Add a property location or address to enable map preview.</p>
                         </div>
+                        {% endif %}
                     </div>
 
                     <div class="panel">
                         <div class="panel-header">
                             <h2>Support Documents</h2>
-                            <a href="#">All files</a>
+                            <a href="/support-documents">All files</a>
                         </div>
 
                         <ul class="doc-list">
-                            <li><i class="fa-solid fa-file-pdf"></i> Planning Approval Guidelines</li>
-                            <li><i class="fa-solid fa-file-lines"></i> Required Documents Checklist</li>
-                            <li><i class="fa-solid fa-book-open"></i> Gazettes and Rules</li>
+                            <li>
+                                <a href="/support-documents" class="doc-link">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                    <span>Planning Approval Guidelines</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/support-documents" class="doc-link">
+                                    <i class="fa-solid fa-file-lines"></i>
+                                    <span>Required Documents Checklist</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/support-documents" class="doc-link">
+                                    <i class="fa-solid fa-book-open"></i>
+                                    <span>Gazettes and Rules</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
 
@@ -310,7 +356,8 @@
 
         <div class="chatbot-messages" id="chatMessages">
             <div class="bot-msg">
-                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site navigation.
+                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site
+                navigation.
             </div>
         </div>
 
