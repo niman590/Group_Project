@@ -50,13 +50,13 @@ def safe_date(value):
 def status_to_badge(status):
     s = (status or "").strip().lower()
 
-    if s in ["approved", "completed", "verified"]:
+    if s in ["approved", "completed", "verified", "valued"]:
         return "ok"
 
     if s in ["draft", "submitted", "pending", "pending review", "under review", "in review"]:
         return "review"
 
-    if s in ["need documents", "needs documents", "revision requested", "rejected"]:
+    if s in ["need documents", "needs documents", "revision requested", "rejected", "registered"]:
         return "pending"
 
     return "neutral"
@@ -177,8 +177,8 @@ def get_dashboard_data(user_id, user):
         properties = cursor.fetchall()
 
         for prop in properties:
-            current_value = prop["current_value"] if prop["current_value"] is not None else 0
-            status_text = "Valued" if float(current_value or 0) > 0 else "Registered"
+            current_value = float(prop["current_value"] or 0)
+            status_text = "Valued" if current_value > 0 else "Registered"
             record_location = prop["property_address"] or "N/A"
 
             property_records.append({
@@ -186,15 +186,15 @@ def get_dashboard_data(user_id, user):
                 "location": record_location,
                 "status": status_text,
                 "owner_since": safe_date(prop["created_at"]),
-                "badge": status_to_badge("verified" if float(current_value or 0) > 0 else "pending"),
+                "badge": status_to_badge(status_text),
             })
 
         if property_records:
             map_query = property_records[0]["location"]
+
     except Exception:
         property_records = []
 
-    # fallback map source from user profile
     if not map_query:
         if user["address"]:
             map_query = user["address"]
@@ -202,14 +202,10 @@ def get_dashboard_data(user_id, user):
             map_query = user["city"]
 
     # -----------------------------
-    # Alerts from applications
+    # Alerts
     # -----------------------------
     alerts = build_application_alerts(applications)
 
-    # -----------------------------
-    # Extra alerts from transaction history update requests
-    # Use safe column names that exist in your schema
-    # -----------------------------
     try:
         cursor.execute(
             """
@@ -290,7 +286,6 @@ def get_dashboard_data(user_id, user):
                 "prediction_date": safe_date(valuation_row["prediction_date"]),
             }
         else:
-            # fallback to property.current_value if there is no saved prediction row
             cursor.execute(
                 """
                 SELECT
@@ -333,17 +328,17 @@ def get_dashboard_data(user_id, user):
         {
             "title": "Planning Approval Guidelines",
             "icon": "fa-file-pdf",
-            "url": "/support_documents",
+            "url": "/support-documents",
         },
         {
             "title": "Required Documents Checklist",
             "icon": "fa-file-lines",
-            "url": "/support_documents",
+            "url": "/support-documents",
         },
         {
             "title": "Gazettes and Rules",
             "icon": "fa-book-open",
-            "url": "/support_documents",
+            "url": "/support-documents",
         },
     ]
 

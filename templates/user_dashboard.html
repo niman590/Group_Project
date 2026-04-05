@@ -286,26 +286,12 @@
                         <div class="panel-header">
                             <h2>GIS Map Preview</h2>
                             {% if gis_map_url %}
-                            <a href="{{ gis_map_url }}" target="_blank">Expand</a>
+                            <a href="/support-documents" target="_blank">Expand</a>
                             {% else %}
                             <a href="{{ url_for('user.account') }}">Add location</a>
                             {% endif %}
                         </div>
 
-                        {% if gis_map_url %}
-                        <a href="{{ gis_map_url }}" target="_blank" class="map-placeholder map-link">
-                            <i class="fa-solid fa-map-location-dot"></i>
-                            <h3>Land Parcel Map</h3>
-                            <p>Open real map location in Google Maps</p>
-                        </a>
-                        {% else %}
-                        <div class="map-placeholder">
-                            <i class="fa-solid fa-map-location-dot"></i>
-                            <h3>No map location yet</h3>
-                            <p>Add a property location or address to enable map preview.</p>
-                        </div>
-                        {% endif %}
-                    </div>
 
                     <div class="panel">
                         <div class="panel-header">
