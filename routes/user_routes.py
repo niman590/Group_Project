@@ -328,17 +328,17 @@ def get_dashboard_data(user_id, user):
         {
             "title": "Planning Approval Guidelines",
             "icon": "fa-file-pdf",
-            "url": "/support-documents",
+            "url": "/support-documents/planning-approval-guidelines/view",
         },
         {
             "title": "Required Documents Checklist",
             "icon": "fa-file-lines",
-            "url": "/support-documents",
+            "url": "/support-documents/required-documents-checklist/view",
         },
         {
             "title": "Gazettes and Rules",
             "icon": "fa-book-open",
-            "url": "/support-documents",
+            "url": "/support-documents/gazettes-and-rules/view",
         },
     ]
 

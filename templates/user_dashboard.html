@@ -282,8 +282,6 @@
                         </div>
                     </div>
 
-
-
                     <div class="panel">
                         <div class="panel-header">
                             <h2>Support Documents</h2>
@@ -291,24 +289,14 @@
                         </div>
 
                         <ul class="doc-list">
+                            {% for doc in support_documents %}
                             <li>
-                                <a href="/support-documents" class="doc-link">
-                                    <i class="fa-solid fa-file-pdf"></i>
-                                    <span>Planning Approval Guidelines</span>
+                                <a href="{{ doc.url }}" class="doc-link" target="_blank">
+                                    <i class="fa-solid {{ doc.icon }}"></i>
+                                    <span>{{ doc.title }}</span>
                                 </a>
                             </li>
-                            <li>
-                                <a href="/support-documents" class="doc-link">
-                                    <i class="fa-solid fa-file-lines"></i>
-                                    <span>Required Documents Checklist</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/support-documents" class="doc-link">
-                                    <i class="fa-solid fa-book-open"></i>
-                                    <span>Gazettes and Rules</span>
-                                </a>
-                            </li>
+                            {% endfor %}
                         </ul>
                     </div>
 
