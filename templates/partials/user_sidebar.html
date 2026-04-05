@@ -1,44 +1,76 @@
-<aside class="sidebar">
-    <div class="sidebar-brand">
-        <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo" />
-        <div>
-            <h2>CIVIC PLAN</h2>
-            <p>Citizen Portal</p>
+<aside class="sidebar" id="userSidebar">
+    <div class="sidebar-top">
+        <div class="sidebar-brand-wrap">
+            <a href="{{ url_for('user.user_dashboard') }}" class="sidebar-brand">
+                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo" />
+                <div class="brand-text">
+                    <h2>CIVIC PLAN</h2>
+                    <p>Citizen Portal</p>
+                </div>
+            </a>
+
+            <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+            </button>
         </div>
+
+        <div class="sidebar-section-title">Main Menu</div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('user.user_dashboard') }}" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-table-columns"></i></span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('user.account') }}" class="nav-link {% if active_page == 'account' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-user"></i></span>
+                <span class="nav-text">My Profile</span>
+            </a>
+
+            <a href="{{ url_for('submit_documents.submit_documents') }}" class="nav-link {% if active_page == 'submit_documents' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-file-arrow-up"></i></span>
+                <span class="nav-text">Submit Documents</span>
+            </a>
+
+            <a href="{{ url_for('submit_documents.my_applications') }}" class="nav-link {% if active_page == 'my_applications' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-folder-open"></i></span>
+                <span class="nav-text">My Applications</span>
+            </a>
+
+            <a href="{{ url_for('transaction_history.transaction_history_page') }}" class="nav-link {% if active_page == 'transaction_history' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                <span class="nav-text">Transaction History</span>
+            </a>
+
+            <a href="{{ url_for('prediction.land_valuation_page') }}" class="nav-link {% if active_page == 'land_valuation' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span>
+                <span class="nav-text">Land Valuation</span>
+            </a>
+
+            <a href="{{ url_for('support_documents.support_documents_page') }}" class="nav-link {% if active_page == 'support_documents' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-book"></i></span>
+                <span class="nav-text">Support Documents</span>
+            </a>
+
+            <a href="#" class="nav-link {% if active_page == 'notifications' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-bell"></i></span>
+                <span class="nav-text">Notifications</span>
+            </a>
+        </nav>
     </div>
 
-    <nav class="sidebar-nav">
-        <a href="{{ url_for('user.user_dashboard') }}" class="{% if active_page == 'dashboard' %}active{% endif %}">
-            <i class="fa-solid fa-table-columns"></i> Dashboard
+    <div class="sidebar-footer">
+        <a href="{{ url_for('auth.logout') }}" class="nav-link logout-link">
+            <span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
+            <span class="nav-text">Logout</span>
         </a>
-        <a href="{{ url_for('user.account') }}" class="{% if active_page == 'account' %}active{% endif %}">
-            <i class="fa-solid fa-user"></i> My Profile
-        </a>
-        <a href="{{ url_for('submit_documents.submit_documents') }}"
-            class="{% if active_page == 'submit_documents' %}active{% endif %}">
-            <i class="fa-solid fa-file-arrow-up"></i> Submit Documents
-        </a>
-        <a href="{{ url_for('submit_documents.my_applications') }}" class="{% if active_page == 'my_applications' %}active{% endif %}">
-            <i class="fa-solid fa-folder-open"></i> My Applications
-        </a>
-
-        <a href="{{ url_for('transaction_history.transaction_history_page') }}"
-            class="{% if active_page == 'transaction_history' %}active{% endif %}">
-            <i class="fa-solid fa-clock-rotate-left"></i> Transaction History
-        </a>
-        <a href="{{ url_for('prediction.land_valuation_page') }}"
-            class="{% if active_page == 'land_valuation' %}active{% endif %}">
-            <i class="fa-solid fa-chart-line"></i> Land Valuation
-        </a>
-        <a href="{{ url_for('support_documents.support_documents_page') }}"
-            class="{% if active_page == 'support_documents' %}active{% endif %}">
-            <i class="fa-solid fa-book"></i> Support Documents
-        </a>
-        <a href="#" class="{% if active_page == 'notifications' %}active{% endif %}">
-            <i class="fa-solid fa-bell"></i> Notifications
-        </a>
-        <a href="{{ url_for('auth.logout') }}">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
-        </a>
-    </nav>
+    </div>
 </aside>
+
+<button type="button" class="mobile-sidebar-toggle" id="mobileSidebarToggle" aria-label="Open sidebar">
+    <i class="fa-solid fa-bars"></i>
+</button>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<script src="{{ url_for('static', filename='user_sidebar.js') }}"></script>
