@@ -14,8 +14,6 @@
             </button>
         </div>
 
-        <div class="sidebar-section-label">Main Menu</div>
-
         <nav class="sidebar-nav">
             <a href="{{ url_for('admin.admin_dashboard') }}"
                class="nav-link {% if active_page == 'admin_dashboard' %}active{% endif %}">
@@ -43,7 +41,7 @@
 
             <a href="{{ url_for('admin.admin_users') }}"
                class="nav-link {% if request.endpoint == 'admin.admin_users' %}active{% endif %}">
-                <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
+                <span class="nav-icon"><i class="fas fa-users"></i></span>
                 <span class="nav-text">User Management</span>
             </a>
         </nav>

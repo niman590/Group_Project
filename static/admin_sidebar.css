@@ -36,6 +36,7 @@
 .sidebar-top {
     display: flex;
     flex-direction: column;
+    min-height: 0;
 }
 
 .admin-sidebar .sidebar-brand {
@@ -46,6 +47,7 @@
     margin-bottom: 22px;
     padding-bottom: 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    min-height: 64px;
 }
 
 .brand-link {
@@ -109,16 +111,6 @@
 
 .sidebar-toggle:hover {
     background: rgba(255, 255, 255, 0.14);
-}
-
-.sidebar-section-label {
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #c6dafb;
-    opacity: 0.9;
-    margin: 0 8px 12px;
 }
 
 .admin-sidebar .sidebar-nav {
@@ -217,6 +209,7 @@
     display: none;
 }
 
+/* collapsed desktop sidebar */
 .admin-sidebar.sidebar-collapsed {
     width: 92px;
     min-width: 92px;
@@ -224,19 +217,21 @@
     padding-right: 12px;
 }
 
-.admin-sidebar.sidebar-collapsed .brand-text,
-.admin-sidebar.sidebar-collapsed .sidebar-section-label,
-.admin-sidebar.sidebar-collapsed .nav-text {
+/* hide the whole logo/brand area when collapsed */
+.admin-sidebar.sidebar-collapsed .sidebar-brand .brand-link {
     display: none;
 }
 
-.admin-sidebar.sidebar-collapsed .brand-link {
-    justify-content: center;
-}
-
+/* keep only the toggle button visible */
 .admin-sidebar.sidebar-collapsed .sidebar-brand {
     justify-content: center;
-    gap: 10px;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+    min-height: auto;
+}
+
+.admin-sidebar.sidebar-collapsed .nav-text {
+    display: none;
 }
 
 .admin-sidebar.sidebar-collapsed .nav-link {
@@ -247,6 +242,10 @@
 
 .admin-sidebar.sidebar-collapsed .nav-link.active::before {
     left: 6px;
+}
+
+.admin-sidebar.sidebar-collapsed .sidebar-footer .nav-link {
+    justify-content: center;
 }
 
 @media (max-width: 980px) {
@@ -273,10 +272,12 @@
         padding-right: 16px;
     }
 
-    .admin-sidebar.sidebar-collapsed .brand-text,
-    .admin-sidebar.sidebar-collapsed .sidebar-section-label,
+    .admin-sidebar.sidebar-collapsed .sidebar-brand .brand-link {
+        display: flex;
+    }
+
     .admin-sidebar.sidebar-collapsed .nav-text {
-        display: initial;
+        display: inline;
     }
 
     .admin-sidebar.sidebar-collapsed .nav-link {
