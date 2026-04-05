@@ -155,9 +155,24 @@
     color: #123f82;
 }
 
+.calendar-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.calendar-input-wrap i {
+    position: absolute;
+    left: 14px;
+    color: #123f82;
+    font-size: 1rem;
+    pointer-events: none;
+}
+
 .friendly-date-input {
+    width: 100%;
     height: 46px;
-    padding: 0 14px;
+    padding: 0 14px 0 42px;
     border: 1px solid #c9d7ea;
     border-radius: 12px;
     background: #ffffff;
@@ -165,11 +180,16 @@
     font-size: 0.98rem;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
 }
 
 .friendly-date-input:focus {
     border-color: #123f82;
     box-shadow: 0 0 0 3px rgba(18, 63, 130, 0.12);
+}
+
+.friendly-date-input::placeholder {
+    color: #7a8ca8;
 }
 
 .filter-button-group {
@@ -193,6 +213,99 @@
     opacity: 0.95;
 }
 
+/* Table styling fix */
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #d8e3f3;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.table-wrap table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+.table-wrap thead {
+    background: #f3f7ff;
+}
+
+.table-wrap th,
+.table-wrap td {
+    padding: 14px 16px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid #e4ecf7;
+    color: #1b2f52;
+    font-size: 0.96rem;
+    line-height: 1.45;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.table-wrap th {
+    font-weight: 700;
+    color: #123f82;
+    font-size: 1rem;
+}
+
+.table-wrap tbody tr:hover {
+    background: #f9fbff;
+}
+
+.table-wrap tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.no-results {
+    text-align: center;
+    color: #5f6f89;
+    font-weight: 600;
+    padding: 18px 16px;
+}
+
+/* Optional chart support if present in template */
+.chart-card {
+    padding: 18px;
+    border: 1px solid #d8e3f3;
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+.chart-header {
+    margin-bottom: 14px;
+}
+
+.chart-header h2 {
+    margin-bottom: 6px;
+}
+
+.chart-header p {
+    margin: 0;
+    color: #5f6f89;
+}
+
+.chart-image {
+    width: 100%;
+    max-width: 100%;
+    display: block;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.chart-fallback {
+    padding: 24px;
+    text-align: center;
+    border: 1px dashed #c9d7ea;
+    border-radius: 12px;
+    color: #5f6f89;
+    background: #f8fbff;
+}
+
 @media (max-width: 1200px) {
     .reports-grid {
         grid-template-columns: 1fr;
@@ -206,6 +319,10 @@
 
     .filter-button-group {
         width: 100%;
+    }
+
+    .table-wrap table {
+        min-width: 760px;
     }
 }
 

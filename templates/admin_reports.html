@@ -71,34 +71,6 @@
                 </div>
             </section>
 
-            <section class="chart-grid report-chart-grid">
-                <div class="chart-card">
-                    <div class="panel-header chart-header">
-                        <h2>User Registration Graph</h2>
-                        <p>Bar graph for account creation records.</p>
-                    </div>
-
-                    {% if user_chart %}
-                    <img src="data:image/png;base64,{{ user_chart }}" alt="User registration chart" class="chart-image">
-                    {% else %}
-                    <div class="chart-fallback">Chart data is not available.</div>
-                    {% endif %}
-                </div>
-
-                <div class="chart-card">
-                    <div class="panel-header chart-header">
-                        <h2>Application Status Diagram</h2>
-                        <p>Pie diagram for planning application status.</p>
-                    </div>
-
-                    {% if planning_chart %}
-                    <img src="data:image/png;base64,{{ planning_chart }}" alt="Planning application status chart" class="chart-image">
-                    {% else %}
-                    <div class="chart-fallback">Chart data is not available.</div>
-                    {% endif %}
-                </div>
-            </section>
-
             <section class="reports-grid">
                 <div class="panel report-panel">
                     <div class="panel-header">
@@ -230,16 +202,6 @@
                     </div>
                 </form>
 
-                {% if filtered_user_chart %}
-                <div class="inline-report-visual">
-                    <div class="panel-header chart-header compact">
-                        <h3>User Registration Graph</h3>
-                        <p>Filtered using the selected user registration date range.</p>
-                    </div>
-                    <img src="data:image/png;base64,{{ filtered_user_chart }}" alt="Filtered user registration chart" class="chart-image">
-                </div>
-                {% endif %}
-
                 {% if user_start_date or user_end_date %}
                 <div class="filter-pill-row">
                     <span class="badge user">
@@ -329,16 +291,6 @@
                     </div>
                 </form>
 
-                {% if filtered_planning_chart %}
-                <div class="inline-report-visual">
-                    <div class="panel-header chart-header compact">
-                        <h3>Application Status Diagram</h3>
-                        <p>Filtered using the selected applicant submission date range.</p>
-                    </div>
-                    <img src="data:image/png;base64,{{ filtered_planning_chart }}" alt="Filtered application status chart" class="chart-image">
-                </div>
-                {% endif %}
-
                 {% if applicant_start_date or applicant_end_date %}
                 <div class="filter-pill-row">
                     <span class="badge user">
@@ -393,9 +345,8 @@
             </section>
         </main>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="{{ url_for('static', filename='admin_reports.js') }}"></script>
 </body>
 

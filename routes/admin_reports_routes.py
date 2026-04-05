@@ -62,7 +62,6 @@ TABLE_HEADER_STYLE = ParagraphStyle(
 )
 
 
-
 def get_current_user():
     if "user_id" not in session:
         return None
@@ -82,7 +81,6 @@ def get_current_user():
     return user
 
 
-
 def admin_required():
     user = get_current_user()
     if not user:
@@ -96,7 +94,6 @@ def admin_required():
     return user, None
 
 
-
 def safe_fetchone_value(cursor, query, key, default=0, params=()):
     try:
         cursor.execute(query, params)
@@ -108,14 +105,12 @@ def safe_fetchone_value(cursor, query, key, default=0, params=()):
     return default
 
 
-
 def safe_fetchall(cursor, query, params=()):
     try:
         cursor.execute(query, params)
         return cursor.fetchall()
     except Exception:
         return []
-
 
 
 def normalize_date_input(value):
@@ -127,7 +122,6 @@ def normalize_date_input(value):
         return ""
 
 
-
 def format_date_for_display(value):
     if not value:
         return "Any time"
@@ -135,7 +129,6 @@ def format_date_for_display(value):
         return datetime.strptime(value, "%Y-%m-%d").strftime("%b %d, %Y")
     except Exception:
         return value
-
 
 
 def build_date_clause(column_name, start_date, end_date):
@@ -154,7 +147,6 @@ def build_date_clause(column_name, start_date, end_date):
         return " AND " + " AND ".join(conditions), params
 
     return "", params
-
 
 
 def build_chart_image(labels, values, title, kind="bar"):
@@ -212,7 +204,6 @@ def build_chart_image(labels, values, title, kind="bar"):
     return base64.b64encode(image_buffer.read()).decode("utf-8")
 
 
-
 def get_user_registration_chart(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
     rows = safe_fetchall(
@@ -244,7 +235,6 @@ def get_user_registration_chart(cursor, start_date="", end_date=""):
     return build_chart_image(labels, values, "User Registrations", kind="bar")
 
 
-
 def get_application_status_chart(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
     rows = safe_fetchall(
@@ -269,7 +259,6 @@ def get_application_status_chart(cursor, start_date="", end_date=""):
     return build_chart_image(labels, values, "Planning Application Status", kind="pie")
 
 
-
 def get_recent_users(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
 
@@ -284,7 +273,6 @@ def get_recent_users(cursor, start_date="", end_date=""):
         """,
         tuple(params),
     )
-
 
 
 def get_recent_applications(cursor, start_date="", end_date=""):
@@ -308,7 +296,6 @@ def get_recent_applications(cursor, start_date="", end_date=""):
         """,
         tuple(params),
     )
-
 
 
 def create_pdf_canvas(filepath, title, subtitle=None):
@@ -347,7 +334,6 @@ def create_pdf_canvas(filepath, title, subtitle=None):
     return pdf, width, height, y
 
 
-
 def ensure_pdf_space(pdf, y, height, needed_space=70):
     if y < max(needed_space, PDF_BOTTOM_MARGIN):
         pdf.showPage()
@@ -368,7 +354,6 @@ def ensure_pdf_space(pdf, y, height, needed_space=70):
     return y
 
 
-
 def draw_section_title(pdf, title, y, height):
     y = ensure_pdf_space(pdf, y, height, 90)
     pdf.setFillColor(colors.HexColor("#123f82"))
@@ -383,7 +368,6 @@ def draw_section_title(pdf, title, y, height):
     return y
 
 
-
 def draw_kv_line(pdf, label, value, y, height):
     y = ensure_pdf_space(pdf, y, height, 60)
     pdf.setFont("Helvetica-Bold", 10)
@@ -394,7 +378,6 @@ def draw_kv_line(pdf, label, value, y, height):
     return y
 
 
-
 def decode_chart_image(image_b64):
     if not image_b64:
         return None
@@ -402,7 +385,6 @@ def decode_chart_image(image_b64):
         return ImageReader(BytesIO(base64.b64decode(image_b64)))
     except Exception:
         return None
-
 
 
 def draw_chart_block(pdf, title, image_b64, y, height, chart_height=185):
@@ -420,10 +402,17 @@ def draw_chart_block(pdf, title, image_b64, y, height, chart_height=185):
 
     img = decode_chart_image(image_b64)
     if img:
-        pdf.drawImage(img, PDF_LEFT + 18, y - chart_height - 12, width=475, height=chart_height, preserveAspectRatio=True, mask='auto')
+        pdf.drawImage(
+            img,
+            PDF_LEFT + 18,
+            y - chart_height - 12,
+            width=475,
+            height=chart_height,
+            preserveAspectRatio=True,
+            mask="auto",
+        )
 
     return y - chart_height - 34
-
 
 
 def fit_text(value, width, font_name="Helvetica", font_size=8):
@@ -438,12 +427,16 @@ def fit_text(value, width, font_name="Helvetica", font_size=8):
     return (trimmed + "...") if trimmed else "-"
 
 
-
 def wrap_paragraph(text, width, style):
-    paragraph = Paragraph(("" if text is None else str(text)).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"), style)
+    paragraph = Paragraph(
+        ("" if text is None else str(text))
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;"),
+        style,
+    )
     _, h = paragraph.wrap(width, 1000)
     return paragraph, max(h, style.leading)
-
 
 
 def draw_wrapped_table(pdf, headers, rows, col_widths, y, height, body_style=BODY_STYLE):
@@ -465,7 +458,11 @@ def draw_wrapped_table(pdf, headers, rows, col_widths, y, height, body_style=BOD
         x = table_x
         for header, col_width in zip(headers, col_widths):
             pdf.setFont("Helvetica-Bold", 8)
-            pdf.drawString(x + cell_padding_x, current_y - 8, fit_text(header, col_width - (cell_padding_x * 2), "Helvetica-Bold", 8))
+            pdf.drawString(
+                x + cell_padding_x,
+                current_y - 8,
+                fit_text(header, col_width - (cell_padding_x * 2), "Helvetica-Bold", 8),
+            )
             x += col_width
         return current_y - header_height
 
@@ -497,7 +494,6 @@ def draw_wrapped_table(pdf, headers, rows, col_widths, y, height, body_style=BOD
         y -= row_height
 
     return y - 6
-
 
 
 def generate_admin_report_pdf(report_data):
@@ -583,7 +579,6 @@ def generate_admin_report_pdf(report_data):
     return filepath
 
 
-
 def generate_user_registration_pdf(start_date, end_date, users, user_chart=None):
     filename = f"user_registration_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     filepath = os.path.join(REPORT_PDF_FOLDER, filename)
@@ -634,7 +629,6 @@ def generate_user_registration_pdf(start_date, end_date, users, user_chart=None)
 
     pdf.save()
     return filepath
-
 
 
 def generate_application_applicants_pdf(start_date, end_date, applications, planning_chart=None):
@@ -720,11 +714,6 @@ def admin_reports():
     recent_users = get_recent_users(cursor, user_start_date, user_end_date)
     recent_applications = get_recent_applications(cursor, applicant_start_date, applicant_end_date)
 
-    user_chart = get_user_registration_chart(cursor)
-    planning_chart = get_application_status_chart(cursor)
-    filtered_user_chart = get_user_registration_chart(cursor, user_start_date, user_end_date)
-    filtered_planning_chart = get_application_status_chart(cursor, applicant_start_date, applicant_end_date)
-
     conn.close()
 
     return render_template(
@@ -744,10 +733,6 @@ def admin_reports():
         rejected_transactions=rejected_transactions,
         recent_users=recent_users,
         recent_applications=recent_applications,
-        user_chart=user_chart,
-        planning_chart=planning_chart,
-        filtered_user_chart=filtered_user_chart,
-        filtered_planning_chart=filtered_planning_chart,
         user_start_date=user_start_date,
         user_end_date=user_end_date,
         applicant_start_date=applicant_start_date,
@@ -831,5 +816,10 @@ def download_applicants_pdf():
 
     conn.close()
 
-    filepath = generate_application_applicants_pdf(applicant_start_date, applicant_end_date, applications, planning_chart=planning_chart)
+    filepath = generate_application_applicants_pdf(
+        applicant_start_date,
+        applicant_end_date,
+        applications,
+        planning_chart=planning_chart,
+    )
     return send_file(filepath, as_attachment=True)
