@@ -6,76 +6,132 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Civic Plan - Login</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
   <div class="page-wrapper">
-    <div class="login-container">
+    <div class="login-shell">
+      <div class="login-container">
 
-      <!-- BACK BUTTON (TOP LEFT OVERLAY) -->
-      <a href="{{ url_for('main.dashboard') }}" class="back-arrow">←</a>
+        <div class="left-panel">
+          <div class="overlay"></div>
 
-      <div class="left-panel">
-        <div class="overlay"></div>
-        <div class="left-content">
-          <h1>
-            Smart Digital Land
-            Management and
-            Planning Approval
-            System
-          </h1>
-          <p>
-            Secure access portal for citizens and administrators to
-            manage land records, planning approvals, and related
-            digital services.
-          </p>
-        </div>
-      </div>
+          <div class="left-content">
+            <div class="left-topbar">
+              <a href="{{ url_for('main.dashboard') }}" class="back-arrow" aria-label="Back to dashboard">
+                <i class="fa-solid fa-arrow-left"></i>
+              </a>
 
-      <div class="right-panel">
-        <div class="logo-box">
-          <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
-        </div>
+              <span class="hero-badge">Secure Digital Access</span>
+            </div>
 
-        <h2 class="brand-title">CIVIC PLAN</h2>
-        <p class="brand-subtitle">Land Management Portal</p>
+            <h1>
+              Smart Digital Land
+              Management and
+              Planning Approval
+              System
+            </h1>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="flash-messages">
-          {% for category, message in messages %}
-          <div class="flash {{ category }}">{{ message }}</div>
-          {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
+            <p>
+              Secure access portal for citizens and administrators to
+              manage land records, planning approvals, and related
+              digital services.
+            </p>
 
-        <form class="login-form" method="POST" action="{{ url_for('auth.login_post') }}">
-          <label for="nic">NIC / Username</label>
-          <input type="text" id="nic" name="nic" required />
-
-          <label for="password">Password</label>
-          <input type="password" id="password" name="password" required />
-
-          <div class="form-options">
-            <label class="remember-me">
-              <input type="checkbox" />
-              <span>Remember me</span>
-            </label>
-            <a href="{{ url_for('auth.password_reset') }}">Forgot Password?</a>
+            <div class="left-points">
+              <div class="point-item">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Protected portal access</span>
+              </div>
+              <div class="point-item">
+                <i class="fa-solid fa-file-circle-check"></i>
+                <span>Planning and land services</span>
+              </div>
+              <div class="point-item">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Fast digital record access</span>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <button type="submit">Login</button>
-        </form>
+        <div class="right-panel">
+          <div class="login-card">
+            <div class="logo-box">
+              <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
+            </div>
 
-        <p class="register-text">
-          Don’t have an account?
-          <a href="{{ url_for('auth.register') }}">Register here</a>
-        </p>
+            <h2 class="brand-title">CIVIC PLAN</h2>
+            <p class="brand-subtitle">Land Management Portal</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+              <div class="flash {{ category }}" data-flash>
+                <div class="flash-inner">
+                  <i class="fa-solid
+                    {% if category == 'success' %}fa-circle-check
+                    {% elif category == 'error' %}fa-circle-xmark
+                    {% else %}fa-circle-info
+                    {% endif %}"></i>
+                  <span>{{ message }}</span>
+                </div>
+                <button type="button" class="flash-close" data-flash-close aria-label="Close message">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <form class="login-form" method="POST" action="{{ url_for('auth.login_post') }}" id="loginForm">
+              <div class="form-group">
+                <label for="nic">NIC / Username</label>
+                <div class="input-wrap">
+                  <span class="input-icon"><i class="fa-regular fa-user"></i></span>
+                  <input type="text" id="nic" name="nic" required autocomplete="username" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrap password-wrap">
+                  <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+                  <input type="password" id="password" name="password" required autocomplete="current-password" />
+                  <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password">
+                    <i class="fa-regular fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-options">
+                <label class="remember-me">
+                  <input type="checkbox" />
+                  <span>Remember me</span>
+                </label>
+                <a href="{{ url_for('auth.password_reset') }}">Forgot Password?</a>
+              </div>
+
+              <button type="submit" class="login-btn" id="loginSubmitBtn">
+                <span class="btn-text">Login</span>
+              </button>
+            </form>
+
+            <p class="register-text">
+              Don’t have an account?
+              <a href="{{ url_for('auth.register') }}">Register here</a>
+            </p>
+          </div>
+        </div>
+
       </div>
-
     </div>
   </div>
+
+  <script src="{{ url_for('static', filename='login.js') }}"></script>
 </body>
 
 </html>
