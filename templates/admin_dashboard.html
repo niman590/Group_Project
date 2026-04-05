@@ -17,9 +17,10 @@
 
         <main class="main-content">
             <header class="topbar">
-                <div>
+                <div class="topbar-copy">
+                    <span class="page-label">Admin Dashboard</span>
                     <h1>Welcome back, {{ user['first_name'] }}</h1>
-                    <p>Manage users, roles, and account status from the admin portal.</p>
+                    <p>Manage users, review applications, and monitor planning activity from one place.</p>
                 </div>
 
                 <div class="admin-chip">
@@ -41,90 +42,196 @@
             {% endif %}
             {% endwith %}
 
-            <section class="stats-grid application-stats-grid">
-                <div class="stat-card app-stat-card">
-                    <h3>{{ total_applications }}</h3>
-                    <p>Total Planning Applications</p>
+            <section class="stats-section">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Overview</span>
+                        <h2>Application Summary</h2>
+                    </div>
                 </div>
-                <div class="stat-card app-stat-card approved">
-                    <h3>{{ approved_applications }}</h3>
-                    <p>Approved Plans</p>
-                </div>
-                <div class="stat-card app-stat-card pending">
-                    <h3>{{ pending_applications }}</h3>
-                    <p>Pending / Review Plans</p>
-                </div>
-                <div class="stat-card app-stat-card rejected">
-                    <h3>{{ rejected_applications }}</h3>
-                    <p>Rejected Plans</p>
+
+                <div class="stats-grid application-stats-grid">
+                    <div class="stat-card app-stat-card total">
+                        <div class="stat-icon"><i class="fa-regular fa-folder-open"></i></div>
+                        <div class="stat-content">
+                            <h3>{{ total_applications }}</h3>
+                            <p>Total Planning Applications</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card app-stat-card approved">
+                        <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="stat-content">
+                            <h3>{{ approved_applications }}</h3>
+                            <p>Approved Plans</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card app-stat-card pending">
+                        <div class="stat-icon"><i class="fa-regular fa-clock"></i></div>
+                        <div class="stat-content">
+                            <h3>{{ pending_applications }}</h3>
+                            <p>Pending / Review Plans</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card app-stat-card rejected">
+                        <div class="stat-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+                        <div class="stat-content">
+                            <h3>{{ rejected_applications }}</h3>
+                            <p>Rejected Plans</p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <section class="panel chart-filter-panel">
-                <div class="panel-header">
-                    <h2>Analytics Filter</h2>
-                    <p>Select a date range to update the Python-generated charts and planning application summary cards.
-                    </p>
+            <section class="filter-section">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Filters</span>
+                        <h2>Analytics Filter</h2>
+                        <p>Pick a quick date range or use a custom range for the dashboard charts.</p>
+                    </div>
                 </div>
 
-                <form class="date-filter-form" method="GET" action="{{ url_for('admin.admin_dashboard') }}">
-                    <input type="hidden" name="search" value="{{ search_query if search_query else '' }}" />
+                <form class="dashboard-filter-card" method="GET" action="{{ url_for('admin.admin_dashboard') }}">
+                    <div class="filter-layout">
+                        <div class="filter-block quick-block">
+                            <div class="filter-block-head">
+                                <h3>Quick Filters</h3>
+                                <p>Fast way to switch dashboard periods.</p>
+                            </div>
 
-                    <div class="date-field">
-                        <label for="start_date">Start Date</label>
-                        <input type="date" id="start_date" name="start_date"
-                            value="{{ start_date if start_date else '' }}" />
-                    </div>
+                            <div class="quick-filter-row">
+                                <button type="submit" name="range" value="today"
+                                    class="quick-filter-btn {% if selected_range == 'today' %}active{% endif %}">
+                                    Today
+                                </button>
 
-                    <div class="date-field">
-                        <label for="end_date">End Date</label>
-                        <input type="date" id="end_date" name="end_date" value="{{ end_date if end_date else '' }}" />
-                    </div>
+                                <button type="submit" name="range" value="last_7_days"
+                                    class="quick-filter-btn {% if selected_range == 'last_7_days' %}active{% endif %}">
+                                    Last 7 Days
+                                </button>
 
-                    <div class="date-filter-actions">
-                        <button type="submit" class="btn primary">Apply Filter</button>
-                        <a href="{{ url_for('admin.admin_dashboard', search=search_query) }}"
-                            class="btn secondary clear-search">Clear Dates</a>
+                                <button type="submit" name="range" value="this_month"
+                                    class="quick-filter-btn {% if selected_range == 'this_month' %}active{% endif %}">
+                                    This Month
+                                </button>
+
+                                <button type="submit" name="range" value="last_month"
+                                    class="quick-filter-btn {% if selected_range == 'last_month' %}active{% endif %}">
+                                    Last Month
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="filter-block custom-block">
+                            <div class="filter-block-head">
+                                <h3>Custom Range</h3>
+                                <p>Select exact dates when you need a specific period.</p>
+                            </div>
+
+                            <input type="hidden" name="range" value="custom">
+
+                            <div class="custom-range-grid">
+                                <div class="date-field">
+                                    <label for="start_date">Start Date</label>
+                                    <input
+                                        type="date"
+                                        id="start_date"
+                                        name="start_date"
+                                        value="{{ start_date if start_date else '' }}"
+                                    />
+                                </div>
+
+                                <div class="date-field">
+                                    <label for="end_date">End Date</label>
+                                    <input
+                                        type="date"
+                                        id="end_date"
+                                        name="end_date"
+                                        value="{{ end_date if end_date else '' }}"
+                                    />
+                                </div>
+                            </div>
+
+                            <div class="date-filter-actions">
+                                <button type="submit" class="btn primary filter-btn-large">
+                                    <i class="fa-solid fa-filter"></i>
+                                    <span>Apply Filter</span>
+                                </button>
+
+                                <a href="{{ url_for('admin.admin_dashboard', range='this_month') }}"
+                                    class="btn secondary clear-search filter-btn-large">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>Clear Dates</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </form>
 
-                {% if start_date or end_date %}
-                <div class="filter-summary">
-                    <span class="badge user">
-                        Showing analytics for
-                        {{ start_date if start_date else 'the beginning' }}
-                        to
-                        {{ end_date if end_date else 'today' }}
-                    </span>
+                <div class="filter-summary-card">
+                    <div class="summary-item">
+                        <span class="summary-label">Showing Data For</span>
+                        <strong>
+                            {% if start_date and end_date %}
+                                {{ start_date }} to {{ end_date }}
+                            {% elif start_date %}
+                                From {{ start_date }}
+                            {% elif end_date %}
+                                Up to {{ end_date }}
+                            {% else %}
+                                All records
+                            {% endif %}
+                        </strong>
+                    </div>
                 </div>
-                {% endif %}
             </section>
 
-            <section class="chart-grid">
-                <div class="chart-card">
-                    <div class="panel-header chart-header">
-                        <h2>User Registration Overview</h2>
-                        <p>Generated with Python (matplotlib) from your database records.</p>
+            <section class="charts-section">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Visual Insights</span>
+                        <h2>Dashboard Charts</h2>
+                        <p>Review registrations and planning outcomes at a glance.</p>
                     </div>
-                    {% if user_chart %}
-                    <img src="data:image/png;base64,{{ user_chart }}" alt="User registrations chart"
-                        class="chart-image">
-                    {% else %}
-                    <div class="chart-fallback">Matplotlib is not installed or no chart data is available.</div>
-                    {% endif %}
                 </div>
 
-                <div class="chart-card">
-                    <div class="panel-header chart-header">
-                        <h2>Planning Approval Overview</h2>
-                        <p>Python-generated chart for approved, pending, and rejected applications.</p>
+                <div class="chart-grid">
+                    <div class="chart-card">
+                        <div class="chart-card-top">
+                            <div class="chart-title-icon"><i class="fa-solid fa-chart-column"></i></div>
+                            <div class="panel-header chart-header">
+                                <h2>User Registration Overview</h2>
+                                <p>Generated with Python (matplotlib) from your database records.</p>
+                            </div>
+                        </div>
+
+                        {% if user_chart %}
+                        <img src="data:image/png;base64,{{ user_chart }}" alt="User registrations chart"
+                            class="chart-image">
+                        {% else %}
+                        <div class="chart-fallback">Matplotlib is not installed or no chart data is available.</div>
+                        {% endif %}
                     </div>
-                    {% if planning_chart %}
-                    <img src="data:image/png;base64,{{ planning_chart }}" alt="Planning application status chart"
-                        class="chart-image">
-                    {% else %}
-                    <div class="chart-fallback">Matplotlib is not installed or no chart data is available.</div>
-                    {% endif %}
+
+                    <div class="chart-card">
+                        <div class="chart-card-top">
+                            <div class="chart-title-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                            <div class="panel-header chart-header">
+                                <h2>Planning Approval Overview</h2>
+                                <p>Python-generated chart for approved, pending, and rejected applications.</p>
+                            </div>
+                        </div>
+
+                        {% if planning_chart %}
+                        <img src="data:image/png;base64,{{ planning_chart }}" alt="Planning application status chart"
+                            class="chart-image">
+                        {% else %}
+                        <div class="chart-fallback">Matplotlib is not installed or no chart data is available.</div>
+                        {% endif %}
+                    </div>
                 </div>
             </section>
         </main>

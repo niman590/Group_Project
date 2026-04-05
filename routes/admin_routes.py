@@ -1,6 +1,6 @@
 import base64
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import BytesIO
 
 from flask import (
@@ -206,6 +206,30 @@ def normalize_date_input(value):
         return ""
 
 
+def resolve_dashboard_date_range(range_key, start_date="", end_date=""):
+    today = datetime.today().date()
+
+    if range_key == "today":
+        return str(today), str(today)
+
+    if range_key == "last_7_days":
+        return str(today - timedelta(days=6)), str(today)
+
+    if range_key == "this_month":
+        first_day = today.replace(day=1)
+        return str(first_day), str(today)
+
+    if range_key == "last_month":
+        first_day_this_month = today.replace(day=1)
+        last_day_last_month = first_day_this_month - timedelta(days=1)
+        first_day_last_month = last_day_last_month.replace(day=1)
+        return str(first_day_last_month), str(last_day_last_month)
+
+    start_date = normalize_date_input(start_date)
+    end_date = normalize_date_input(end_date)
+    return start_date, end_date
+
+
 def build_date_clause(column_name, start_date, end_date):
     conditions = []
     params = []
@@ -287,35 +311,52 @@ def admin_dashboard():
     if redirect_response:
         return redirect_response
 
-    start_date = normalize_date_input(request.args.get("start_date", "").strip())
-    end_date = normalize_date_input(request.args.get("end_date", "").strip())
+    selected_range = request.args.get("range", "this_month").strip()
+    raw_start_date = request.args.get("start_date", "").strip()
+    raw_end_date = request.args.get("end_date", "").strip()
+
+    start_date, end_date = resolve_dashboard_date_range(
+        selected_range,
+        raw_start_date,
+        raw_end_date,
+    )
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    application_date_clause, application_date_params = build_date_clause("created_at", start_date, end_date)
+    application_date_clause, application_date_params = build_date_clause(
+        "created_at", start_date, end_date
+    )
 
     total_applications = safe_fetchone_value(
         cursor,
-        f"SELECT COUNT(*) AS total_applications FROM planning_applications WHERE 1=1 {application_date_clause}",
+        f"""
+        SELECT COUNT(*) AS total_applications
+        FROM planning_applications
+        WHERE 1=1 {application_date_clause}
+        """,
         "total_applications",
         params=tuple(application_date_params),
     )
 
     approved_applications = safe_fetchone_value(
         cursor,
-        f"""SELECT COUNT(*) AS approved_applications
+        f"""
+        SELECT COUNT(*) AS approved_applications
         FROM planning_applications
-        WHERE status = 'Approved' {application_date_clause}""",
+        WHERE status = 'Approved' {application_date_clause}
+        """,
         "approved_applications",
         params=tuple(application_date_params),
     )
 
     rejected_applications = safe_fetchone_value(
         cursor,
-        f"""SELECT COUNT(*) AS rejected_applications
+        f"""
+        SELECT COUNT(*) AS rejected_applications
         FROM planning_applications
-        WHERE status = 'Rejected' {application_date_clause}""",
+        WHERE status = 'Rejected' {application_date_clause}
+        """,
         "rejected_applications",
         params=tuple(application_date_params),
     )
@@ -347,6 +388,7 @@ def admin_dashboard():
         planning_chart=planning_chart,
         start_date=start_date,
         end_date=end_date,
+        selected_range=selected_range,
     )
 
 
