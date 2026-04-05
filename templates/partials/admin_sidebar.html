@@ -1,40 +1,66 @@
-<aside class="sidebar admin-sidebar">
-    <div class="sidebar-brand">
-        <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo" />
-        <div>
-            <h2>CIVIC PLAN</h2>
-            <p>Admin Portal</p>
+<aside class="sidebar admin-sidebar" id="adminSidebar">
+    <div class="sidebar-top">
+        <div class="sidebar-brand">
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="brand-link">
+                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo" />
+                <div class="brand-text">
+                    <h2>CIVIC PLAN</h2>
+                    <p>Admin Portal</p>
+                </div>
+            </a>
+
+            <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+                <i class="fa-solid fa-bars"></i>
+            </button>
         </div>
+
+        <div class="sidebar-section-label">Main Menu</div>
+
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('admin.admin_dashboard') }}"
+               class="nav-link {% if active_page == 'admin_dashboard' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-table-columns"></i></span>
+                <span class="nav-text">Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('admin.admin_planning_applications') }}"
+               class="nav-link {% if active_page == 'admin_planning_applications' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-file-circle-check"></i></span>
+                <span class="nav-text">Planning Applications</span>
+            </a>
+
+            <a href="{{ url_for('admin.admin_transaction_history_requests') }}"
+               class="nav-link {% if active_page == 'admin_transaction_history_requests' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                <span class="nav-text">Transaction Requests</span>
+            </a>
+
+            <a href="{{ url_for('admin_reports.admin_reports') }}"
+               class="nav-link {% if request.endpoint == 'admin_reports.admin_reports' or request.endpoint == 'admin_reports.download_admin_reports_pdf' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span>
+                <span class="nav-text">Reports</span>
+            </a>
+
+            <a href="{{ url_for('admin.admin_users') }}"
+               class="nav-link {% if request.endpoint == 'admin.admin_users' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
+                <span class="nav-text">User Management</span>
+            </a>
+        </nav>
     </div>
 
-    <nav class="sidebar-nav">
-        <a href="{{ url_for('admin.admin_dashboard') }}"
-            class="{% if active_page == 'admin_dashboard' %}active{% endif %}">
-            <i class="fa-solid fa-table-columns"></i> Dashboard
+    <div class="sidebar-footer">
+        <a href="{{ url_for('auth.logout') }}" class="nav-link logout-link">
+            <span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
+            <span class="nav-text">Logout</span>
         </a>
-
-        <a href="{{ url_for('admin.admin_planning_applications') }}"
-            class="{% if active_page == 'admin_planning_applications' %}active{% endif %}">
-            <i class="fa-solid fa-file-circle-check"></i> Planning Applications
-        </a>
-
-        <a href="{{ url_for('admin.admin_transaction_history_requests') }}"
-            class="{% if active_page == 'admin_transaction_history_requests' %}active{% endif %}">
-            <i class="fa-solid fa-clock-rotate-left"></i> Transaction Requests
-        </a>
-
-        <a href="{{ url_for('admin_reports.admin_reports') }}"
-            class="{% if request.endpoint == 'admin_reports.admin_reports' or request.endpoint == 'admin_reports.download_admin_reports_pdf' %}active{% endif %}">
-            <i class="fa-solid fa-chart-line"></i> Reports
-        </a>
-
-        <a href="{{ url_for('admin.admin_users') }}"
-            class="{% if request.endpoint == 'admin.admin_users' %}active{% endif %}">
-            <i class="fas fa-users"></i> User Management
-        </a>
-
-        <a href="{{ url_for('auth.logout') }}">
-            <i class="fa-solid fa-right-from-bracket"></i> Logout
-        </a>
-    </nav>
+    </div>
 </aside>
+
+<button type="button" class="mobile-sidebar-toggle" id="mobileSidebarToggle" aria-label="Open sidebar">
+    <i class="fa-solid fa-bars"></i>
+</button>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<script src="{{ url_for('static', filename='admin_sidebar.js') }}"></script>
