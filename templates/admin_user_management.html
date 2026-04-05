@@ -17,9 +17,12 @@
 
         <main class="main-content">
             <header class="topbar">
-                <div>
-                    <h1>User Management</h1>
-                    <p>Manage users, roles, and account status.</p>
+                <div class="topbar-content">
+                    <div class="page-heading">
+                        <span class="page-kicker">Administration</span>
+                        <h1>User Management</h1>
+                        <p>Manage users, roles, permissions, and account status from one place.</p>
+                    </div>
                 </div>
 
                 <div class="admin-chip">
@@ -35,60 +38,122 @@
             {% if messages %}
             <div class="flash-messages">
                 {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
+                <div class="flash {{ category }}" data-flash>
+                    <div class="flash-body">
+                        <i class="fa-solid
+                            {% if category == 'success' %}fa-circle-check
+                            {% elif category == 'error' %}fa-circle-xmark
+                            {% elif category == 'warning' %}fa-triangle-exclamation
+                            {% else %}fa-circle-info
+                            {% endif %}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button type="button" class="flash-close" aria-label="Close message" data-flash-close>
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
                 {% endfor %}
             </div>
             {% endif %}
             {% endwith %}
 
-                        <section class="stats-grid">
-                            <div class="stat-card">
-                                <h3>{{ total_users }}</h3>
-                                <p>Total Users</p>
-                            </div>
-                            <div class="stat-card">
-                                <h3>{{ total_admins }}</h3>
-                                <p>Total Admins</p>
-                            </div>
-                            <div class="stat-card">
-                                <h3>{{ active_users }}</h3>
-                                <p>Active Accounts</p>
-                            </div>
-                            <div class="stat-card">
-                                <h3>{{ inactive_users }}</h3>
-                                <p>Inactive Accounts</p>
-                            </div>
-                        </section>
-
-            <section class="panel">
-                <div class="panel-header">
-                    <h2>User Management</h2>
-                    <p>Promote users, remove admin rights, activate/deactivate, or delete accounts.</p>
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ total_users }}</h3>
+                        <p>Total Users</p>
+                    </div>
                 </div>
 
-                <form class="search-form" method="GET" action="{{ url_for('admin.admin_users') }}">
+                <div class="stat-card">
+                    <div class="stat-icon indigo">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ total_admins }}</h3>
+                        <p>Total Admins</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ active_users }}</h3>
+                        <p>Active Accounts</p>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon amber">
+                        <i class="fa-solid fa-user-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>{{ inactive_users }}</h3>
+                        <p>Inactive Accounts</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header panel-header-split">
+                    <div>
+                        <h2>User Directory</h2>
+                        <p>Promote users, remove admin rights, activate or deactivate accounts, and delete users.</p>
+                    </div>
+
+                    <div class="panel-search-summary">
+                        <span class="summary-pill" id="visibleUserCount">
+                            {{ users|length }} visible
+                        </span>
+                    </div>
+                </div>
+
+                <form class="search-form" method="GET" action="{{ url_for('admin.admin_users') }}" id="userSearchForm">
                     <div class="search-input-group">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" name="search" placeholder="Search by name, NIC, or email"
-                            value="{{ search_query if search_query else '' }}">
+                        <input
+                            type="text"
+                            id="userSearchInput"
+                            name="search"
+                            placeholder="Search by name, NIC, or email"
+                            value="{{ search_query if search_query else '' }}"
+                            autocomplete="off">
+                        <button type="button" class="search-inline-clear" id="clearSearchInput" aria-label="Clear search input">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
                     </div>
-                    <button type="submit" class="btn primary">Search</button>
-                    {% if search_query %}
-                    <a href="{{ url_for('admin.admin_users') }}" class="btn secondary clear-search">Clear</a>
-                    {% endif %}
+
+                    <div class="search-actions">
+                        <button type="submit" class="btn primary">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>Search</span>
+                        </button>
+
+                        {% if search_query %}
+                        <a href="{{ url_for('admin.admin_users') }}" class="btn light clear-search">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span>Reset</span>
+                        </a>
+                        {% endif %}
+                    </div>
                 </form>
 
                 {% if search_query %}
-                <div class="search-result-info">
-                    <p>
-                        Showing {{ users|length }} result{{ '' if users|length == 1 else 's' }} for
-                        "<strong>{{ search_query }}</strong>"
-                    </p>
+                <div class="search-result-info" id="serverSearchInfo">
+                    Showing <strong>{{ users|length }}</strong> result{{ '' if users|length == 1 else 's' }} for
+                    "<strong>{{ search_query }}</strong>"
                 </div>
                 {% endif %}
 
+                <div class="search-result-info live-search-info" id="liveSearchInfo" style="display: none;"></div>
+
                 <div class="table-wrap">
-                    <table>
+                    <table class="users-table">
                         <thead>
                             <tr>
                                 <th>No</th>
@@ -101,14 +166,30 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="usersTableBody">
                             {% if users %}
                             {% for u in users %}
-                            <tr>
+                            <tr class="user-row"
+                                data-name="{{ (u['first_name'] ~ ' ' ~ u['last_name'])|lower }}"
+                                data-nic="{{ (u['nic'] if u['nic'] else '')|lower }}"
+                                data-email="{{ u['email']|lower }}"
+                                data-role="{% if u['is_admin'] %}admin{% else %}user{% endif %}"
+                                data-status="{% if u['is_active'] %}active{% else %}inactive{% endif %}"
+                                data-user-id="USER-{{ u['user_id'] }}">
                                 <td>{{ loop.index }}</td>
-                                <td>{{ u['first_name'] }} {{ u['last_name'] }}</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="user-mini-avatar">
+                                            {{ u['first_name'][0] | upper }}{{ u['last_name'][0] | upper }}
+                                        </div>
+                                        <div class="user-meta">
+                                            <strong>{{ u['first_name'] }} {{ u['last_name'] }}</strong>
+                                            <span>{{ u['email'] }}</span>
+                                        </div>
+                                    </div>
+                                </td>
                                 <td>{{ u['nic'] if u['nic'] else '-' }}</td>
-                                <td>{{ u['email'] }}</td>
+                                <td class="email-cell copy-email" title="Click to copy email">{{ u['email'] }}</td>
                                 <td>
                                     {% if u['is_admin'] %}
                                     <span class="badge admin">Admin</span>
@@ -123,39 +204,52 @@
                                     <span class="badge inactive">Inactive</span>
                                     {% endif %}
                                 </td>
-                                <td>USER-{{ u['user_id'] }}</td>
                                 <td>
-                                    {% set is_system_admin = (u['email'] == 'admin@civicplan.local' and u['nic'] ==
-                                    'ADMIN000000V') %}
+                                    <span class="user-id-pill copy-user-id" title="Click to copy user ID">USER-{{ u['user_id'] }}</span>
+                                </td>
+                                <td>
+                                    {% set is_system_admin = (u['email'] == 'admin@civicplan.local' and u['nic'] == 'ADMIN000000V') %}
                                     {% if is_system_admin %}
                                     <div class="action-buttons">
-                                        <span class="badge admin">Protected System Admin</span>
+                                        <span class="badge admin protected-badge">
+                                            <i class="fa-solid fa-shield-halved"></i>
+                                            Protected System Admin
+                                        </span>
                                     </div>
                                     {% else %}
                                     <div class="action-buttons">
-                                        <form action="{{ url_for('admin.toggle_user_status', user_id=u['user_id']) }}"
-                                            method="POST">
-                                            <button type="submit" class="btn small warning">
-                                                {% if u['is_active'] %}Deactivate{% else %}Activate{% endif %}
+                                        <form action="{{ url_for('admin.toggle_user_status', user_id=u['user_id']) }}" method="POST">
+                                            <button type="submit" class="btn small warning action-submit-btn">
+                                                <i class="fa-solid {% if u['is_active'] %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
+                                                <span>{% if u['is_active'] %}Deactivate{% else %}Activate{% endif %}</span>
                                             </button>
                                         </form>
 
                                         {% if not u['is_admin'] %}
-                                        <form action="{{ url_for('admin.make_admin', user_id=u['user_id']) }}"
-                                            method="POST">
-                                            <button type="submit" class="btn small primary">Make Admin</button>
+                                        <form action="{{ url_for('admin.make_admin', user_id=u['user_id']) }}" method="POST">
+                                            <button type="submit" class="btn small primary action-submit-btn">
+                                                <i class="fa-solid fa-user-shield"></i>
+                                                <span>Make Admin</span>
+                                            </button>
                                         </form>
                                         {% else %}
-                                        <form action="{{ url_for('admin.remove_admin', user_id=u['user_id']) }}"
-                                            method="POST">
-                                            <button type="submit" class="btn small secondary">Remove Admin</button>
+                                        <form action="{{ url_for('admin.remove_admin', user_id=u['user_id']) }}" method="POST">
+                                            <button type="submit" class="btn small secondary action-submit-btn">
+                                                <i class="fa-solid fa-user-minus"></i>
+                                                <span>Remove Admin</span>
+                                            </button>
                                         </form>
                                         {% endif %}
 
-                                        <form action="{{ url_for('admin.delete_user', user_id=u['user_id']) }}"
+                                        <form
+                                            action="{{ url_for('admin.delete_user', user_id=u['user_id']) }}"
                                             method="POST"
-                                            onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                            <button type="submit" class="btn small danger">Delete</button>
+                                            class="delete-user-form"
+                                            data-user-name="{{ u['first_name'] }} {{ u['last_name'] }}">
+                                            <button type="submit" class="btn small danger action-submit-btn">
+                                                <i class="fa-solid fa-trash"></i>
+                                                <span>Delete</span>
+                                            </button>
                                         </form>
                                     </div>
                                     {% endif %}
@@ -163,8 +257,13 @@
                             </tr>
                             {% endfor %}
                             {% else %}
-                            <tr>
-                                <td colspan="8" class="no-results">No users found.</td>
+                            <tr id="emptyStateRow">
+                                <td colspan="8" class="no-results">
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-users-slash"></i>
+                                        <p>No users found.</p>
+                                    </div>
+                                </td>
                             </tr>
                             {% endif %}
                         </tbody>
@@ -173,6 +272,8 @@
             </section>
         </main>
     </div>
+
+    <script src="{{ url_for('static', filename='admin_user_management.js') }}"></script>
 </body>
 
 </html>
