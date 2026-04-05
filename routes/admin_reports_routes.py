@@ -515,15 +515,15 @@ def generate_admin_report_pdf(report_data):
     y = draw_kv_line(pdf, "Approved Applications", report_data["approved_applications"], y, height)
     y = draw_kv_line(pdf, "Pending Applications", report_data["pending_applications"], y, height)
     y = draw_kv_line(pdf, "Rejected Applications", report_data["rejected_applications"], y, height)
-    y = draw_kv_line(pdf, "Total Transaction Requests", report_data["transaction_requests"], y, height)
-    y = draw_kv_line(pdf, "Approved Transaction Requests", report_data["approved_transactions"], y, height)
-    y = draw_kv_line(pdf, "Pending Transaction Requests", report_data["pending_transactions"], y, height)
-    y = draw_kv_line(pdf, "Rejected Transaction Requests", report_data["rejected_transactions"], y, height)
 
     y -= 10
     y = draw_section_title(pdf, "Visual Analytics", y, height)
-    y = draw_chart_block(pdf, "User Registration Graph", report_data.get("user_chart"), y, height)
-    y = draw_chart_block(pdf, "Application Status Diagram", report_data.get("planning_chart"), y, height)
+
+    if report_data.get("user_chart"):
+        y = draw_chart_block(pdf, "User Registration Graph", report_data.get("user_chart"), y, height)
+
+    if report_data.get("planning_chart"):
+        y = draw_chart_block(pdf, "Application Status Diagram", report_data.get("planning_chart"), y, height)
 
     y = draw_section_title(pdf, "Recent Registered Users", y, height)
     if report_data["recent_users"]:
@@ -762,10 +762,6 @@ def download_admin_reports_pdf():
         "approved_applications": safe_fetchone_value(cursor, "SELECT COUNT(*) AS approved_applications FROM planning_applications WHERE status = 'Approved'", "approved_applications"),
         "pending_applications": safe_fetchone_value(cursor, "SELECT COUNT(*) AS pending_applications FROM planning_applications WHERE status IS NULL OR status IN ('Pending', 'Submitted', 'Under Review')", "pending_applications"),
         "rejected_applications": safe_fetchone_value(cursor, "SELECT COUNT(*) AS rejected_applications FROM planning_applications WHERE status = 'Rejected'", "rejected_applications"),
-        "transaction_requests": safe_fetchone_value(cursor, "SELECT COUNT(*) AS transaction_requests FROM transaction_history_update_request", "transaction_requests"),
-        "approved_transactions": safe_fetchone_value(cursor, "SELECT COUNT(*) AS approved_transactions FROM transaction_history_update_request WHERE status = 'Approved'", "approved_transactions"),
-        "pending_transactions": safe_fetchone_value(cursor, "SELECT COUNT(*) AS pending_transactions FROM transaction_history_update_request WHERE status = 'Pending'", "pending_transactions"),
-        "rejected_transactions": safe_fetchone_value(cursor, "SELECT COUNT(*) AS rejected_transactions FROM transaction_history_update_request WHERE status = 'Rejected'", "rejected_transactions"),
         "recent_users": get_recent_users(cursor, "", ""),
         "recent_applications": get_recent_applications(cursor, "", ""),
         "user_chart": get_user_registration_chart(cursor, "", ""),
