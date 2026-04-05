@@ -9,27 +9,26 @@
 
     <nav class="sidebar-nav">
         <a href="{{ url_for('admin.admin_dashboard') }}"
-            class="{% if request.endpoint == 'admin.admin_dashboard' %}active{% endif %}">
+            class="{% if active_page == 'admin_dashboard' %}active{% endif %}">
             <i class="fa-solid fa-table-columns"></i> Dashboard
         </a>
 
         <a href="{{ url_for('admin.admin_planning_applications') }}"
-            class="{% if request.endpoint == 'admin.admin_planning_applications' or request.endpoint == 'admin.admin_planning_application_detail' %}active{% endif %}">
+            class="{% if active_page == 'admin_planning_applications' %}active{% endif %}">
             <i class="fa-solid fa-file-circle-check"></i> Planning Applications
         </a>
 
         <a href="{{ url_for('admin.admin_transaction_history_requests') }}"
-            class="{% if request.endpoint == 'admin.admin_transaction_history_requests' %}active{% endif %}">
+            class="{% if active_page == 'admin_transaction_history_requests' %}active{% endif %}">
             <i class="fa-solid fa-clock-rotate-left"></i> Transaction Requests
         </a>
 
-        <a href="{{ url_for('admin.admin_reports') }}"
-            class="{% if request.endpoint == 'admin.admin_reports' %}active{% endif %}">
+        <a href="{{ url_for('admin_reports.admin_reports') }}"
+            class="{% if request.endpoint == 'admin_reports.admin_reports' %}active{% endif %}">
             <i class="fa-solid fa-chart-line"></i> Reports
         </a>
 
-        <a href="{{ url_for('admin.admin_users') }}"
-            class="{% if request.endpoint == 'admin.admin_users' %}active{% endif %}">
+        <a href="{{ url_for('admin.admin_users') }}" class="{% if request.endpoint == 'admin.admin_users' %}active{% endif %}">
             <i class="fas fa-users"></i> User Management
         </a>
 

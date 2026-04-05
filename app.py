@@ -10,6 +10,7 @@ from routes.chatbot_routes import chatbot_bp
 from routes.transaction_history_routes import transaction_history_bp
 from routes.submit_documents_routes import submit_documents_bp
 from routes.support_documents_routes import support_documents_bp
+from routes.admin_reports_routes import admin_reports_bp
 
 app = Flask(__name__)
 app.secret_key = "civic_plan_secret_key"
@@ -26,6 +27,7 @@ app.register_blueprint(chatbot_bp)
 app.register_blueprint(transaction_history_bp)
 app.register_blueprint(submit_documents_bp)
 app.register_blueprint(support_documents_bp)
+app.register_blueprint(admin_reports_bp)
 
 if __name__ == "__main__":
     app.run(debug=True)

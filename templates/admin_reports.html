@@ -7,6 +7,7 @@
     <title>Civic Plan - Admin Reports</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_reports.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 
@@ -18,8 +19,8 @@
         <main class="main-content">
             <header class="topbar">
                 <div>
-                    <h1>Reports</h1>
-                    <p>View and manage admin reports from the Civic Plan portal.</p>
+                    <h1>Admin Reports</h1>
+                    <p>View user, planning, and transaction summaries from the admin portal.</p>
                 </div>
 
                 <div class="admin-chip">
@@ -41,72 +42,198 @@
             {% endif %}
             {% endwith %}
 
-            <section class="stats-grid">
-                <div class="stat-card">
-                    <h3><i class="fa-solid fa-file-lines"></i></h3>
-                    <p>Planning Reports</p>
+            <section class="panel report-filter-panel">
+                <div class="panel-header">
+                    <h2>Report Filter</h2>
+                    <p>Select a date range to refresh report totals and activity records.</p>
                 </div>
-                <div class="stat-card">
-                    <h3><i class="fa-solid fa-users"></i></h3>
-                    <p>User Reports</p>
+
+                <form class="date-filter-form" method="GET" action="{{ url_for('admin_reports.admin_reports') }}">
+                    <div class="date-field">
+                        <label for="start_date">Start Date</label>
+                        <input type="date" id="start_date" name="start_date"
+                            value="{{ start_date if start_date else '' }}">
+                    </div>
+
+                    <div class="date-field">
+                        <label for="end_date">End Date</label>
+                        <input type="date" id="end_date" name="end_date"
+                            value="{{ end_date if end_date else '' }}">
+                    </div>
+
+                    <div class="date-filter-actions">
+                        <button type="submit" class="btn primary">Apply Filter</button>
+                        <a href="{{ url_for('admin_reports.admin_reports') }}" class="btn secondary clear-search">Clear Dates</a>
+                    </div>
+                </form>
+
+                {% if start_date or end_date %}
+                <div class="filter-summary">
+                    <span class="badge user">
+                        Showing reports for
+                        {{ start_date if start_date else 'the beginning' }}
+                        to
+                        {{ end_date if end_date else 'today' }}
+                    </span>
                 </div>
-                <div class="stat-card">
-                    <h3><i class="fa-solid fa-clock-rotate-left"></i></h3>
-                    <p>Transaction Reports</p>
+                {% endif %}
+            </section>
+
+            <section class="stats-grid reports-stats-grid">
+                <div class="stat-card report-stat-card">
+                    <h3>{{ total_users }}</h3>
+                    <p>Total Users</p>
                 </div>
-                <div class="stat-card">
-                    <h3><i class="fa-solid fa-chart-pie"></i></h3>
-                    <p>Analytics Reports</p>
+
+                <div class="stat-card report-stat-card">
+                    <h3>{{ total_admins }}</h3>
+                    <p>Total Admins</p>
+                </div>
+
+                <div class="stat-card report-stat-card">
+                    <h3>{{ active_users }}</h3>
+                    <p>Active Users</p>
+                </div>
+
+                <div class="stat-card report-stat-card">
+                    <h3>{{ inactive_users }}</h3>
+                    <p>Inactive Users</p>
+                </div>
+            </section>
+
+            <section class="reports-grid">
+                <div class="panel report-panel">
+                    <div class="panel-header">
+                        <h2>Planning Applications Report</h2>
+                        <p>Quick summary of planning application statuses.</p>
+                    </div>
+
+                    <div class="report-summary-list">
+                        <div class="report-summary-item approved">
+                            <span>Approved</span>
+                            <strong>{{ approved_applications }}</strong>
+                        </div>
+
+                        <div class="report-summary-item pending">
+                            <span>Pending / Review</span>
+                            <strong>{{ pending_applications }}</strong>
+                        </div>
+
+                        <div class="report-summary-item rejected">
+                            <span>Rejected</span>
+                            <strong>{{ rejected_applications }}</strong>
+                        </div>
+
+                        <div class="report-summary-item neutral">
+                            <span>Total Applications</span>
+                            <strong>{{ total_applications }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="report-actions">
+                        <button type="button" class="btn primary small report-toggle-btn" data-target="planning-report-details">
+                            View Details
+                        </button>
+                    </div>
+
+                    <div class="report-details" id="planning-report-details">
+                        <p>
+                            This report shows how many planning applications were approved,
+                            are still pending or under review, and were rejected during the selected period.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="panel report-panel">
+                    <div class="panel-header">
+                        <h2>Transaction Requests Report</h2>
+                        <p>Quick summary of land transaction history update requests.</p>
+                    </div>
+
+                    <div class="report-summary-list">
+                        <div class="report-summary-item approved">
+                            <span>Approved</span>
+                            <strong>{{ approved_transactions }}</strong>
+                        </div>
+
+                        <div class="report-summary-item pending">
+                            <span>Pending</span>
+                            <strong>{{ pending_transactions }}</strong>
+                        </div>
+
+                        <div class="report-summary-item rejected">
+                            <span>Rejected</span>
+                            <strong>{{ rejected_transactions }}</strong>
+                        </div>
+
+                        <div class="report-summary-item neutral">
+                            <span>Total Requests</span>
+                            <strong>{{ transaction_requests }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="report-actions">
+                        <button type="button" class="btn primary small report-toggle-btn" data-target="transaction-report-details">
+                            View Details
+                        </button>
+                    </div>
+
+                    <div class="report-details" id="transaction-report-details">
+                        <p>
+                            This report shows the current processing status of transaction history update requests
+                            submitted within the selected period.
+                        </p>
+                    </div>
                 </div>
             </section>
 
             <section class="panel">
                 <div class="panel-header">
-                    <h2>Reports Overview</h2>
-                    <p>This page is ready for adding downloadable reports, filters, charts, and summaries.</p>
+                    <h2>Recent Report Activity</h2>
+                    <p>Latest planning applications and transaction requests.</p>
                 </div>
 
                 <div class="table-wrap">
                     <table>
                         <thead>
                             <tr>
-                                <th>Report Name</th>
-                                <th>Category</th>
+                                <th>Activity Type</th>
+                                <th>Reference ID</th>
                                 <th>Status</th>
-                                <th>Action</th>
+                                <th>Date</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Planning Application Report</td>
-                                <td>Planning</td>
-                                <td><span class="badge active">Available</span></td>
-                                <td><a href="#" class="btn primary small">View</a></td>
-                            </tr>
-                            <tr>
-                                <td>User Management Report</td>
-                                <td>Users</td>
-                                <td><span class="badge active">Available</span></td>
-                                <td><a href="#" class="btn primary small">View</a></td>
-                            </tr>
-                            <tr>
-                                <td>Transaction Request Report</td>
-                                <td>Transactions</td>
-                                <td><span class="badge active">Available</span></td>
-                                <td><a href="#" class="btn primary small">View</a></td>
-                            </tr>
-                            <tr>
-                                <td>System Analytics Report</td>
-                                <td>Analytics</td>
-                                <td><span class="badge active">Available</span></td>
-                                <td><a href="#" class="btn primary small">View</a></td>
-                            </tr>
+                            {% if recent_activities %}
+                                {% for item in recent_activities %}
+                                <tr>
+                                    <td>{{ item['activity_type'] }}</td>
+                                    <td>#{{ item['reference_id'] }}</td>
+                                    <td>
+                                        {% if item['status'] == 'Approved' %}
+                                            <span class="badge active">Approved</span>
+                                        {% elif item['status'] == 'Rejected' %}
+                                            <span class="badge inactive">Rejected</span>
+                                        {% else %}
+                                            <span class="badge user">{{ item['status'] }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item['activity_date'] if item['activity_date'] else 'N/A' }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="no-results">No report activity available.</td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
             </section>
         </main>
     </div>
+
+    <script src="{{ url_for('static', filename='admin_reports.js') }}"></script>
 </body>
 
 </html>
