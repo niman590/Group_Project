@@ -1,0 +1,96 @@
+document.addEventListener("DOMContentLoaded", function () {
+  const flashMessages = document.querySelectorAll("[data-flash]");
+  const flashCloseButtons = document.querySelectorAll("[data-flash-close]");
+  const accountForm = document.getElementById("accountForm");
+  const deleteAccountForm = document.getElementById("deleteAccountForm");
+  const saveChangesBtn = document.getElementById("saveChangesBtn");
+  const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+  const phoneInput = document.getElementById("phone_number");
+  const emailInput = document.getElementById("email");
+  const firstNameInput = document.getElementById("first_name");
+
+  function hideFlash(flash, duration = 250) {
+    if (!flash) return;
+    flash.style.transition = `opacity ${duration}ms ease, transform ${duration}ms ease`;
+    flash.style.opacity = "0";
+    flash.style.transform = "translateY(-6px)";
+    setTimeout(() => {
+      if (flash.parentNode) {
+        flash.remove();
+      }
+    }, duration);
+  }
+
+  function setButtonLoading(button, loadingText) {
+    if (!button) return;
+    button.classList.add("loading");
+
+    const textNode = button.querySelector(".btn-text");
+    if (textNode) {
+      textNode.dataset.originalText = textNode.textContent;
+      textNode.textContent = loadingText;
+    }
+  }
+
+  function trimFormFields() {
+    const fields = accountForm ? accountForm.querySelectorAll("input[type='text'], input[type='email'], textarea") : [];
+    fields.forEach((field) => {
+      if (!field.hasAttribute("readonly")) {
+        field.value = field.value.trim();
+      }
+    });
+  }
+
+  if (phoneInput) {
+    phoneInput.addEventListener("input", function () {
+      this.value = this.value.replace(/[^\d+]/g, "").slice(0, 15);
+    });
+  }
+
+  if (emailInput) {
+    emailInput.addEventListener("blur", function () {
+      this.value = this.value.trim();
+    });
+  }
+
+  if (accountForm) {
+    accountForm.addEventListener("submit", function () {
+      trimFormFields();
+      setButtonLoading(saveChangesBtn, "Saving...");
+    });
+  }
+
+  if (deleteAccountForm) {
+    deleteAccountForm.addEventListener("submit", function (event) {
+      const confirmed = window.confirm("Are you sure you want to delete your account? This action cannot be undone.");
+      if (!confirmed) {
+        event.preventDefault();
+        return;
+      }
+      setButtonLoading(deleteAccountBtn, "Deleting...");
+    });
+  }
+
+  flashMessages.forEach((flash) => {
+    setTimeout(() => {
+      if (flash.parentNode) {
+        hideFlash(flash, 300);
+      }
+    }, 4500);
+  });
+
+  flashCloseButtons.forEach((button) => {
+    button.addEventListener("click", function () {
+      const flash = this.closest("[data-flash]");
+      hideFlash(flash, 250);
+    });
+  });
+
+  document.addEventListener("keydown", function (event) {
+    const activeTag = document.activeElement ? document.activeElement.tagName : "";
+    if (event.key === "/" && firstNameInput && activeTag !== "INPUT" && activeTag !== "TEXTAREA") {
+      event.preventDefault();
+      firstNameInput.focus();
+    }
+  });
+});
