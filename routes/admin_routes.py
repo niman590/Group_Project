@@ -1123,3 +1123,19 @@ def download_planning_decision_pdf(application_id):
         return redirect(url_for("admin.admin_planning_applications"))
 
     return send_file(row["decision_pdf_path"], as_attachment=True)
+
+
+# =========================================================
+# REPORTS PAGE
+# =========================================================
+
+@admin_bp.route("/admin/reports")
+def admin_reports():
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    return render_template(
+        "admin_reports.html",
+        user=admin_user,
+    )

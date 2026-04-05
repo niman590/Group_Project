@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civic Plan - Admin Reports</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body>
+    <div class="dashboard-shell">
+
+        {% include 'partials/admin_sidebar.html' %}
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <h1>Reports</h1>
+                    <p>View and manage admin reports from the Civic Plan portal.</p>
+                </div>
+
+                <div class="admin-chip">
+                    <div class="avatar">{{ user['first_name'][0] | upper }}</div>
+                    <div>
+                        <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
+                        <span>User ID: USER-{{ user['user_id'] }}</span>
+                    </div>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <h3><i class="fa-solid fa-file-lines"></i></h3>
+                    <p>Planning Reports</p>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fa-solid fa-users"></i></h3>
+                    <p>User Reports</p>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i></h3>
+                    <p>Transaction Reports</p>
+                </div>
+                <div class="stat-card">
+                    <h3><i class="fa-solid fa-chart-pie"></i></h3>
+                    <p>Analytics Reports</p>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <h2>Reports Overview</h2>
+                    <p>This page is ready for adding downloadable reports, filters, charts, and summaries.</p>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Report Name</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Planning Application Report</td>
+                                <td>Planning</td>
+                                <td><span class="badge active">Available</span></td>
+                                <td><a href="#" class="btn primary small">View</a></td>
+                            </tr>
+                            <tr>
+                                <td>User Management Report</td>
+                                <td>Users</td>
+                                <td><span class="badge active">Available</span></td>
+                                <td><a href="#" class="btn primary small">View</a></td>
+                            </tr>
+                            <tr>
+                                <td>Transaction Request Report</td>
+                                <td>Transactions</td>
+                                <td><span class="badge active">Available</span></td>
+                                <td><a href="#" class="btn primary small">View</a></td>
+                            </tr>
+                            <tr>
+                                <td>System Analytics Report</td>
+                                <td>Analytics</td>
+                                <td><span class="badge active">Available</span></td>
+                                <td><a href="#" class="btn primary small">View</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>
