@@ -19,4 +19,11 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+
+    const dateInputs = document.querySelectorAll(".friendly-date-input");
+    const today = new Date().toISOString().split("T")[0];
+
+    dateInputs.forEach(function (input) {
+        input.setAttribute("max", today);
+    });
 });

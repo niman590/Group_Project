@@ -17,17 +17,23 @@
         {% include 'partials/admin_sidebar.html' %}
 
         <main class="main-content">
-            <header class="topbar">
+            <header class="topbar report-page-topbar">
                 <div>
                     <h1>Admin Reports</h1>
-                    <p>View user, planning, and transaction summaries from the admin portal.</p>
+                    <p>View analytics, diagrams, user registrations, submitted applicants, and export reports.</p>
                 </div>
 
-                <div class="admin-chip">
-                    <div class="avatar">{{ user['first_name'][0] | upper }}</div>
-                    <div>
-                        <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
-                        <span>User ID: USER-{{ user['user_id'] }}</span>
+                <div class="topbar-actions">
+                    <a href="{{ url_for('admin_reports.download_admin_reports_pdf') }}" class="btn success">
+                        <i class="fa-solid fa-file-pdf"></i> Download Full Report PDF
+                    </a>
+
+                    <div class="admin-chip">
+                        <div class="avatar">{{ user['first_name'][0] | upper }}</div>
+                        <div>
+                            <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
+                            <span>User ID: USER-{{ user['user_id'] }}</span>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -41,43 +47,6 @@
             </div>
             {% endif %}
             {% endwith %}
-
-            <section class="panel report-filter-panel">
-                <div class="panel-header">
-                    <h2>Report Filter</h2>
-                    <p>Select a date range to refresh report totals and activity records.</p>
-                </div>
-
-                <form class="date-filter-form" method="GET" action="{{ url_for('admin_reports.admin_reports') }}">
-                    <div class="date-field">
-                        <label for="start_date">Start Date</label>
-                        <input type="date" id="start_date" name="start_date"
-                            value="{{ start_date if start_date else '' }}">
-                    </div>
-
-                    <div class="date-field">
-                        <label for="end_date">End Date</label>
-                        <input type="date" id="end_date" name="end_date"
-                            value="{{ end_date if end_date else '' }}">
-                    </div>
-
-                    <div class="date-filter-actions">
-                        <button type="submit" class="btn primary">Apply Filter</button>
-                        <a href="{{ url_for('admin_reports.admin_reports') }}" class="btn secondary clear-search">Clear Dates</a>
-                    </div>
-                </form>
-
-                {% if start_date or end_date %}
-                <div class="filter-summary">
-                    <span class="badge user">
-                        Showing reports for
-                        {{ start_date if start_date else 'the beginning' }}
-                        to
-                        {{ end_date if end_date else 'today' }}
-                    </span>
-                </div>
-                {% endif %}
-            </section>
 
             <section class="stats-grid reports-stats-grid">
                 <div class="stat-card report-stat-card">
@@ -96,8 +65,36 @@
                 </div>
 
                 <div class="stat-card report-stat-card">
-                    <h3>{{ inactive_users }}</h3>
-                    <p>Inactive Users</p>
+                    <h3>{{ total_applications }}</h3>
+                    <p>Total Applications</p>
+                </div>
+            </section>
+
+            <section class="chart-grid report-chart-grid">
+                <div class="chart-card">
+                    <div class="panel-header chart-header">
+                        <h2>User Registration Graph</h2>
+                        <p>Bar graph for account creation records.</p>
+                    </div>
+
+                    {% if user_chart %}
+                    <img src="data:image/png;base64,{{ user_chart }}" alt="User registration chart" class="chart-image">
+                    {% else %}
+                    <div class="chart-fallback">Chart data is not available.</div>
+                    {% endif %}
+                </div>
+
+                <div class="chart-card">
+                    <div class="panel-header chart-header">
+                        <h2>Application Status Diagram</h2>
+                        <p>Pie diagram for planning application status.</p>
+                    </div>
+
+                    {% if planning_chart %}
+                    <img src="data:image/png;base64,{{ planning_chart }}" alt="Planning application status chart" class="chart-image">
+                    {% else %}
+                    <div class="chart-fallback">Chart data is not available.</div>
+                    {% endif %}
                 </div>
             </section>
 
@@ -139,7 +136,7 @@
                     <div class="report-details" id="planning-report-details">
                         <p>
                             This report shows how many planning applications were approved,
-                            are still pending or under review, and were rejected during the selected period.
+                            are pending or under review, and were rejected.
                         </p>
                     </div>
                 </div>
@@ -147,7 +144,7 @@
                 <div class="panel report-panel">
                     <div class="panel-header">
                         <h2>Transaction Requests Report</h2>
-                        <p>Quick summary of land transaction history update requests.</p>
+                        <p>Quick summary of transaction request statuses.</p>
                     </div>
 
                     <div class="report-summary-list">
@@ -180,35 +177,162 @@
 
                     <div class="report-details" id="transaction-report-details">
                         <p>
-                            This report shows the current processing status of transaction history update requests
-                            submitted within the selected period.
+                            This report shows the status of land transaction update requests.
                         </p>
                     </div>
                 </div>
             </section>
 
-            <section class="panel">
-                <div class="panel-header">
-                    <h2>Recent Report Activity</h2>
-                    <p>Latest planning applications and transaction requests.</p>
+            <section class="panel report-table-panel">
+                <div class="section-top">
+                    <div>
+                        <h2>Users Who Created Accounts</h2>
+                        <p>Filter user registrations and export a separate PDF report.</p>
+                    </div>
+
+                    <a href="{{ url_for('admin_reports.download_user_registration_pdf', user_start_date=user_start_date, user_end_date=user_end_date) }}"
+                        class="btn success">
+                        <i class="fa-solid fa-user-plus"></i> Download Users PDF
+                    </a>
                 </div>
+
+                <form class="inline-filter-form" method="GET" action="{{ url_for('admin_reports.admin_reports') }}">
+                    <input type="hidden" name="applicant_start_date" value="{{ applicant_start_date if applicant_start_date else '' }}">
+                    <input type="hidden" name="applicant_end_date" value="{{ applicant_end_date if applicant_end_date else '' }}">
+
+                    <div class="filter-field">
+                        <label for="user_start_date">Start Date</label>
+                        <input type="date" id="user_start_date" name="user_start_date" class="friendly-date-input"
+                            value="{{ user_start_date if user_start_date else '' }}">
+                    </div>
+
+                    <div class="filter-field">
+                        <label for="user_end_date">End Date</label>
+                        <input type="date" id="user_end_date" name="user_end_date" class="friendly-date-input"
+                            value="{{ user_end_date if user_end_date else '' }}">
+                    </div>
+
+                    <div class="filter-button-group">
+                        <button type="submit" class="btn primary">Apply Filter</button>
+                        <a href="{{ url_for('admin_reports.admin_reports', applicant_start_date=applicant_start_date, applicant_end_date=applicant_end_date) }}"
+                            class="btn secondary">
+                            Clear Dates
+                        </a>
+                    </div>
+                </form>
+
+                {% if user_start_date or user_end_date %}
+                <div class="filter-pill-row">
+                    <span class="badge user">
+                        Users filter:
+                        {{ user_start_date if user_start_date else 'the beginning' }}
+                        to
+                        {{ user_end_date if user_end_date else 'today' }}
+                    </span>
+                </div>
+                {% endif %}
 
                 <div class="table-wrap">
                     <table>
                         <thead>
                             <tr>
-                                <th>Activity Type</th>
-                                <th>Reference ID</th>
-                                <th>Status</th>
-                                <th>Date</th>
+                                <th>User ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>NIC</th>
+                                <th>Created Date</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% if recent_activities %}
-                                {% for item in recent_activities %}
+                            {% if recent_users %}
+                                {% for item in recent_users %}
                                 <tr>
-                                    <td>{{ item['activity_type'] }}</td>
-                                    <td>#{{ item['reference_id'] }}</td>
+                                    <td>#{{ item['user_id'] }}</td>
+                                    <td>{{ item['first_name'] }} {{ item['last_name'] }}</td>
+                                    <td>{{ item['email'] }}</td>
+                                    <td>{{ item['nic'] }}</td>
+                                    <td>{{ item['created_at'] if item['created_at'] else 'N/A' }}</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="no-results">No user registration records found.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel report-table-panel">
+                <div class="section-top">
+                    <div>
+                        <h2>Applicants Who Submitted Applications</h2>
+                        <p>Filter submitted applications and export a separate PDF report.</p>
+                    </div>
+
+                    <a href="{{ url_for('admin_reports.download_applicants_pdf', applicant_start_date=applicant_start_date, applicant_end_date=applicant_end_date) }}"
+                        class="btn success">
+                        <i class="fa-solid fa-file-signature"></i> Download Applicants PDF
+                    </a>
+                </div>
+
+                <form class="inline-filter-form" method="GET" action="{{ url_for('admin_reports.admin_reports') }}">
+                    <input type="hidden" name="user_start_date" value="{{ user_start_date if user_start_date else '' }}">
+                    <input type="hidden" name="user_end_date" value="{{ user_end_date if user_end_date else '' }}">
+
+                    <div class="filter-field">
+                        <label for="applicant_start_date">Start Date</label>
+                        <input type="date" id="applicant_start_date" name="applicant_start_date" class="friendly-date-input"
+                            value="{{ applicant_start_date if applicant_start_date else '' }}">
+                    </div>
+
+                    <div class="filter-field">
+                        <label for="applicant_end_date">End Date</label>
+                        <input type="date" id="applicant_end_date" name="applicant_end_date" class="friendly-date-input"
+                            value="{{ applicant_end_date if applicant_end_date else '' }}">
+                    </div>
+
+                    <div class="filter-button-group">
+                        <button type="submit" class="btn primary">Apply Filter</button>
+                        <a href="{{ url_for('admin_reports.admin_reports', user_start_date=user_start_date, user_end_date=user_end_date) }}"
+                            class="btn secondary">
+                            Clear Dates
+                        </a>
+                    </div>
+                </form>
+
+                {% if applicant_start_date or applicant_end_date %}
+                <div class="filter-pill-row">
+                    <span class="badge user">
+                        Applicants filter:
+                        {{ applicant_start_date if applicant_start_date else 'the beginning' }}
+                        to
+                        {{ applicant_end_date if applicant_end_date else 'today' }}
+                    </span>
+                </div>
+                {% endif %}
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Application ID</th>
+                                <th>Applicant Name</th>
+                                <th>Email</th>
+                                <th>NIC</th>
+                                <th>Status</th>
+                                <th>Submitted Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if recent_applications %}
+                                {% for item in recent_applications %}
+                                <tr>
+                                    <td>#{{ item['application_id'] }}</td>
+                                    <td>{{ item['first_name'] }} {{ item['last_name'] }}</td>
+                                    <td>{{ item['email'] }}</td>
+                                    <td>{{ item['nic'] }}</td>
                                     <td>
                                         {% if item['status'] == 'Approved' %}
                                             <span class="badge active">Approved</span>
@@ -218,12 +342,12 @@
                                             <span class="badge user">{{ item['status'] }}</span>
                                         {% endif %}
                                     </td>
-                                    <td>{{ item['activity_date'] if item['activity_date'] else 'N/A' }}</td>
+                                    <td>{{ item['created_at'] if item['created_at'] else 'N/A' }}</td>
                                 </tr>
                                 {% endfor %}
                             {% else %}
                                 <tr>
-                                    <td colspan="4" class="no-results">No report activity available.</td>
+                                    <td colspan="6" class="no-results">No planning application records found.</td>
                                 </tr>
                             {% endif %}
                         </tbody>

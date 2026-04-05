@@ -24,11 +24,12 @@
         </a>
 
         <a href="{{ url_for('admin_reports.admin_reports') }}"
-            class="{% if request.endpoint == 'admin_reports.admin_reports' %}active{% endif %}">
+            class="{% if request.endpoint == 'admin_reports.admin_reports' or request.endpoint == 'admin_reports.download_admin_reports_pdf' %}active{% endif %}">
             <i class="fa-solid fa-chart-line"></i> Reports
         </a>
 
-        <a href="{{ url_for('admin.admin_users') }}" class="{% if request.endpoint == 'admin.admin_users' %}active{% endif %}">
+        <a href="{{ url_for('admin.admin_users') }}"
+            class="{% if request.endpoint == 'admin.admin_users' %}active{% endif %}">
             <i class="fas fa-users"></i> User Management
         </a>
 

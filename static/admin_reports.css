@@ -1,5 +1,17 @@
-.report-filter-panel {
-    margin-bottom: 24px;
+.report-page-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .reports-stats-grid {
@@ -13,6 +25,10 @@
 .report-stat-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 24px rgba(18, 63, 130, 0.08);
+}
+
+.report-chart-grid {
+    margin-bottom: 24px;
 }
 
 .reports-grid {
@@ -93,9 +109,103 @@
     display: block;
 }
 
+.report-table-panel {
+    margin-bottom: 24px;
+}
+
+.section-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.section-top h2 {
+    margin-bottom: 6px;
+}
+
+.section-top p {
+    margin: 0;
+    color: #5f6f89;
+}
+
+.inline-filter-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(200px, 220px)) auto;
+    gap: 14px 16px;
+    align-items: end;
+    margin-bottom: 14px;
+    padding: 16px;
+    background: #f7faff;
+    border: 1px solid #d8e3f3;
+    border-radius: 14px;
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-field label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #123f82;
+}
+
+.friendly-date-input {
+    height: 46px;
+    padding: 0 14px;
+    border: 1px solid #c9d7ea;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #123f82;
+    font-size: 0.98rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.friendly-date-input:focus {
+    border-color: #123f82;
+    box-shadow: 0 0 0 3px rgba(18, 63, 130, 0.12);
+}
+
+.filter-button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-pill-row {
+    margin-bottom: 14px;
+}
+
+.btn.success {
+    background: #157347;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn.success:hover {
+    opacity: 0.95;
+}
+
 @media (max-width: 1200px) {
     .reports-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 980px) {
+    .inline-filter-form {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-button-group {
+        width: 100%;
     }
 }
 
@@ -108,5 +218,12 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 6px;
+    }
+
+    .report-page-topbar,
+    .section-top,
+    .topbar-actions {
+        flex-direction: column;
+        align-items: stretch;
     }
 }
