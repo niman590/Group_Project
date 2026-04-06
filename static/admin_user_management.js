@@ -5,13 +5,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const searchForm = document.getElementById("userSearchForm");
     const searchInput = document.getElementById("userSearchInput");
     const clearSearchInputBtn = document.getElementById("clearSearchInput");
-    const userRows = document.querySelectorAll(".user-row");
+    const userRows = Array.from(document.querySelectorAll(".user-row"));
     const visibleUserCount = document.getElementById("visibleUserCount");
     const liveSearchInfo = document.getElementById("liveSearchInfo");
     const serverSearchInfo = document.getElementById("serverSearchInfo");
     const actionButtons = document.querySelectorAll(".action-submit-btn");
     const copyEmailElements = document.querySelectorAll(".copy-email");
     const copyUserIdElements = document.querySelectorAll(".copy-user-id");
+    const toggleUsersViewBtn = document.getElementById("toggleUsersViewBtn");
+
+    const DEFAULT_VISIBLE_ROWS = 5;
+    let showAllRows = false;
 
     function hideElementWithAnimation(element, duration = 250) {
         if (!element) return;
@@ -64,13 +68,48 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             liveSearchInfo.style.display = "block";
-            liveSearchInfo.innerHTML = `Live filter: <strong>${count}</strong> user${count === 1 ? "" : "s"} match "<strong>${queryText}</strong>"`;
+            liveSearchInfo.innerHTML = `Live filter: <strong>${count}</strong> user${count === 1 ? "" : "s"} shown for "<strong>${queryText}</strong>"`;
         }
+    }
+
+    function updateToggleButton(totalMatchedRows) {
+        if (!toggleUsersViewBtn) return;
+
+        if (totalMatchedRows <= DEFAULT_VISIBLE_ROWS) {
+            toggleUsersViewBtn.style.display = "none";
+            return;
+        }
+
+        toggleUsersViewBtn.style.display = "inline-flex";
+        const icon = toggleUsersViewBtn.querySelector("i");
+        const label = toggleUsersViewBtn.querySelector("span");
+
+        if (showAllRows) {
+            if (icon) icon.className = "fa-solid fa-eye-slash";
+            if (label) label.textContent = "Show Less";
+        } else {
+            if (icon) icon.className = "fa-solid fa-eye";
+            if (label) label.textContent = "View All";
+        }
+    }
+
+    function updateRowNumbers() {
+        let rowNumber = 1;
+
+        userRows.forEach((row) => {
+            if (row.style.display === "none") return;
+
+            const rowNumberCell = row.querySelector(".row-number");
+            if (rowNumberCell) {
+                rowNumberCell.textContent = rowNumber;
+                rowNumber += 1;
+            }
+        });
     }
 
     function filterRows(query) {
         const normalizedQuery = query.trim().toLowerCase();
-        let visibleCount = 0;
+        let matchedRows = [];
 
         userRows.forEach((row) => {
             const name = row.dataset.name || "";
@@ -83,14 +122,26 @@ document.addEventListener("DOMContentLoaded", function () {
             const combinedText = `${name} ${nic} ${email} ${role} ${status} ${userId}`;
 
             if (normalizedQuery === "" || combinedText.includes(normalizedQuery)) {
-                row.style.display = "";
-                visibleCount += 1;
-            } else {
+                matchedRows.push(row);
+            }
+        });
+
+        matchedRows.forEach((row, index) => {
+            const shouldShow = showAllRows || index < DEFAULT_VISIBLE_ROWS;
+            row.style.display = shouldShow ? "" : "none";
+        });
+
+        userRows.forEach((row) => {
+            if (!matchedRows.includes(row)) {
                 row.style.display = "none";
             }
         });
 
-        updateVisibleCount(visibleCount, query);
+        const shownCount = showAllRows ? matchedRows.length : Math.min(matchedRows.length, DEFAULT_VISIBLE_ROWS);
+
+        updateVisibleCount(shownCount, query);
+        updateToggleButton(matchedRows.length);
+        updateRowNumbers();
 
         if (serverSearchInfo && normalizedQuery !== "") {
             serverSearchInfo.style.display = "none";
@@ -142,6 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         searchInput.addEventListener("input", function () {
+            showAllRows = false;
             filterRows(this.value);
         });
     }
@@ -150,7 +202,15 @@ document.addEventListener("DOMContentLoaded", function () {
         clearSearchInputBtn.addEventListener("click", function () {
             searchInput.value = "";
             searchInput.focus();
+            showAllRows = false;
             filterRows("");
+        });
+    }
+
+    if (toggleUsersViewBtn) {
+        toggleUsersViewBtn.addEventListener("click", function () {
+            showAllRows = !showAllRows;
+            filterRows(searchInput ? searchInput.value : "");
         });
     }
 
@@ -179,6 +239,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (isEscapePressed && searchInput && document.activeElement === searchInput) {
             searchInput.value = "";
+            showAllRows = false;
             filterRows("");
             searchInput.blur();
         }
@@ -186,5 +247,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (searchInput) {
         filterRows(searchInput.value);
+    } else {
+        updateToggleButton(userRows.length);
+        updateRowNumbers();
     }
 });

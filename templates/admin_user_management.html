@@ -121,9 +121,17 @@
                     </div>
 
                     <div class="panel-search-summary">
-                        <span class="summary-pill" id="visibleUserCount">
-                            {{ users|length }} visible
-                        </span>
+                        <div class="directory-summary-actions">
+                            <span class="summary-pill" id="visibleUserCount">
+                                {{ 5 if users|length > 5 else users|length }} visible
+                            </span>
+                            {% if users|length > 5 %}
+                            <button type="button" class="btn light small toggle-view-btn" id="toggleUsersViewBtn">
+                                <i class="fa-solid fa-eye"></i>
+                                <span>View All</span>
+                            </button>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
 
@@ -179,14 +187,15 @@
                         </thead>
                         <tbody id="usersTableBody">
                             {% if users %}
-                            {% for u in users %}
+                            {% set sorted_users = users|sort(attribute='is_admin', reverse=true) %}
+                            {% for u in sorted_users %}
                             <tr class="user-row" data-name="{{ (u['first_name'] ~ ' ' ~ u['last_name'])|lower }}"
                                 data-nic="{{ (u['nic'] if u['nic'] else '')|lower }}"
                                 data-email="{{ u['email']|lower }}"
                                 data-role="{% if u['is_admin'] %}admin{% else %}user{% endif %}"
                                 data-status="{% if u['is_active'] %}active{% else %}inactive{% endif %}"
                                 data-user-id="USER-{{ u['user_id'] }}">
-                                <td>{{ loop.index }}</td>
+                                <td class="row-number">{{ loop.index }}</td>
                                 <td>
                                     <div class="user-cell">
                                         <div class="user-mini-avatar">
