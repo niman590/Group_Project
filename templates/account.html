@@ -17,6 +17,8 @@
 </head>
 
 <body>
+  {% set is_system_admin = (user.email == 'admin@civicplan.local' and user.nic == 'ADMIN000000V') %}
+
   <div class="dashboard-shell">
 
     {% if user['is_admin'] %}
@@ -111,38 +113,73 @@
                 </div>
               </div>
 
+              {% if is_system_admin %}
+              <div class="lock-notice">
+                <div class="lock-notice-icon">
+                  <i class="fa-solid fa-lock"></i>
+                </div>
+                <div class="lock-notice-content">
+                  <strong>Protected System Admin Account</strong>
+                  <p>This account is locked. Profile updates, password reset, and account deletion are disabled for the protected system administrator.</p>
+                </div>
+              </div>
+              {% endif %}
+
               <form action="{{ url_for('user.account') }}" method="POST" id="accountForm">
 
                 <div class="form-grid">
                   <div class="detail-group">
                     <label for="first_name">First Name</label>
-                    <div class="input-wrap">
+                    <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
                       <span class="input-icon"><i class="fa-regular fa-user"></i></span>
-                      <input type="text" id="first_name" name="first_name" value="{{ user.first_name or '' }}" required>
+                      <input
+                        type="text"
+                        id="first_name"
+                        name="first_name"
+                        value="{{ user.first_name or '' }}"
+                        {% if not is_system_admin %}required{% endif %}
+                        {% if is_system_admin %}readonly data-locked="true"{% endif %}>
                     </div>
                   </div>
 
                   <div class="detail-group">
                     <label for="last_name">Last Name</label>
-                    <div class="input-wrap">
+                    <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
                       <span class="input-icon"><i class="fa-regular fa-user"></i></span>
-                      <input type="text" id="last_name" name="last_name" value="{{ user.last_name or '' }}" required>
+                      <input
+                        type="text"
+                        id="last_name"
+                        name="last_name"
+                        value="{{ user.last_name or '' }}"
+                        {% if not is_system_admin %}required{% endif %}
+                        {% if is_system_admin %}readonly data-locked="true"{% endif %}>
                     </div>
                   </div>
 
                   <div class="detail-group">
                     <label for="email">Email Address</label>
-                    <div class="input-wrap">
+                    <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
                       <span class="input-icon"><i class="fa-regular fa-envelope"></i></span>
-                      <input type="email" id="email" name="email" value="{{ user.email or '' }}" required>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value="{{ user.email or '' }}"
+                        {% if not is_system_admin %}required{% endif %}
+                        {% if is_system_admin %}readonly data-locked="true"{% endif %}>
                     </div>
                   </div>
 
                   <div class="detail-group">
                     <label for="phone_number">Phone Number</label>
-                    <div class="input-wrap">
+                    <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
                       <span class="input-icon"><i class="fa-solid fa-phone"></i></span>
-                      <input type="text" id="phone_number" name="phone_number" value="{{ user.phone_number or '' }}">
+                      <input
+                        type="text"
+                        id="phone_number"
+                        name="phone_number"
+                        value="{{ user.phone_number or '' }}"
+                        {% if is_system_admin %}readonly data-locked="true"{% endif %}>
                     </div>
                   </div>
 
@@ -156,38 +193,62 @@
 
                   <div class="detail-group">
                     <label for="city">City</label>
-                    <div class="input-wrap">
+                    <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
                       <span class="input-icon"><i class="fa-solid fa-city"></i></span>
-                      <input type="text" id="city" name="city" value="{{ user.city or '' }}">
+                      <input
+                        type="text"
+                        id="city"
+                        name="city"
+                        value="{{ user.city or '' }}"
+                        {% if is_system_admin %}readonly data-locked="true"{% endif %}>
                     </div>
                   </div>
                 </div>
 
                 <div class="detail-group full-width">
                   <label for="address">Residential Address</label>
-                  <div class="input-wrap textarea-wrap">
+                  <div class="input-wrap textarea-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
                     <span class="input-icon textarea-icon"><i class="fa-solid fa-location-dot"></i></span>
-                    <textarea id="address" name="address" rows="4">{{ user.address or '' }}</textarea>
+                    <textarea
+                      id="address"
+                      name="address"
+                      rows="4"
+                      {% if is_system_admin %}readonly data-locked="true"{% endif %}>{{ user.address or '' }}</textarea>
                   </div>
                 </div>
 
                 <div class="account-tools">
+                  {% if is_system_admin %}
+                  <span class="secondary-link-btn disabled-link" aria-disabled="true">
+                    <i class="fa-solid fa-key"></i>
+                    <span>Reset Password Disabled</span>
+                  </span>
+                  {% else %}
                   <a href="{{ url_for('auth.password_reset') }}" class="secondary-link-btn">
                     <i class="fa-solid fa-key"></i>
                     <span>Reset Password</span>
                   </a>
+                  {% endif %}
                 </div>
 
                 <div class="button-group">
-                  <button type="submit" class="edit-btn" id="saveChangesBtn">
-                    <span class="btn-text">Save Changes</span>
+                  <button
+                    type="submit"
+                    class="edit-btn {% if is_system_admin %}locked-btn{% endif %}"
+                    id="saveChangesBtn"
+                    {% if is_system_admin %}disabled data-locked-action="true"{% endif %}>
+                    <span class="btn-text">{% if is_system_admin %}System Admin Locked{% else %}Save Changes{% endif %}</span>
                   </button>
                 </div>
               </form>
 
               <form action="{{ url_for('user.delete_account') }}" method="POST" class="delete-form" id="deleteAccountForm">
-                <button type="submit" class="delete-btn" id="deleteAccountBtn">
-                  <span class="btn-text">Delete My Account</span>
+                <button
+                  type="submit"
+                  class="delete-btn {% if is_system_admin %}locked-btn{% endif %}"
+                  id="deleteAccountBtn"
+                  {% if is_system_admin %}disabled data-locked-action="true"{% endif %}>
+                  <span class="btn-text">{% if is_system_admin %}Delete Disabled{% else %}Delete My Account{% endif %}</span>
                 </button>
               </form>
 

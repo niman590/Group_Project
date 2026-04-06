@@ -9,6 +9,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const emailInput = document.getElementById("email");
   const firstNameInput = document.getElementById("first_name");
 
+  const isSaveLocked = saveChangesBtn ? saveChangesBtn.hasAttribute("data-locked-action") : false;
+  const isDeleteLocked = deleteAccountBtn ? deleteAccountBtn.hasAttribute("data-locked-action") : false;
+
   function hideFlash(flash, duration = 250) {
     if (!flash) return;
     flash.style.transition = `opacity ${duration}ms ease, transform ${duration}ms ease`;
@@ -22,7 +25,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function setButtonLoading(button, loadingText) {
-    if (!button) return;
+    if (!button || button.disabled) return;
     button.classList.add("loading");
 
     const textNode = button.querySelector(".btn-text");
@@ -41,20 +44,25 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  if (phoneInput) {
+  if (phoneInput && !phoneInput.hasAttribute("readonly")) {
     phoneInput.addEventListener("input", function () {
       this.value = this.value.replace(/[^\d+]/g, "").slice(0, 15);
     });
   }
 
-  if (emailInput) {
+  if (emailInput && !emailInput.hasAttribute("readonly")) {
     emailInput.addEventListener("blur", function () {
       this.value = this.value.trim();
     });
   }
 
   if (accountForm) {
-    accountForm.addEventListener("submit", function () {
+    accountForm.addEventListener("submit", function (event) {
+      if (isSaveLocked) {
+        event.preventDefault();
+        return;
+      }
+
       trimFormFields();
       setButtonLoading(saveChangesBtn, "Saving...");
     });
@@ -62,6 +70,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   if (deleteAccountForm) {
     deleteAccountForm.addEventListener("submit", function (event) {
+      if (isDeleteLocked) {
+        event.preventDefault();
+        return;
+      }
+
       const confirmed = window.confirm("Are you sure you want to delete your account? This action cannot be undone.");
       if (!confirmed) {
         event.preventDefault();
@@ -88,7 +101,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.addEventListener("keydown", function (event) {
     const activeTag = document.activeElement ? document.activeElement.tagName : "";
-    if (event.key === "/" && firstNameInput && activeTag !== "INPUT" && activeTag !== "TEXTAREA") {
+    if (
+      event.key === "/" &&
+      firstNameInput &&
+      !firstNameInput.hasAttribute("readonly") &&
+      activeTag !== "INPUT" &&
+      activeTag !== "TEXTAREA"
+    ) {
       event.preventDefault();
       firstNameInput.focus();
     }
