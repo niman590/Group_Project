@@ -1,4 +1,4 @@
-from flask import Blueprint, request, session, jsonify
+from flask import Blueprint, request, session, jsonify, url_for
 from database.db_connection import get_connection
 from werkzeug.security import generate_password_hash
 import random
@@ -8,6 +8,23 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 password_reset_bp = Blueprint("password_reset", __name__)
+
+
+def _is_logged_in_user():
+    return session.get("user_id") is not None or session.get("admin_id") is not None
+
+
+@password_reset_bp.app_context_processor
+def inject_password_reset_context():
+    reset_logged_in = _is_logged_in_user()
+    reset_back_url = url_for("user.account") if reset_logged_in else url_for("auth.login")
+    reset_back_text = "Back to My Account" if reset_logged_in else "Back to Login"
+
+    return {
+        "reset_logged_in": reset_logged_in,
+        "reset_back_url": reset_back_url,
+        "reset_back_text": reset_back_text,
+    }
 
 
 # EMAIL SENDER
@@ -20,7 +37,6 @@ def send_otp_email(to_email, first_name, otp):
     msg["To"] = to_email
     msg["Subject"] = "Password Reset OTP - Civic Plan"
 
-    # Plain text fallback
     text_body = f"""Hello {first_name},
 
 Forgot your password?
@@ -36,7 +52,6 @@ Civic Plan Team
 This is an automated email from Civic Plan Team.
 """
 
-    # HTML email with banner
     html_body = f"""
     <html>
     <body style="margin:0; padding:0; font-family:Arial, sans-serif; background-color:#f4f6f8;">
@@ -119,9 +134,8 @@ def send_otp():
     otp = str(random.randint(100000, 999999))
     expiry = datetime.now() + timedelta(minutes=5)
 
-    first_name = user[1]  # adjust index if needed
+    first_name = user[1]
 
-    # store in session
     session["reset_email"] = email
     session["reset_otp"] = otp
     session["otp_expiry"] = expiry.strftime("%Y-%m-%d %H:%M:%S")
@@ -182,7 +196,6 @@ def reset_password():
     conn.commit()
     conn.close()
 
-    # clear session
     session.pop("reset_email", None)
     session.pop("reset_otp", None)
     session.pop("otp_expiry", None)

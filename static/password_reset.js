@@ -12,6 +12,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const strengthText = document.getElementById("passwordStrengthText");
   const passwordToggles = document.querySelectorAll(".password-toggle");
 
+  const pageLoggedIn = document.body.dataset.resetLoggedIn === "true";
+  const returnUrl = document.body.dataset.resetReturnUrl || "/login";
+
   function showMessage(message, type = "error") {
     formMessage.textContent = message;
     formMessage.className = `form-message ${type}`;
@@ -188,7 +191,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.success) {
           showMessage("Password reset successful!", "success");
           setTimeout(() => {
-            window.location.href = "/login";
+            window.location.href = pageLoggedIn ? returnUrl : "/login";
           }, 1200);
         } else {
           showMessage(data.message || "Error resetting password", "error");
