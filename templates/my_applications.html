@@ -7,162 +7,8 @@
     <title>My Applications</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='my_applications.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <style>
-        body {
-            margin: 0;
-            background: #f4f7fb;
-            color: #1f2937;
-        }
-
-        .dashboard-shell {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .main-content {
-            flex: 1;
-            min-width: 0;
-            padding: 28px;
-        }
-
-        .page-header {
-            background: white;
-            border: 1px solid #d8e3f3;
-            border-radius: 18px;
-            padding: 22px 24px;
-            margin-bottom: 24px;
-        }
-
-        .page-header h1 {
-            color: #123f88;
-            margin: 0 0 8px;
-            font-size: 2rem;
-        }
-
-        .page-header p {
-            margin: 0;
-            color: #64748b;
-        }
-
-        .panel {
-            background: white;
-            border: 1px solid #d8e3f3;
-            border-radius: 18px;
-            padding: 22px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
-        }
-
-        .table-wrap {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 14px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-            vertical-align: top;
-        }
-
-        th {
-            background: #eef3fa;
-            color: #123f88;
-            white-space: nowrap;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 8px 12px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .status-draft {
-            background: #fff4dc;
-            color: #b97700;
-        }
-
-        .status-submitted {
-            background: #e8f1ff;
-            color: #1c4b9c;
-        }
-
-        .status-approved {
-            background: #e9f8ef;
-            color: #1d7d3c;
-        }
-
-        .status-rejected {
-            background: #fdecec;
-            color: #b03030;
-        }
-
-        .status-other {
-            background: #eef3fa;
-            color: #334155;
-        }
-
-        .action-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-width: 180px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 10px 12px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 13px;
-            text-align: center;
-        }
-
-        .btn-edit {
-            background: #123f88;
-            color: white;
-        }
-
-        .btn-pdf {
-            background: #1d7d3c;
-            color: white;
-        }
-
-        .comment-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 10px 12px;
-            color: #475569;
-            line-height: 1.5;
-            min-width: 220px;
-        }
-
-        .empty {
-            padding: 18px 14px;
-            color: #64748b;
-            text-align: center;
-        }
-
-        @media (max-width: 860px) {
-            .main-content {
-                padding: 18px;
-            }
-
-            .page-header h1 {
-                font-size: 1.7rem;
-            }
-        }
-    </style>
 </head>
 
 <body>
@@ -170,14 +16,31 @@
         {% include 'partials/user_sidebar.html' %}
 
         <main class="main-content">
-            <div class="page-header">
-                <h1>My Applications</h1>
-                <p>Track your planning applications, review status updates, and download decision documents.</p>
-            </div>
+            <section class="page-hero reveal-up">
+                <div class="page-hero-content">
+                    <span class="page-kicker">Citizen Services</span>
+                    <h1>My Applications</h1>
+                    <p>Track your planning applications, review current progress, read admin comments, and download final decision documents.</p>
+                </div>
 
-            <div class="panel">
+                <div class="page-hero-meta">
+                    <div class="hero-stat-card">
+                        <span class="hero-stat-label">Total Records</span>
+                        <strong>{{ applications|length }}</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="applications-panel reveal-up">
+                <div class="panel-header">
+                    <div>
+                        <h2>Application History</h2>
+                        <p>Review the latest status of each planning application submitted through your account.</p>
+                    </div>
+                </div>
+
                 <div class="table-wrap">
-                    <table>
+                    <table class="applications-table">
                         <thead>
                             <tr>
                                 <th>Application ID</th>
@@ -191,8 +54,14 @@
                         </thead>
                         <tbody>
                             {% for app in applications %}
-                            <tr>
-                                <td>{{ app['application_id'] }}</td>
+                            <tr class="application-row">
+                                <td>
+                                    <div class="application-id-cell">
+                                        <span class="id-label">#</span>
+                                        <strong>{{ app['application_id'] }}</strong>
+                                    </div>
+                                </td>
+
                                 <td>
                                     {% if app['status'] == 'Draft' %}
                                     <span class="status-badge status-draft">Draft</span>
@@ -206,43 +75,67 @@
                                     <span class="status-badge status-other">{{ app['status'] }}</span>
                                     {% endif %}
                                 </td>
-                                <td>Step {{ app['current_step'] }}</td>
+
+                                <td>
+                                    <span class="step-pill">Step {{ app['current_step'] }}</span>
+                                </td>
+
                                 <td>
                                     <div class="comment-box">
                                         {{ app['admin_comment'] if app['admin_comment'] else 'No admin comment yet.' }}
                                     </div>
                                 </td>
-                                <td>{{ app['created_at'] }}</td>
-                                <td>{{ app['updated_at'] }}</td>
+
+                                <td>
+                                    <span class="date-text">{{ app['created_at'] }}</span>
+                                </td>
+
+                                <td>
+                                    <span class="date-text">{{ app['updated_at'] }}</span>
+                                </td>
+
                                 <td>
                                     <div class="action-stack">
                                         {% if app['status'] == 'Draft' %}
-                                        <a class="btn btn-edit"
+                                        <a class="btn btn-edit action-btn"
                                             href="{{ url_for('submit_documents.edit_planning_draft', application_id=app['application_id']) }}">
-                                            Edit Draft
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                            <span>Edit Draft</span>
                                         </a>
                                         {% endif %}
 
                                         {% if app['status'] in ['Approved', 'Rejected'] and app['decision_pdf_path'] %}
-                                        <a class="btn btn-pdf"
+                                        <a class="btn btn-pdf action-btn"
                                             href="{{ url_for('submit_documents.download_decision_pdf', application_id=app['application_id']) }}">
-                                            Download PDF
+                                            <i class="fa-solid fa-file-pdf"></i>
+                                            <span>Download PDF</span>
                                         </a>
+                                        {% endif %}
+
+                                        {% if app['status'] != 'Draft' and not (app['status'] in ['Approved', 'Rejected'] and app['decision_pdf_path']) %}
+                                        <span class="no-action-text">No actions available</span>
                                         {% endif %}
                                     </div>
                                 </td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="7" class="empty">No applications found.</td>
+                                <td colspan="7" class="empty">
+                                    <div class="empty-state">
+                                        <i class="fa-regular fa-folder-open"></i>
+                                        <p>No applications found.</p>
+                                    </div>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </section>
         </main>
     </div>
+
+    <script src="{{ url_for('static', filename='my_applications.js') }}"></script>
 </body>
 
 </html>
