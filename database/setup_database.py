@@ -15,7 +15,14 @@ def get_connection():
 
 def get_existing_columns(cursor, table_name):
     cursor.execute(f"PRAGMA table_info({table_name})")
-    return [row["name"] if isinstance(row, sqlite3.Row) else row[1] for row in cursor.fetchall()]
+    rows = cursor.fetchall()
+    columns = []
+    for row in rows:
+        if isinstance(row, sqlite3.Row):
+            columns.append(row["name"])
+        else:
+            columns.append(row[1])
+    return columns
 
 
 def add_column_if_missing(cursor, table_name, column_name, column_definition):
@@ -25,9 +32,6 @@ def add_column_if_missing(cursor, table_name, column_name, column_definition):
 
 
 def create_tables(cursor):
-    # =========================
-    # USERS
-    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,9 +54,6 @@ def create_tables(cursor):
     add_column_if_missing(cursor, "users", "employee_id", "TEXT")
     add_column_if_missing(cursor, "users", "is_active", "BOOLEAN DEFAULT 1")
 
-    # =========================
-    # PROPERTY
-    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS property (
         property_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,9 +66,6 @@ def create_tables(cursor):
     );
     """)
 
-    # =========================
-    # TRANSACTION HISTORY
-    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS transaction_history (
         transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,9 +76,6 @@ def create_tables(cursor):
     );
     """)
 
-    # =========================
-    # VALUE PREDICTION
-    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS value_prediction (
         prediction_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -91,9 +86,6 @@ def create_tables(cursor):
     );
     """)
 
-    # =========================
-    # REPORT
-    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS report (
         report_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -106,9 +98,6 @@ def create_tables(cursor):
     );
     """)
 
-    # =========================
-    # LAND RECORD
-    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS land_record (
         land_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -120,9 +109,6 @@ def create_tables(cursor):
     );
     """)
 
-    # =========================
-    # OWNERSHIP HISTORY
-    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS ownership_history (
         history_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -139,9 +125,6 @@ def create_tables(cursor):
     );
     """)
 
-    # =========================
-    # TRANSACTION HISTORY UPDATE REQUEST
-    # =========================
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS transaction_history_update_request (
         request_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -165,10 +148,6 @@ def create_tables(cursor):
     );
     """)
 
-    # =========================================================
-    # NEW PLANNING APPROVAL TABLES
-    # =========================================================
-
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS planning_applications (
         application_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -177,8 +156,69 @@ def create_tables(cursor):
         current_step INTEGER DEFAULT 1,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        reviewed_by INTEGER,
+        reviewed_at TEXT,
+        admin_comment TEXT,
+        decision_pdf_path TEXT,
+        workflow_stage TEXT DEFAULT 'Submitted',
+        site_visit_required INTEGER DEFAULT 1,
+        site_visit_status TEXT DEFAULT 'Pending',
+        additional_docs_required INTEGER DEFAULT 0,
+        first_officer_decision TEXT,
+        first_officer_comment TEXT,
+        first_officer_by INTEGER,
+        first_officer_at TEXT,
+        deputy_director_decision TEXT,
+        deputy_director_comment TEXT,
+        deputy_director_by INTEGER,
+        deputy_director_at TEXT,
+        committee_decision TEXT,
+        committee_comment TEXT,
+        committee_by INTEGER,
+        committee_at TEXT,
         FOREIGN KEY (user_id) REFERENCES users(user_id)
     );
+    """)
+
+    # IMPORTANT: add missing columns for existing databases
+    add_column_if_missing(cursor, "planning_applications", "reviewed_by", "INTEGER")
+    add_column_if_missing(cursor, "planning_applications", "reviewed_at", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "admin_comment", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "decision_pdf_path", "TEXT")
+
+    add_column_if_missing(cursor, "planning_applications", "workflow_stage", "TEXT DEFAULT 'Submitted'")
+    add_column_if_missing(cursor, "planning_applications", "site_visit_required", "INTEGER DEFAULT 1")
+    add_column_if_missing(cursor, "planning_applications", "site_visit_status", "TEXT DEFAULT 'Pending'")
+    add_column_if_missing(cursor, "planning_applications", "additional_docs_required", "INTEGER DEFAULT 0")
+    add_column_if_missing(cursor, "planning_applications", "first_officer_decision", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "first_officer_comment", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "first_officer_by", "INTEGER")
+    add_column_if_missing(cursor, "planning_applications", "first_officer_at", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "deputy_director_decision", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "deputy_director_comment", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "deputy_director_by", "INTEGER")
+    add_column_if_missing(cursor, "planning_applications", "deputy_director_at", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "committee_decision", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "committee_comment", "TEXT")
+    add_column_if_missing(cursor, "planning_applications", "committee_by", "INTEGER")
+    add_column_if_missing(cursor, "planning_applications", "committee_at", "TEXT")
+
+    cursor.execute("""
+        UPDATE planning_applications
+        SET workflow_stage = 'Submitted'
+        WHERE workflow_stage IS NULL
+    """)
+
+    cursor.execute("""
+        UPDATE planning_applications
+        SET site_visit_status = 'Pending'
+        WHERE site_visit_status IS NULL
+    """)
+
+    cursor.execute("""
+        UPDATE planning_applications
+        SET additional_docs_required = 0
+        WHERE additional_docs_required IS NULL
     """)
 
     cursor.execute("""
@@ -329,10 +369,68 @@ def create_tables(cursor):
     );
     """)
 
-    add_column_if_missing(cursor, "planning_applications", "reviewed_by", "INTEGER")
-    add_column_if_missing(cursor, "planning_applications", "reviewed_at", "TEXT")
-    add_column_if_missing(cursor, "planning_applications", "admin_comment", "TEXT")
-    add_column_if_missing(cursor, "planning_applications", "decision_pdf_path", "TEXT")
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_requests (
+        request_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        application_id INTEGER NOT NULL,
+        requested_by INTEGER NOT NULL,
+        request_type TEXT NOT NULL,
+        request_title TEXT NOT NULL,
+        request_message TEXT NOT NULL,
+        status TEXT DEFAULT 'Open',
+        requested_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        resolved_at TEXT,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id),
+        FOREIGN KEY (requested_by) REFERENCES users(user_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_requested_documents (
+        requested_doc_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        request_id INTEGER NOT NULL,
+        application_id INTEGER NOT NULL,
+        document_label TEXT NOT NULL,
+        is_required INTEGER DEFAULT 1,
+        uploaded_file_name TEXT,
+        uploaded_file_path TEXT,
+        uploaded_at TEXT,
+        uploaded_by_user_id INTEGER,
+        status TEXT DEFAULT 'Pending',
+        FOREIGN KEY (request_id) REFERENCES planning_application_requests(request_id),
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id),
+        FOREIGN KEY (uploaded_by_user_id) REFERENCES users(user_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS planning_application_workflow_history (
+        history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        application_id INTEGER NOT NULL,
+        stage_name TEXT NOT NULL,
+        action_taken TEXT NOT NULL,
+        comment TEXT,
+        acted_by INTEGER,
+        acted_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id),
+        FOREIGN KEY (acted_by) REFERENCES users(user_id)
+    );
+    """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS user_notifications (
+        notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        application_id INTEGER,
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        notification_type TEXT DEFAULT 'info',
+        is_read INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        FOREIGN KEY (application_id) REFERENCES planning_applications(application_id)
+    );
+    """)
 
 
 def create_indexes(cursor):
@@ -394,6 +492,10 @@ def create_indexes(cursor):
         ON planning_applications(status)
     """)
     cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_planning_applications_workflow_stage
+        ON planning_applications(workflow_stage)
+    """)
+    cursor.execute("""
         CREATE INDEX IF NOT EXISTS idx_planning_app_summary_assessment_no
         ON planning_application_summary(assessment_no)
     """)
@@ -412,6 +514,26 @@ def create_indexes(cursor):
     cursor.execute("""
         CREATE INDEX IF NOT EXISTS idx_planning_app_attachments_application_id
         ON planning_application_attachments(application_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_planning_app_requests_application_id
+        ON planning_application_requests(application_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_planning_requested_docs_application_id
+        ON planning_application_requested_documents(application_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_workflow_history_application_id
+        ON planning_application_workflow_history(application_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_user_notifications_user_id
+        ON user_notifications(user_id)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_user_notifications_is_read
+        ON user_notifications(is_read)
     """)
 
 

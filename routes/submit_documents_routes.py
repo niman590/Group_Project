@@ -6,7 +6,10 @@ from database.db_connection import get_connection
 submit_documents_bp = Blueprint("submit_documents", __name__)
 
 UPLOAD_FOLDER = "static/uploads/planning_documents"
+REQUESTED_DOCS_FOLDER = "static/uploads/requested_planning_documents"
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(REQUESTED_DOCS_FOLDER, exist_ok=True)
 
 
 def get_or_create_draft_application(user_id):
@@ -26,14 +29,26 @@ def get_or_create_draft_application(user_id):
         application_id = row["application_id"] if hasattr(row, "keys") else row[0]
     else:
         cursor.execute("""
-            INSERT INTO planning_applications (user_id, status, current_step)
-            VALUES (?, 'Draft', 1)
+            INSERT INTO planning_applications (user_id, status, current_step, workflow_stage)
+            VALUES (?, 'Draft', 1, 'Submitted')
         """, (user_id,))
         application_id = cursor.lastrowid
         conn.commit()
 
     conn.close()
     return application_id
+
+
+def create_user_notification(cursor, user_id, application_id, title, message, notification_type="info"):
+    cursor.execute(
+        """
+        INSERT INTO user_notifications (
+            user_id, application_id, title, message, notification_type, is_read
+        )
+        VALUES (?, ?, ?, ?, ?, 0)
+        """,
+        (user_id, application_id, title, message, notification_type),
+    )
 
 
 @submit_documents_bp.route("/submit-documents", methods=["GET"])
@@ -315,7 +330,6 @@ def get_planning_draft():
     if not user_id:
         return jsonify({"success": False, "message": "User not logged in"}), 401
 
-    # Optional edit specific draft/application
     application_id = request.args.get("application_id", type=int)
 
     conn = get_connection()
@@ -355,11 +369,7 @@ def get_planning_draft():
     row = cursor.fetchone()
     if row:
         draft["step1"] = dict(row)
-        cursor.execute("""
-            SELECT proposed_use
-            FROM planning_application_proposed_uses
-            WHERE application_id = ?
-        """, (application_id,))
+        cursor.execute("SELECT proposed_use FROM planning_application_proposed_uses WHERE application_id = ?", (application_id,))
         draft["step1"]["proposed_use"] = [r["proposed_use"] if hasattr(r, "keys") else r[0] for r in cursor.fetchall()]
 
     cursor.execute("""
@@ -406,11 +416,7 @@ def get_planning_draft():
     if row:
         draft["step9"] = dict(row)
 
-    cursor.execute("""
-        SELECT plan_name
-        FROM planning_application_submitted_plans
-        WHERE application_id = ?
-    """, (application_id,))
+    cursor.execute("SELECT plan_name FROM planning_application_submitted_plans WHERE application_id = ?", (application_id,))
     rows = cursor.fetchall()
     if rows:
         draft["step10"] = [r["plan_name"] if hasattr(r, "keys") else r[0] for r in rows]
@@ -445,9 +451,20 @@ def submit_planning_application():
 
     cursor.execute("""
         UPDATE planning_applications
-        SET status = 'Submitted', updated_at = CURRENT_TIMESTAMP
+        SET status = 'Submitted',
+            workflow_stage = 'Submitted',
+            updated_at = CURRENT_TIMESTAMP
         WHERE application_id = ?
     """, (application_id,))
+
+    create_user_notification(
+        cursor,
+        user_id,
+        application_id,
+        "Application submitted",
+        "Your planning application has been submitted successfully.",
+        "success",
+    )
 
     conn.commit()
     conn.close()
@@ -462,22 +479,153 @@ def submit_planning_application():
 def my_applications():
     user_id = session.get("user_id")
     if not user_id:
-        return render_template("my_applications.html", applications=[])
+        return render_template("my_applications.html", applications=[], notifications=[])
 
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT application_id, status, current_step, created_at, updated_at,
-               admin_comment, decision_pdf_path
+               admin_comment, decision_pdf_path, workflow_stage,
+               site_visit_status, additional_docs_required,
+               first_officer_decision, deputy_director_decision, committee_decision
         FROM planning_applications
         WHERE user_id = ?
         ORDER BY application_id DESC
     """, (user_id,))
     applications = cursor.fetchall()
 
+    cursor.execute("""
+        SELECT *
+        FROM user_notifications
+        WHERE user_id = ?
+        ORDER BY created_at DESC, notification_id DESC
+        LIMIT 50
+    """, (user_id,))
+    notifications = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT *
+        FROM planning_application_requested_documents rd
+        JOIN planning_application_requests r ON rd.request_id = r.request_id
+        WHERE rd.uploaded_by_user_id IS NULL
+          AND rd.application_id IN (
+              SELECT application_id FROM planning_applications WHERE user_id = ?
+          )
+        ORDER BY rd.requested_doc_id DESC
+    """, (user_id,))
+    requested_documents = cursor.fetchall()
+
     conn.close()
-    return render_template("my_applications.html", applications=applications, active_page="my_applications")
+    return render_template(
+        "my_applications.html",
+        applications=applications,
+        notifications=notifications,
+        requested_documents=requested_documents,
+        active_page="my_applications",
+    )
+
+
+@submit_documents_bp.route("/upload-requested-document/<int:requested_doc_id>", methods=["POST"])
+def upload_requested_document(requested_doc_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Please log in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    uploaded_file = request.files.get("requested_document")
+    if not uploaded_file or not uploaded_file.filename:
+        flash("Please choose a file to upload.", "warning")
+        return redirect(url_for("submit_documents.my_applications"))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT rd.*, pa.user_id
+        FROM planning_application_requested_documents rd
+        JOIN planning_applications pa ON rd.application_id = pa.application_id
+        WHERE rd.requested_doc_id = ?
+        """, (requested_doc_id,))
+    row = cursor.fetchone()
+
+    if not row or row["user_id"] != user_id:
+        conn.close()
+        flash("Requested document record not found.", "error")
+        return redirect(url_for("submit_documents.my_applications"))
+
+    application_id = row["application_id"]
+
+    folder = os.path.join(REQUESTED_DOCS_FOLDER, str(application_id))
+    os.makedirs(folder, exist_ok=True)
+
+    filename = secure_filename(uploaded_file.filename)
+    save_path = os.path.join(folder, filename)
+    uploaded_file.save(save_path)
+
+    cursor.execute("""
+        UPDATE planning_application_requested_documents
+        SET uploaded_file_name = ?,
+            uploaded_file_path = ?,
+            uploaded_at = CURRENT_TIMESTAMP,
+            uploaded_by_user_id = ?,
+            status = 'Uploaded'
+        WHERE requested_doc_id = ?
+    """, (filename, save_path, user_id, requested_doc_id))
+
+    cursor.execute("""
+        UPDATE planning_applications
+        SET updated_at = CURRENT_TIMESTAMP
+        WHERE application_id = ?
+    """, (application_id,))
+
+    create_user_notification(
+        cursor,
+        user_id,
+        application_id,
+        "Requested document uploaded",
+        f"You uploaded: {row['document_label']}",
+        "success",
+    )
+
+    conn.commit()
+    conn.close()
+
+    flash("Requested document uploaded successfully.", "success")
+    return redirect(url_for("submit_documents.my_applications"))
+
+
+@submit_documents_bp.route("/notifications", methods=["GET"])
+def user_notifications():
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Please log in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM user_notifications
+        WHERE user_id = ?
+        ORDER BY created_at DESC, notification_id DESC
+    """, (user_id,))
+    notifications = cursor.fetchall()
+
+    cursor.execute("""
+        UPDATE user_notifications
+        SET is_read = 1
+        WHERE user_id = ?
+    """, (user_id,))
+    conn.commit()
+    conn.close()
+
+    return render_template(
+        "user_notifications.html",
+        notifications=notifications,
+        active_page="notifications",
+    )
 
 
 @submit_documents_bp.route("/edit-planning-draft/<int:application_id>", methods=["GET"])
