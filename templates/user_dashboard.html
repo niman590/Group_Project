@@ -18,16 +18,17 @@
         <main class="main-content">
 
             <header class="topbar">
-                <div>
+                <div class="topbar-copy">
+                    <span class="page-kicker">Citizen Dashboard</span>
                     <h1>Welcome back, {{ user['first_name'] if user and user['first_name'] else 'User' }}</h1>
-                    <p>Manage your land records, planning approvals, and citizen services.</p>
+                    <p>Manage your land records, planning approvals, valuation insights, and citizen services from one place.</p>
                 </div>
 
                 <div class="topbar-actions">
-                    <button class="icon-btn" type="button" aria-label="Notifications">
+                    <button class="icon-btn" type="button" aria-label="Notifications" title="Notifications">
                         <i class="fa-solid fa-bell"></i>
                     </button>
-                    <button class="icon-btn" type="button" aria-label="Settings">
+                    <button class="icon-btn" type="button" aria-label="Settings" title="Settings">
                         <i class="fa-solid fa-gear"></i>
                     </button>
 
@@ -47,7 +48,7 @@
             </header>
 
             <section class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card reveal-up">
                     <div class="stat-icon blue"><i class="fa-solid fa-file-circle-check"></i></div>
                     <div>
                         <h3>{{ stats.total_applications }}</h3>
@@ -55,7 +56,7 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card reveal-up">
                     <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
                     <div>
                         <h3>{{ stats.approved_cases }}</h3>
@@ -63,7 +64,7 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card reveal-up">
                     <div class="stat-icon orange"><i class="fa-solid fa-hourglass-half"></i></div>
                     <div>
                         <h3>{{ stats.pending_reviews }}</h3>
@@ -71,7 +72,7 @@
                     </div>
                 </div>
 
-                <div class="stat-card">
+                <div class="stat-card reveal-up">
                     <div class="stat-icon red"><i class="fa-solid fa-bell"></i></div>
                     <div>
                         <h3>{{ stats.alerts_count }}</h3>
@@ -81,26 +82,26 @@
             </section>
 
             <section class="action-grid">
-                <a href="{{ url_for('submit_documents.submit_documents') }}" class="action-card">
-                    <i class="fa-solid fa-file-arrow-up"></i>
+                <a href="{{ url_for('submit_documents.submit_documents') }}" class="action-card reveal-up">
+                    <div class="action-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
                     <h3>Submit Planning Documents</h3>
                     <p>Upload new planning approval files and supporting documents.</p>
                 </a>
 
-                <a href="{{ url_for('submit_documents.my_applications') }}" class="action-card">
-                    <i class="fa-solid fa-folder-open"></i>
+                <a href="{{ url_for('submit_documents.my_applications') }}" class="action-card reveal-up">
+                    <div class="action-icon"><i class="fa-solid fa-folder-open"></i></div>
                     <h3>Track My Applications</h3>
-                    <p>Monitor review progress, approvals, rejections, and updates.</p>
+                    <p>Monitor review progress, approvals, rejections, and status updates.</p>
                 </a>
 
-                <a href="{{ url_for('transaction_history.transaction_history_page') }}" class="action-card">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
+                <a href="{{ url_for('transaction_history.transaction_history_page') }}" class="action-card reveal-up">
+                    <div class="action-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
                     <h3>View Land Transaction History</h3>
                     <p>See past transactions and ownership changes.</p>
                 </a>
 
-                <a href="{{ url_for('prediction.land_valuation_page') }}" class="action-card">
-                    <i class="fa-solid fa-chart-line"></i>
+                <a href="{{ url_for('prediction.land_valuation_page') }}" class="action-card reveal-up">
+                    <div class="action-icon"><i class="fa-solid fa-chart-line"></i></div>
                     <h3>Check Land Value</h3>
                     <p>View current land value and estimated future trends.</p>
                 </a>
@@ -109,9 +110,12 @@
             <section class="content-grid">
                 <div class="left-column">
 
-                    <div class="panel">
+                    <div class="panel reveal-up">
                         <div class="panel-header">
-                            <h2>Pending Requests & Alerts</h2>
+                            <div>
+                                <h2>Pending Requests & Alerts</h2>
+                                <p class="panel-subtext">Recent alerts and important activity related to your account.</p>
+                            </div>
                             <a href="{{ url_for('submit_documents.my_applications') }}">View all</a>
                         </div>
 
@@ -119,7 +123,7 @@
                             {% if alerts %}
                             {% for alert in alerts %}
                             <div class="alert-item {{ alert.type }}">
-                                <div>
+                                <div class="alert-copy">
                                     <h4>{{ alert.title }}</h4>
                                     <p>{{ alert.message }}</p>
                                 </div>
@@ -128,7 +132,7 @@
                             {% endfor %}
                             {% else %}
                             <div class="alert-item info">
-                                <div>
+                                <div class="alert-copy">
                                     <h4>No alerts right now</h4>
                                     <p>You do not have any active application or property alerts yet.</p>
                                 </div>
@@ -138,9 +142,12 @@
                         </div>
                     </div>
 
-                    <div class="panel">
+                    <div class="panel reveal-up">
                         <div class="panel-header">
-                            <h2>My Property Records</h2>
+                            <div>
+                                <h2>My Property Records</h2>
+                                <p class="panel-subtext">Property details and ownership records linked to your account.</p>
+                            </div>
                             {% if gis_map_url %}
                             <a href="{{ gis_map_url }}" target="_blank">Open records</a>
                             {% else %}
@@ -170,8 +177,7 @@
                                     {% endfor %}
                                     {% else %}
                                     <tr>
-                                        <td colspan="4" class="empty-cell">No real property records found for this
-                                            account yet.</td>
+                                        <td colspan="4" class="empty-cell">No real property records found for this account yet.</td>
                                     </tr>
                                     {% endif %}
                                 </tbody>
@@ -179,9 +185,12 @@
                         </div>
                     </div>
 
-                    <div class="panel">
+                    <div class="panel reveal-up">
                         <div class="panel-header">
-                            <h2>Application History</h2>
+                            <div>
+                                <h2>Application History</h2>
+                                <p class="panel-subtext">Your latest submissions and review outcomes.</p>
+                            </div>
                             <a href="{{ url_for('submit_documents.my_applications') }}">Full history</a>
                         </div>
 
@@ -219,9 +228,12 @@
 
                 <div class="right-column">
 
-                    <div class="panel">
+                    <div class="panel reveal-up">
                         <div class="panel-header">
-                            <h2>Profile Summary</h2>
+                            <div>
+                                <h2>Profile Summary</h2>
+                                <p class="panel-subtext">A quick overview of your registered account information.</p>
+                            </div>
                             <a href="{{ url_for('user.account') }}">Edit</a>
                         </div>
 
@@ -241,9 +253,12 @@
                         </div>
                     </div>
 
-                    <div class="panel">
+                    <div class="panel reveal-up">
                         <div class="panel-header">
-                            <h2>Land Valuation</h2>
+                            <div>
+                                <h2>Land Valuation</h2>
+                                <p class="panel-subtext">Latest saved valuation summary and estimated trend direction.</p>
+                            </div>
                             <a href="{{ url_for('prediction.land_valuation_page') }}">Open module</a>
                         </div>
 
@@ -282,9 +297,12 @@
                         </div>
                     </div>
 
-                    <div class="panel">
+                    <div class="panel reveal-up">
                         <div class="panel-header">
-                            <h2>Support Documents</h2>
+                            <div>
+                                <h2>Support Documents</h2>
+                                <p class="panel-subtext">Helpful documents, guides, and reference files.</p>
+                            </div>
                             <a href="/support-documents">All files</a>
                         </div>
 
@@ -306,7 +324,7 @@
         </main>
     </div>
 
-    <button class="chatbot-button" id="chatbotButton" onclick="toggleChat()" aria-label="Open AI Assistant">
+    <button class="chatbot-button" id="chatbotButton" aria-label="Open AI Assistant">
         <i class="fa-solid fa-comment-dots"></i>
     </button>
 
@@ -316,238 +334,22 @@
                 <i class="fa-solid fa-robot"></i>
                 <span>AI Assistant</span>
             </div>
-            <button type="button" class="chatbot-close" onclick="toggleChat()">×</button>
+            <button type="button" class="chatbot-close" id="chatbotCloseBtn" aria-label="Close assistant">×</button>
         </div>
 
         <div class="chatbot-messages" id="chatMessages">
             <div class="bot-msg">
-                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site
-                navigation.
+                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site navigation.
             </div>
         </div>
 
         <div class="chatbot-input">
             <input type="text" id="chatInput" placeholder="Ask something..." />
-            <button type="button" onclick="sendMessage()">Send</button>
+            <button type="button" id="chatSendBtn">Send</button>
         </div>
     </div>
 
-    <script>
-        const chatbotButton = document.getElementById("chatbotButton");
-        const chatbotBox = document.getElementById("chatbotBox");
-        const chatInput = document.getElementById("chatInput");
-
-        let isDragging = false;
-        let hasMoved = false;
-        let dragOffsetX = 0;
-        let dragOffsetY = 0;
-
-        function clamp(value, min, max) {
-            return Math.min(Math.max(value, min), max);
-        }
-
-        function positionChatBox() {
-            const buttonRect = chatbotButton.getBoundingClientRect();
-            const boxWidth = chatbotBox.offsetWidth || 360;
-            const boxHeight = chatbotBox.offsetHeight || 500;
-            const gap = 12;
-
-            let left = buttonRect.right - boxWidth;
-            let top = buttonRect.top - boxHeight - gap;
-
-            left = clamp(left, 12, window.innerWidth - boxWidth - 12);
-
-            if (top < 12) {
-                top = buttonRect.bottom + gap;
-            }
-
-            top = clamp(top, 12, window.innerHeight - boxHeight - 12);
-
-            chatbotBox.style.left = `${left}px`;
-            chatbotBox.style.top = `${top}px`;
-            chatbotBox.style.right = "auto";
-            chatbotBox.style.bottom = "auto";
-        }
-
-        function toggleChat(forceState) {
-            const shouldOpen = typeof forceState === "boolean"
-                ? forceState
-                : chatbotBox.style.display !== "flex";
-
-            if (!shouldOpen) {
-                chatbotBox.style.display = "none";
-                return;
-            }
-
-            chatbotBox.style.display = "flex";
-            positionChatBox();
-            chatInput.focus();
-        }
-
-        function startDrag(clientX, clientY) {
-            const rect = chatbotButton.getBoundingClientRect();
-            isDragging = true;
-            hasMoved = false;
-            dragOffsetX = clientX - rect.left;
-            dragOffsetY = clientY - rect.top;
-            chatbotButton.classList.add("dragging");
-        }
-
-        function moveButton(clientX, clientY) {
-            if (!isDragging) return;
-
-            const maxLeft = window.innerWidth - chatbotButton.offsetWidth - 12;
-            const maxTop = window.innerHeight - chatbotButton.offsetHeight - 12;
-            const nextLeft = clamp(clientX - dragOffsetX, 12, maxLeft);
-            const nextTop = clamp(clientY - dragOffsetY, 12, maxTop);
-
-            chatbotButton.style.left = `${nextLeft}px`;
-            chatbotButton.style.top = `${nextTop}px`;
-            chatbotButton.style.right = "auto";
-            chatbotButton.style.bottom = "auto";
-
-            hasMoved = true;
-
-            if (chatbotBox.style.display === "flex") {
-                positionChatBox();
-            }
-        }
-
-        function endDrag() {
-            if (!isDragging) return;
-            chatbotButton.classList.remove("dragging");
-            isDragging = false;
-        }
-
-        function saveDashboardScroll() {
-            sessionStorage.setItem("dashboardScrollY", String(window.scrollY));
-        }
-
-        function restoreDashboardScroll() {
-            const savedY = sessionStorage.getItem("dashboardScrollY");
-            if (savedY !== null) {
-                window.scrollTo(0, parseInt(savedY, 10) || 0);
-            }
-        }
-
-        function shouldRefreshOnReturn() {
-            if (chatbotBox.style.display === "flex") return false;
-            if (document.activeElement === chatInput) return false;
-            return true;
-        }
-
-        function refreshDashboardOnReturn() {
-            if (!shouldRefreshOnReturn()) return;
-
-            const alreadyRefreshed = sessionStorage.getItem("dashboardReturnRefreshDone");
-            if (alreadyRefreshed === "1") return;
-
-            sessionStorage.setItem("dashboardReturnRefreshDone", "1");
-            saveDashboardScroll();
-            window.location.reload();
-        }
-
-        chatbotButton.addEventListener("mousedown", function (e) {
-            startDrag(e.clientX, e.clientY);
-        });
-
-        document.addEventListener("mousemove", function (e) {
-            moveButton(e.clientX, e.clientY);
-        });
-
-        document.addEventListener("mouseup", function () {
-            endDrag();
-        });
-
-        chatbotButton.addEventListener("touchstart", function (e) {
-            const touch = e.touches[0];
-            startDrag(touch.clientX, touch.clientY);
-        }, { passive: true });
-
-        document.addEventListener("touchmove", function (e) {
-            if (!isDragging) return;
-            const touch = e.touches[0];
-            moveButton(touch.clientX, touch.clientY);
-            e.preventDefault();
-        }, { passive: false });
-
-        document.addEventListener("touchend", function () {
-            endDrag();
-        });
-
-        chatbotButton.addEventListener("click", function (e) {
-            if (hasMoved) {
-                e.preventDefault();
-                e.stopPropagation();
-                hasMoved = false;
-            }
-        }, true);
-
-        window.addEventListener("resize", function () {
-            if (chatbotBox.style.display === "flex") {
-                positionChatBox();
-            }
-        });
-
-        window.addEventListener("beforeunload", function () {
-            saveDashboardScroll();
-            sessionStorage.removeItem("dashboardReturnRefreshDone");
-        });
-
-        window.addEventListener("pageshow", function (event) {
-            restoreDashboardScroll();
-
-            if (event.persisted) {
-                refreshDashboardOnReturn();
-            }
-        });
-
-        document.addEventListener("visibilitychange", function () {
-            if (!document.hidden) {
-                refreshDashboardOnReturn();
-            }
-        });
-
-        document.addEventListener("DOMContentLoaded", function () {
-            restoreDashboardScroll();
-            sessionStorage.removeItem("dashboardReturnRefreshDone");
-        });
-
-        async function sendMessage() {
-            const input = document.getElementById("chatInput");
-            const messages = document.getElementById("chatMessages");
-            const text = input.value.trim();
-
-            if (!text) return;
-
-            messages.innerHTML += `<div class="user-msg">${text}</div>`;
-            input.value = "";
-            messages.scrollTop = messages.scrollHeight;
-
-            try {
-                const res = await fetch("/chat", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ message: text })
-                });
-
-                const data = await res.json();
-                messages.innerHTML += `<div class="bot-msg">${data.reply}</div>`;
-                messages.scrollTop = messages.scrollHeight;
-            } catch (error) {
-                messages.innerHTML += `<div class="bot-msg">Sorry, something went wrong. Please try again.</div>`;
-                messages.scrollTop = messages.scrollHeight;
-            }
-        }
-
-        chatInput.addEventListener("keypress", function (e) {
-            if (e.key === "Enter") {
-                sendMessage();
-            }
-        });
-    </script>
+    <script src="{{ url_for('static', filename='user_dashboard.js') }}"></script>
 </body>
 
 </html>
