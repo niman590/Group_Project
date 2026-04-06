@@ -57,44 +57,58 @@
             {% endif %}
             {% endwith %}
 
-            <section class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon blue">
-                        <i class="fa-solid fa-users"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ total_users }}</h3>
-                        <p>Total Users</p>
+            <section class="stats-section">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Overview</span>
+                        <h2>User Summary</h2>
+                        <p>Quick overview of system accounts, roles, and account activity.</p>
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon indigo">
-                        <i class="fa-solid fa-user-shield"></i>
+                <div class="stats-grid reports-stats-grid">
+                    <div class="stat-card report-stat-card total-users">
+                        <div class="stat-icon blue">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Users</span>
+                            <h3>{{ total_users }}</h3>
+                            <p>All user accounts currently registered in the system.</p>
+                        </div>
                     </div>
-                    <div class="stat-info">
-                        <h3>{{ total_admins }}</h3>
-                        <p>Total Admins</p>
-                    </div>
-                </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon green">
-                        <i class="fa-solid fa-user-check"></i>
+                    <div class="stat-card report-stat-card total-admins">
+                        <div class="stat-icon indigo">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Admins</span>
+                            <h3>{{ total_admins }}</h3>
+                            <p>Accounts with administrator privileges and system access.</p>
+                        </div>
                     </div>
-                    <div class="stat-info">
-                        <h3>{{ active_users }}</h3>
-                        <p>Active Accounts</p>
-                    </div>
-                </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon amber">
-                        <i class="fa-solid fa-user-clock"></i>
+                    <div class="stat-card report-stat-card active-users">
+                        <div class="stat-icon green">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Active Accounts</span>
+                            <h3>{{ active_users }}</h3>
+                            <p>Currently active accounts available for normal system use.</p>
+                        </div>
                     </div>
-                    <div class="stat-info">
-                        <h3>{{ inactive_users }}</h3>
-                        <p>Inactive Accounts</p>
+
+                    <div class="stat-card report-stat-card total-applications">
+                        <div class="stat-icon amber">
+                            <i class="fa-solid fa-user-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Inactive Accounts</span>
+                            <h3>{{ inactive_users }}</h3>
+                            <p>Accounts currently inactive or temporarily disabled.</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -116,14 +130,11 @@
                 <form class="search-form" method="GET" action="{{ url_for('admin.admin_users') }}" id="userSearchForm">
                     <div class="search-input-group">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input
-                            type="text"
-                            id="userSearchInput"
-                            name="search"
+                        <input type="text" id="userSearchInput" name="search"
                             placeholder="Search by name, NIC, or email"
-                            value="{{ search_query if search_query else '' }}"
-                            autocomplete="off">
-                        <button type="button" class="search-inline-clear" id="clearSearchInput" aria-label="Clear search input">
+                            value="{{ search_query if search_query else '' }}" autocomplete="off">
+                        <button type="button" class="search-inline-clear" id="clearSearchInput"
+                            aria-label="Clear search input">
                             <i class="fa-solid fa-xmark"></i>
                         </button>
                     </div>
@@ -169,8 +180,7 @@
                         <tbody id="usersTableBody">
                             {% if users %}
                             {% for u in users %}
-                            <tr class="user-row"
-                                data-name="{{ (u['first_name'] ~ ' ' ~ u['last_name'])|lower }}"
+                            <tr class="user-row" data-name="{{ (u['first_name'] ~ ' ' ~ u['last_name'])|lower }}"
                                 data-nic="{{ (u['nic'] if u['nic'] else '')|lower }}"
                                 data-email="{{ u['email']|lower }}"
                                 data-role="{% if u['is_admin'] %}admin{% else %}user{% endif %}"
@@ -205,10 +215,12 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <span class="user-id-pill copy-user-id" title="Click to copy user ID">USER-{{ u['user_id'] }}</span>
+                                    <span class="user-id-pill copy-user-id" title="Click to copy user ID">USER-{{
+                                        u['user_id'] }}</span>
                                 </td>
                                 <td>
-                                    {% set is_system_admin = (u['email'] == 'admin@civicplan.local' and u['nic'] == 'ADMIN000000V') %}
+                                    {% set is_system_admin = (u['email'] == 'admin@civicplan.local' and u['nic'] ==
+                                    'ADMIN000000V') %}
                                     {% if is_system_admin %}
                                     <div class="action-buttons">
                                         <span class="badge admin protected-badge">
@@ -218,22 +230,27 @@
                                     </div>
                                     {% else %}
                                     <div class="action-buttons">
-                                        <form action="{{ url_for('admin.toggle_user_status', user_id=u['user_id']) }}" method="POST">
+                                        <form action="{{ url_for('admin.toggle_user_status', user_id=u['user_id']) }}"
+                                            method="POST">
                                             <button type="submit" class="btn small warning action-submit-btn">
-                                                <i class="fa-solid {% if u['is_active'] %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
-                                                <span>{% if u['is_active'] %}Deactivate{% else %}Activate{% endif %}</span>
+                                                <i
+                                                    class="fa-solid {% if u['is_active'] %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
+                                                <span>{% if u['is_active'] %}Deactivate{% else %}Activate{% endif
+                                                    %}</span>
                                             </button>
                                         </form>
 
                                         {% if not u['is_admin'] %}
-                                        <form action="{{ url_for('admin.make_admin', user_id=u['user_id']) }}" method="POST">
+                                        <form action="{{ url_for('admin.make_admin', user_id=u['user_id']) }}"
+                                            method="POST">
                                             <button type="submit" class="btn small primary action-submit-btn">
                                                 <i class="fa-solid fa-user-shield"></i>
                                                 <span>Make Admin</span>
                                             </button>
                                         </form>
                                         {% else %}
-                                        <form action="{{ url_for('admin.remove_admin', user_id=u['user_id']) }}" method="POST">
+                                        <form action="{{ url_for('admin.remove_admin', user_id=u['user_id']) }}"
+                                            method="POST">
                                             <button type="submit" class="btn small secondary action-submit-btn">
                                                 <i class="fa-solid fa-user-minus"></i>
                                                 <span>Remove Admin</span>
@@ -241,10 +258,8 @@
                                         </form>
                                         {% endif %}
 
-                                        <form
-                                            action="{{ url_for('admin.delete_user', user_id=u['user_id']) }}"
-                                            method="POST"
-                                            class="delete-user-form"
+                                        <form action="{{ url_for('admin.delete_user', user_id=u['user_id']) }}"
+                                            method="POST" class="delete-user-form"
                                             data-user-name="{{ u['first_name'] }} {{ u['last_name'] }}">
                                             <button type="submit" class="btn small danger action-submit-btn">
                                                 <i class="fa-solid fa-trash"></i>
