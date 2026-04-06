@@ -389,6 +389,7 @@ def admin_dashboard():
         start_date=start_date,
         end_date=end_date,
         selected_range=selected_range,
+        active_page="dashboard",
     )
 
 
@@ -465,6 +466,7 @@ def admin_users():
         total_admins=total_admins,
         active_users=active_users,
         inactive_users=inactive_users,
+        active_page="user_management",
     )
 
 
@@ -543,6 +545,7 @@ def admin_transaction_history_requests():
         "admin_transaction_history_requests.html",
         user=admin_user,
         requests=requests,
+        active_page="transaction_requests",
     )
 
 
@@ -873,6 +876,7 @@ def admin_planning_applications():
         "admin_planning_applications.html",
         user=admin_user,
         applications=applications,
+        active_page="planning_applications",
     )
 
 
@@ -1031,6 +1035,7 @@ def admin_planning_application_detail(application_id):
         units=units,
         plans=plans,
         attachments=attachments,
+        active_page="planning_applications",
     )
 
 
