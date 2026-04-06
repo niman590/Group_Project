@@ -6,6 +6,8 @@ import re
 
 auth_bp = Blueprint("auth", __name__)
 
+MAX_LOGIN_ATTEMPTS = 5
+
 
 def get_user_columns():
     conn = get_connection()
@@ -18,6 +20,21 @@ def get_user_columns():
 
 def has_column(column_name):
     return column_name in get_user_columns()
+
+
+def ensure_failed_login_attempts_column():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA table_info(users)")
+    columns = {row["name"] for row in cursor.fetchall()}
+
+    if "failed_login_attempts" not in columns:
+        cursor.execute(
+            "ALTER TABLE users ADD COLUMN failed_login_attempts INTEGER DEFAULT 0"
+        )
+        conn.commit()
+
+    conn.close()
 
 
 def get_full_name(user):
@@ -63,6 +80,79 @@ def redirect_after_login(user):
     return redirect(url_for("user.user_dashboard"))
 
 
+def reset_failed_login_attempts(user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    columns = get_user_columns()
+
+    if "failed_login_attempts" in columns:
+        cursor.execute(
+            """
+            UPDATE users
+            SET failed_login_attempts = 0
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        )
+        conn.commit()
+
+    conn.close()
+
+
+def handle_failed_login_attempt(user):
+    conn = get_connection()
+    cursor = conn.cursor()
+    columns = get_user_columns()
+
+    if "failed_login_attempts" not in columns:
+        conn.close()
+        flash("Invalid credentials.", "error")
+        return redirect(url_for("auth.login"))
+
+    current_attempts = user["failed_login_attempts"] if "failed_login_attempts" in user.keys() and user["failed_login_attempts"] is not None else 0
+    new_attempts = current_attempts + 1
+
+    if new_attempts >= MAX_LOGIN_ATTEMPTS:
+        if "is_active" in columns:
+            cursor.execute(
+                """
+                UPDATE users
+                SET failed_login_attempts = ?, is_active = 0
+                WHERE user_id = ?
+                """,
+                (new_attempts, user["user_id"]),
+            )
+        else:
+            cursor.execute(
+                """
+                UPDATE users
+                SET failed_login_attempts = ?
+                WHERE user_id = ?
+                """,
+                (new_attempts, user["user_id"]),
+            )
+
+        conn.commit()
+        conn.close()
+        flash("Your account has been locked after 5 failed login attempts. Please contact an administrator.", "error")
+        return redirect(url_for("auth.login"))
+
+    cursor.execute(
+        """
+        UPDATE users
+        SET failed_login_attempts = ?
+        WHERE user_id = ?
+        """,
+        (new_attempts, user["user_id"]),
+    )
+    conn.commit()
+    conn.close()
+
+    remaining_attempts = MAX_LOGIN_ATTEMPTS - new_attempts
+    flash(f"Invalid credentials. {remaining_attempts} login attempt(s) remaining before account lock.", "error")
+    return redirect(url_for("auth.login"))
+
+
 @auth_bp.route("/login", methods=["GET"])
 def login():
     return render_template("login.html")
@@ -70,6 +160,8 @@ def login():
 
 @auth_bp.route("/login", methods=["POST"])
 def login_post():
+    ensure_failed_login_attempts_column()
+
     identifier = request.form.get("nic", "").strip()
     password = request.form.get("password", "").strip()
 
@@ -134,9 +226,9 @@ def login_post():
         return redirect(url_for("auth.login"))
 
     if not check_password_hash(user["password_hash"], password):
-        flash("Invalid credentials.", "error")
-        return redirect(url_for("auth.login"))
+        return handle_failed_login_attempt(user)
 
+    reset_failed_login_attempts(user["user_id"])
     sync_session_user(user)
     flash("Login successful.", "success")
     return redirect_after_login(user)
@@ -149,6 +241,8 @@ def register():
 
 @auth_bp.route("/register", methods=["POST"])
 def register_post():
+    ensure_failed_login_attempts_column()
+
     first_name = request.form.get("first_name", "").strip()
     last_name = request.form.get("last_name", "").strip()
     nic = request.form.get("nic", "").strip()
@@ -205,7 +299,41 @@ def register_post():
 
     password_hash = generate_password_hash(password)
 
-    if "is_active" in columns:
+    if "is_active" in columns and "failed_login_attempts" in columns:
+        cursor.execute(
+            """
+            INSERT INTO users (
+                first_name,
+                last_name,
+                phone_number,
+                email,
+                password_hash,
+                date_of_birth,
+                address,
+                city,
+                nic,
+                is_admin,
+                is_active,
+                failed_login_attempts
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                first_name,
+                last_name,
+                phone_number,
+                email,
+                password_hash,
+                date_of_birth,
+                address,
+                city,
+                nic,
+                False,
+                True,
+                0,
+            ),
+        )
+    elif "is_active" in columns:
         cursor.execute(
             """
             INSERT INTO users (
