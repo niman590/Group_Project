@@ -17,9 +17,9 @@ const modalViewLink = document.getElementById("modalViewLink");
 const modalDownloadLink = document.getElementById("modalDownloadLink");
 
 function filterDocuments() {
-    const searchValue = (searchInput.value || "").toLowerCase().trim();
-    const selectedCategory = categoryFilter.value;
-    const selectedAudience = audienceFilter.value;
+    const searchValue = (searchInput?.value || "").toLowerCase().trim();
+    const selectedCategory = categoryFilter?.value || "all";
+    const selectedAudience = audienceFilter?.value || "all";
 
     let visibleCount = 0;
 
@@ -49,13 +49,15 @@ function filterDocuments() {
     });
 
     if (visibleCount === 0) {
-        emptyState.classList.remove("hidden");
+        emptyState?.classList.remove("hidden");
     } else {
-        emptyState.classList.add("hidden");
+        emptyState?.classList.add("hidden");
     }
 }
 
 function openModal(button) {
+    if (!button) return;
+
     modalTitle.textContent = button.dataset.title || "Document";
     modalDescription.textContent = button.dataset.description || "";
     modalCategory.textContent = button.dataset.category || "";
@@ -69,17 +71,28 @@ function openModal(button) {
         modalViewLink.href = viewUrl;
         modalDownloadLink.href = downloadUrl;
         modalActions.classList.remove("hidden");
+    } else if (viewUrl) {
+        modalViewLink.href = viewUrl;
+        modalDownloadLink.href = "#";
+        modalActions.classList.remove("hidden");
+        modalDownloadLink.classList.add("hidden");
+        modalViewLink.innerHTML = `<i class="fa-solid fa-book-open-reader"></i> Open Document`;
     } else {
         modalViewLink.href = "#";
         modalDownloadLink.href = "#";
+        modalDownloadLink.classList.remove("hidden");
         modalActions.classList.add("hidden");
     }
 
     modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
 }
 
 function closeModal() {
     modal.classList.add("hidden");
+    modalDownloadLink.classList.remove("hidden");
+    modalViewLink.innerHTML = `<i class="fa-solid fa-book-open-reader"></i> Open Document`;
+    document.body.style.overflow = "";
 }
 
 if (searchInput) {
@@ -113,7 +126,11 @@ if (modal) {
 }
 
 document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") {
+    if (event.key === "Escape" && modal && !modal.classList.contains("hidden")) {
         closeModal();
     }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    filterDocuments();
 });

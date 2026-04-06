@@ -169,14 +169,14 @@ def support_documents_page():
 
     documents, stats = get_support_documents_data()
 
-    user_documents = [
+    documents = [
         doc for doc in documents
         if doc.get("audience") not in ["Admin", "Developers"]
     ]
 
     return render_template(
         "support_documents.html",
-        documents=user_documents,
+        documents=documents,
         stats=stats,
         active_page="support_documents",
     )

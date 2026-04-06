@@ -8,13 +8,11 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='support_documents.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
     <div class="dashboard-shell">
-
         {% include 'partials/user_sidebar.html' %}
 
         <main class="main-content">
@@ -22,10 +20,11 @@
 
                 <header class="support-header">
                     <div class="header-text">
+                        <span class="page-kicker">Citizen Resource Center</span>
                         <h1>Support Documents</h1>
                         <p>
-                            Access planning approval guidance, project manuals, policy references,
-                            and land management help resources in one place.
+                            Access planning approval guidance, document checklists, policy references,
+                            and land management support resources in one clean place.
                         </p>
                     </div>
 
@@ -35,94 +34,23 @@
                     </div>
                 </header>
 
-                <section class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon blue">
-                            <i class="fa-solid fa-folder-open"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>{{ stats.documents_count }}</h3>
-                            <p>Documents in System</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon green">
-                            <i class="fa-solid fa-landmark"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>{{ stats.properties_count }}</h3>
-                            <p>Property Records</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon orange">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>{{ stats.transactions_count }}</h3>
-                            <p>Transactions Logged</p>
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-icon red">
-                            <i class="fa-solid fa-file-circle-check"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>{{ stats.cases_count }}</h3>
-                            <p>Planning Cases</p>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="top-grid">
-                    <div class="info-panel">
+                <section class="top-grid single-panel">
+                    <div class="info-panel hero-panel">
                         <div class="panel-head">
-                            <h2>Quick Support Topics</h2>
-                            <span class="panel-chip">Most Used</span>
+                            <div>
+                                <span class="section-kicker">Most Used</span>
+                                <h2>Quick Support Topics</h2>
+                            </div>
+                            <span class="panel-chip">Citizen Ready</span>
                         </div>
 
-                        <ul class="support-list">
-                            <li><i class="fa-solid fa-check"></i> Planning approval guidelines</li>
-                            <li><i class="fa-solid fa-check"></i> Required document checklist</li>
-                            <li><i class="fa-solid fa-check"></i> Transaction history support</li>
-                            <li><i class="fa-solid fa-check"></i> Land valuation help guide</li>
-                            <li><i class="fa-solid fa-check"></i> Gazettes, rules and policies</li>
-                        </ul>
-                    </div>
-
-                    <div class="info-panel">
-                        <div class="panel-head">
-                            <h2>Project Documentation</h2>
-                            <span class="panel-chip light">Knowledge</span>
-                        </div>
-
-                        <div class="mini-doc-grid">
-                            <div class="mini-doc">
-                                <i class="fa-solid fa-book-open"></i>
-                                <div>
-                                    <strong>User Guide</strong>
-                                    <p>For citizens using dashboard features and services.</p>
-                                </div>
-                            </div>
-
-                            <div class="mini-doc">
-                                <i class="fa-solid fa-user-shield"></i>
-                                <div>
-                                    <strong>Administrator Guide</strong>
-                                    <p>For admin-side reviews and management actions.</p>
-                                </div>
-                            </div>
-
-                            <div class="mini-doc">
-                                <i class="fa-solid fa-code"></i>
-                                <div>
-                                    <strong>Developer Manual</strong>
-                                    <p>For future maintenance and system extension work.</p>
-                                </div>
-                            </div>
+                        <div class="topic-grid">
+                            <div class="topic-item"><i class="fa-solid fa-check"></i><span>Planning approval guidelines</span></div>
+                            <div class="topic-item"><i class="fa-solid fa-check"></i><span>Required document checklist</span></div>
+                            <div class="topic-item"><i class="fa-solid fa-check"></i><span>Transaction history support</span></div>
+                            <div class="topic-item"><i class="fa-solid fa-check"></i><span>Land valuation help guide</span></div>
+                            <div class="topic-item"><i class="fa-solid fa-check"></i><span>Gazettes, rules and policies</span></div>
+                            <div class="topic-item"><i class="fa-solid fa-check"></i><span>User guide for portal services</span></div>
                         </div>
                     </div>
                 </section>
@@ -138,8 +66,6 @@
                         <option value="Planning">Planning</option>
                         <option value="Policy">Policy</option>
                         <option value="Help">Help</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Technical">Technical</option>
                         <option value="Records">Records</option>
                         <option value="Valuation">Valuation</option>
                     </select>
@@ -148,8 +74,6 @@
                         <option value="all">All Audiences</option>
                         <option value="Citizens">Citizens</option>
                         <option value="Citizens / Admin">Citizens / Admin</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Developers">Developers</option>
                     </select>
                 </section>
 
@@ -227,11 +151,11 @@
 
             <div class="modal-actions hidden" id="modalActions">
                 <a href="#" target="_blank" class="modal-action-btn primary" id="modalViewLink">
-                    <i class="fa-solid fa-book-open-reader"></i> Open User Manual
+                    <i class="fa-solid fa-book-open-reader"></i> Open Document
                 </a>
 
                 <a href="#" class="modal-action-btn secondary" id="modalDownloadLink">
-                    <i class="fa-solid fa-download"></i> Download User Manual
+                    <i class="fa-solid fa-download"></i> Download Document
                 </a>
             </div>
         </div>
