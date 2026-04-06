@@ -480,7 +480,7 @@ body {
 
 @media (max-width: 980px) {
   .dashboard-shell {
-    flex-direction: column;
+    flex-direction: row;
   }
 
   .account-page {

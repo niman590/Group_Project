@@ -44,6 +44,12 @@
                 <span class="nav-icon"><i class="fas fa-users"></i></span>
                 <span class="nav-text">User Management</span>
             </a>
+
+            <a href="{{ url_for('user.account') }}"
+               class="nav-link {% if request.endpoint == 'user.account' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-user"></i></span>
+                <span class="nav-text">My Account</span>
+            </a>
         </nav>
     </div>
 
