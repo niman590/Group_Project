@@ -1,118 +1,339 @@
-body {
+body.transaction-history-page {
     margin: 0;
-    font-family: Arial, sans-serif;
     background: #f4f7fb;
 }
 
-.history-page {
-    padding: 40px 20px;
-}
-
-.history-container {
-    max-width: 1100px;
-    margin: 0 auto;
-}
-
-.page-header h1 {
-    color: #123f88;
-    margin-bottom: 10px;
-}
-
-.page-header p {
-    color: #5f6b7a;
-}
-
-.choice-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin: 25px 0;
-}
-
-.choice-card {
-    padding: 20px;
-    border: none;
-    border-radius: 14px;
-    background: #123f88;
-    color: white;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.card {
-    background: white;
-    border-radius: 18px;
-    padding: 25px;
-    margin-top: 20px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.05);
-}
-
-.hidden {
-    display: none;
-}
-
-.form-group {
-    margin-bottom: 16px;
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-}
-
-input, select, textarea {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #d6dce5;
-    border-radius: 10px;
-    box-sizing: border-box;
-}
-
-.primary-btn {
-    padding: 12px 18px;
-    background: #123f88;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.result-area {
-    margin-top: 20px;
-}
-
-.history-card {
-    background: #f9fbff;
-    border: 1px solid #dce6f5;
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 12px;
-}
-
-.success-msg {
-    background: #eaf8ef;
-    color: #1d6b34;
-    padding: 12px;
-    border-radius: 10px;
-}
-
-.error-msg {
-    background: #fdecec;
-    color: #a02828;
-    padding: 12px;
-    border-radius: 10px;
-}
-
-.dashboard-shell {
+.transaction-history-page .dashboard-shell {
     display: flex;
     min-height: 100vh;
 }
 
-.main-content {
+.transaction-history-page .main-content {
     flex: 1;
-    padding: 30px;
+    padding: 32px;
     background: #f4f7fb;
+}
+
+.transaction-history-page .history-container {
+    max-width: 1180px;
+    margin: 0 auto;
+}
+
+.transaction-history-page .page-hero {
+    background: #ffffff;
+    border: 1px solid #d9e3f0;
+    border-radius: 24px;
+    padding: 30px 32px;
+    box-shadow: 0 10px 24px rgba(18, 63, 136, 0.06);
+    margin-bottom: 24px;
+}
+
+.transaction-history-page .page-kicker {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #eef4ff;
+    color: #123f88;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.transaction-history-page .page-hero h1 {
+    margin: 0 0 10px;
+    color: #123f88;
+    font-size: 28px;
+    line-height: 1.2;
+}
+
+.transaction-history-page .page-hero p {
+    margin: 0;
+    color: #5f6b7a;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.transaction-history-page .choice-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.transaction-history-page .choice-card {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    width: 100%;
+    padding: 24px;
+    border: 1px solid #dbe5f2;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #123f88 0%, #1f56af 100%);
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 14px 30px rgba(18, 63, 136, 0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-align: left;
+}
+
+.transaction-history-page .choice-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 34px rgba(18, 63, 136, 0.22);
+}
+
+.transaction-history-page .choice-icon {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.transaction-history-page .choice-content h3 {
+    margin: 0 0 6px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.transaction-history-page .choice-content p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.transaction-history-page .card {
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 28px;
+    margin-top: 20px;
+    border: 1px solid #d9e3f0;
+    box-shadow: 0 12px 28px rgba(18, 63, 136, 0.06);
+}
+
+.transaction-history-page .hidden {
+    display: none;
+}
+
+.transaction-history-page .card-header {
+    margin-bottom: 22px;
+}
+
+.transaction-history-page .card-header h2 {
+    margin: 0 0 8px;
+    color: #123f88;
+    font-size: 24px;
+}
+
+.transaction-history-page .card-header p {
+    margin: 0;
+    color: #607086;
+    font-size: 15px;
+}
+
+.transaction-history-page .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 20px;
+}
+
+.transaction-history-page .form-grid.single {
+    grid-template-columns: 1fr;
+}
+
+.transaction-history-page .full-span {
+    grid-column: 1 / -1;
+}
+
+.transaction-history-page .form-group {
+    margin-bottom: 0;
+}
+
+.transaction-history-page label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #173f7b;
+    font-size: 14px;
+}
+
+.transaction-history-page .input-wrap {
+    position: relative;
+}
+
+.transaction-history-page .input-wrap i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6e7d91;
+    font-size: 15px;
+    pointer-events: none;
+}
+
+.transaction-history-page input,
+.transaction-history-page select,
+.transaction-history-page textarea {
+    width: 100%;
+    padding: 13px 14px 13px 42px;
+    border: 1px solid #d6dce5;
+    border-radius: 12px;
+    box-sizing: border-box;
+    font-size: 14px;
+    color: #17324d;
+    background: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transaction-history-page textarea {
+    min-height: 120px;
+    resize: vertical;
+    padding: 14px;
+}
+
+.transaction-history-page .textarea-wrap i {
+    top: 18px;
+    transform: none;
+}
+
+.transaction-history-page input:focus,
+.transaction-history-page select:focus,
+.transaction-history-page textarea:focus {
+    outline: none;
+    border-color: #2a67c7;
+    box-shadow: 0 0 0 4px rgba(42, 103, 199, 0.08);
+}
+
+.transaction-history-page .file-upload-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px dashed #b9cbe6;
+    border-radius: 14px;
+    background: #f8fbff;
+    color: #35537d;
+}
+
+.transaction-history-page .file-upload-wrap i {
+    color: #123f88;
+    font-size: 16px;
+}
+
+.transaction-history-page .file-upload-wrap input[type="file"] {
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.transaction-history-page .action-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.transaction-history-page .primary-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 20px;
+    background: linear-gradient(135deg, #123f88 0%, #1f56af 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 10px 22px rgba(18, 63, 136, 0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transaction-history-page .primary-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(18, 63, 136, 0.22);
+}
+
+.transaction-history-page .result-area {
+    margin-top: 22px;
+}
+
+.transaction-history-page .history-card {
+    background: #f9fbff;
+    border: 1px solid #dce6f5;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 6px 18px rgba(18, 63, 136, 0.04);
+}
+
+.transaction-history-page .success-msg {
+    background: #eaf8ef;
+    color: #1d6b34;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #caecd7;
+    font-weight: 600;
+}
+
+.transaction-history-page .error-msg {
+    background: #fdecec;
+    color: #a02828;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #f4c9c9;
+    font-weight: 600;
+}
+
+@media (max-width: 992px) {
+    .transaction-history-page .main-content {
+        padding: 24px 18px;
+    }
+
+    .transaction-history-page .choice-grid,
+    .transaction-history-page .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .transaction-history-page .choice-card {
+        padding: 20px;
+    }
+
+    .transaction-history-page .choice-content h3 {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 576px) {
+    .transaction-history-page .page-hero {
+        padding: 24px 20px;
+        border-radius: 20px;
+    }
+
+    .transaction-history-page .page-hero h1 {
+        font-size: 24px;
+    }
+
+    .transaction-history-page .card {
+        padding: 22px 18px;
+        border-radius: 18px;
+    }
+
+    .transaction-history-page .main-content {
+        padding: 18px 14px;
+    }
+
+    .transaction-history-page .choice-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
