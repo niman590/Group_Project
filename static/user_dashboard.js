@@ -6,8 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const chatSendBtn = document.getElementById("chatSendBtn");
     const chatbotCloseBtn = document.getElementById("chatbotCloseBtn");
     const revealItems = document.querySelectorAll(".reveal-up");
-    const statNumbers = document.querySelectorAll(".stat-card h3, .value-number");
-    const topbar = document.querySelector(".topbar");
+    const statNumbers = document.querySelectorAll(".count-up");
 
     let isDragging = false;
     let hasMoved = false;
@@ -51,21 +50,13 @@ document.addEventListener("DOMContentLoaded", function () {
             : chatbotBox.style.display !== "flex";
 
         if (!shouldOpen) {
-            chatbotBox.classList.remove("chat-open");
-            setTimeout(() => {
-                if (!chatbotBox.classList.contains("chat-open")) {
-                    chatbotBox.style.display = "none";
-                }
-            }, 220);
+            chatbotBox.style.display = "none";
             return;
         }
 
         chatbotBox.style.display = "flex";
-        requestAnimationFrame(() => {
-            chatbotBox.classList.add("chat-open");
-            positionChatBox();
-            chatInput.focus();
-        });
+        positionChatBox();
+        chatInput.focus();
     }
 
     function startDrag(clientX, clientY) {
@@ -116,86 +107,66 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function shouldRefreshOnReturn() {
-        if (chatbotBox && chatbotBox.style.display === "flex") return false;
-        if (document.activeElement === chatInput) return false;
-        return true;
-    }
+    function animateCount(element) {
+        if (!element || element.dataset.countAnimated === "true") return;
 
-    function refreshDashboardOnReturn() {
-        if (!shouldRefreshOnReturn()) return;
+        const finalValue = parseInt(element.textContent.trim(), 10);
+        if (isNaN(finalValue)) return;
 
-        const alreadyRefreshed = sessionStorage.getItem("dashboardReturnRefreshDone");
-        if (alreadyRefreshed === "1") return;
+        element.dataset.countAnimated = "true";
+        const duration = 900;
+        const startTime = performance.now();
 
-        sessionStorage.setItem("dashboardReturnRefreshDone", "1");
-        saveDashboardScroll();
-        window.location.reload();
-    }
+        function updateCount(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const currentValue = Math.round(finalValue * eased);
 
-    function revealOnScroll() {
-        revealItems.forEach((item, index) => {
-            const rect = item.getBoundingClientRect();
-            if (rect.top < window.innerHeight - 70) {
-                item.style.transitionDelay = `${Math.min(index * 50, 280)}ms`;
-                item.classList.add("revealed");
+            element.textContent = currentValue;
+
+            if (progress < 1) {
+                requestAnimationFrame(updateCount);
+            } else {
+                element.textContent = finalValue;
             }
-        });
+        }
+
+        requestAnimationFrame(updateCount);
     }
 
-    function animateCount(el) {
-        if (!el || el.dataset.counted === "1") return;
+    function revealElement(element, index) {
+        if (!element || element.classList.contains("revealed")) return;
 
-        const rawText = (el.textContent || "").trim();
-        const number = parseFloat(rawText.replace(/[^0-9.]/g, ""));
+        element.style.transitionDelay = `${index * 70}ms`;
+        element.classList.add("revealed");
 
-        if (Number.isNaN(number)) {
-            el.dataset.counted = "1";
+        const counter = element.querySelector(".count-up");
+        if (counter) {
+            animateCount(counter);
+        }
+    }
+
+    function initRevealObserver() {
+        if (!("IntersectionObserver" in window)) {
+            revealItems.forEach((item, index) => revealElement(item, index));
             return;
         }
 
-        el.dataset.counted = "1";
-
-        const duration = 900;
-        const start = performance.now();
-
-        function frame(now) {
-            const progress = Math.min((now - start) / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            const current = Math.round(number * eased);
-
-            if (rawText.startsWith("LKR")) {
-                el.textContent = `LKR ${current.toLocaleString()}`;
-            } else {
-                el.textContent = current.toLocaleString();
-            }
-
-            if (progress < 1) {
-                requestAnimationFrame(frame);
-            } else {
-                el.textContent = rawText;
-            }
-        }
-
-        requestAnimationFrame(frame);
-    }
-
-    function runCounterAnimations() {
-        statNumbers.forEach((el) => {
-            const rect = el.getBoundingClientRect();
-            if (rect.top < window.innerHeight - 40) {
-                animateCount(el);
-            }
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    const index = Array.from(revealItems).indexOf(entry.target);
+                    revealElement(entry.target, index);
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.12,
+            rootMargin: "0px 0px -40px 0px"
         });
-    }
 
-    function handleTopbarScroll() {
-        if (!topbar) return;
-        if (window.scrollY > 14) {
-            topbar.classList.add("topbar-scrolled");
-        } else {
-            topbar.classList.remove("topbar-scrolled");
-        }
+        revealItems.forEach((item) => observer.observe(item));
     }
 
     async function sendMessage() {
@@ -292,34 +263,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.addEventListener("beforeunload", function () {
         saveDashboardScroll();
-        sessionStorage.removeItem("dashboardReturnRefreshDone");
     });
 
-    window.addEventListener("pageshow", function (event) {
+    window.addEventListener("pageshow", function () {
         restoreDashboardScroll();
-
-        if (event.persisted) {
-            refreshDashboardOnReturn();
-        }
-    });
-
-    document.addEventListener("visibilitychange", function () {
-        if (!document.hidden) {
-            refreshDashboardOnReturn();
-        }
-    });
-
-    window.addEventListener("scroll", function () {
-        revealOnScroll();
-        runCounterAnimations();
-        handleTopbarScroll();
     });
 
     restoreDashboardScroll();
-    sessionStorage.removeItem("dashboardReturnRefreshDone");
-    revealOnScroll();
-    runCounterAnimations();
-    handleTopbarScroll();
+    initRevealObserver();
+
+    statNumbers.forEach((counter) => {
+        counter.textContent = counter.textContent.trim();
+    });
 
     window.toggleChat = toggleChat;
     window.sendMessage = sendMessage;

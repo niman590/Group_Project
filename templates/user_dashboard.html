@@ -17,7 +17,7 @@
 
         <main class="main-content">
 
-            <header class="topbar compact-topbar">
+            <header class="topbar compact-topbar reveal-up">
                 <div class="topbar-copy">
                     <span class="page-kicker">Citizen Dashboard</span>
                     <h1>Welcome back, {{ user['first_name'] if user and user['first_name'] else 'User' }}</h1>
@@ -49,7 +49,7 @@
                     <div>
                         <span class="section-kicker">Overview</span>
                         <h2>Quick Summary & Popular Services</h2>
-                        <p>See your application progress and use the most common citizen tools from one place.</p>
+                        <p>See your progress and access the most-used citizen tools in one clean section.</p>
                     </div>
                 </div>
 
@@ -57,7 +57,7 @@
                     <div class="stat-card reveal-up">
                         <div class="stat-icon blue"><i class="fa-solid fa-file-circle-check"></i></div>
                         <div>
-                            <h3>{{ stats.total_applications }}</h3>
+                            <h3 class="count-up">{{ stats.total_applications }}</h3>
                             <p>Total Applications</p>
                         </div>
                     </div>
@@ -65,7 +65,7 @@
                     <div class="stat-card reveal-up">
                         <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
                         <div>
-                            <h3>{{ stats.approved_cases }}</h3>
+                            <h3 class="count-up">{{ stats.approved_cases }}</h3>
                             <p>Approved Cases</p>
                         </div>
                     </div>
@@ -73,7 +73,7 @@
                     <div class="stat-card reveal-up">
                         <div class="stat-icon orange"><i class="fa-solid fa-hourglass-half"></i></div>
                         <div>
-                            <h3>{{ stats.pending_reviews }}</h3>
+                            <h3 class="count-up">{{ stats.pending_reviews }}</h3>
                             <p>Pending Reviews</p>
                         </div>
                     </div>
@@ -81,7 +81,7 @@
                     <div class="stat-card reveal-up">
                         <div class="stat-icon red"><i class="fa-solid fa-bell"></i></div>
                         <div>
-                            <h3>{{ stats.alerts_count }}</h3>
+                            <h3 class="count-up">{{ stats.alerts_count }}</h3>
                             <p>Alerts & Notifications</p>
                         </div>
                     </div>

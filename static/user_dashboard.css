@@ -25,11 +25,17 @@
     --transition: 0.28s ease;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     background:
         radial-gradient(circle at top right, rgba(33, 91, 176, 0.06), transparent 25%),
         linear-gradient(180deg, #f4f8fd 0%, #eef3fa 100%);
     color: var(--theme-text);
+    line-height: 1.6;
+    letter-spacing: 0.01em;
 }
 
 a {
@@ -45,9 +51,23 @@ a {
     flex: 1;
     padding: 24px 28px 30px;
     min-width: 0;
+    animation: pageFadeIn 0.45s ease;
+}
+
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .compact-topbar {
+    position: relative;
+    overflow: hidden;
     background: rgba(255, 255, 255, 0.96);
     border: 1px solid var(--theme-border);
     border-radius: var(--radius-xl);
@@ -61,6 +81,18 @@ a {
     min-height: auto;
 }
 
+.compact-topbar::after {
+    content: "";
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    right: -45px;
+    top: -45px;
+    border-radius: 50%;
+    background: rgba(18, 63, 130, 0.05);
+    pointer-events: none;
+}
+
 .page-kicker {
     display: inline-flex;
     align-items: center;
@@ -71,7 +103,7 @@ a {
     color: var(--theme-blue);
     font-size: 0.78rem;
     font-weight: 800;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     margin-bottom: 8px;
 }
@@ -80,7 +112,7 @@ a {
     font-size: 1.95rem;
     color: var(--theme-blue);
     margin-bottom: 6px;
-    line-height: 1.1;
+    line-height: 1.12;
 }
 
 .topbar-copy p {
@@ -95,10 +127,8 @@ a {
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
-}
-
-.topbar-actions .icon-btn:nth-of-type(2) {
-    display: none;
+    position: relative;
+    z-index: 1;
 }
 
 .icon-btn {
@@ -126,6 +156,12 @@ a {
     padding: 8px 12px;
     border-radius: 16px;
     border: 1px solid var(--theme-border);
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.user-chip:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
 }
 
 .user-chip strong {
@@ -150,6 +186,7 @@ a {
     align-items: center;
     justify-content: center;
     font-weight: 700;
+    box-shadow: 0 10px 18px rgba(18, 63, 130, 0.18);
 }
 
 .overview-services-box {
@@ -198,6 +235,8 @@ a {
 }
 
 .stat-card {
+    position: relative;
+    overflow: hidden;
     background: var(--white);
     border: 1px solid var(--theme-border);
     border-radius: var(--radius-lg);
@@ -206,16 +245,36 @@ a {
     align-items: center;
     gap: 16px;
     box-shadow: 0 8px 20px rgba(18, 63, 130, 0.05);
-    transition: transform var(--transition), box-shadow var(--transition);
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.stat-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0) 25%,
+        rgba(255, 255, 255, 0.42) 50%,
+        rgba(255, 255, 255, 0) 75%
+    );
+    transform: translateX(-130%);
+    transition: transform 0.85s ease;
+    pointer-events: none;
+}
+
+.stat-card:hover::before {
+    transform: translateX(130%);
 }
 
 .stat-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-5px);
     box-shadow: var(--shadow-md);
+    border-color: #c8d9ef;
 }
 
 .stat-card h3 {
-    font-size: 1.95rem;
+    font-size: 2rem;
     color: var(--theme-blue-dark);
     margin-bottom: 4px;
     line-height: 1;
@@ -236,6 +295,12 @@ a {
     font-size: 1.3rem;
     color: var(--white);
     flex-shrink: 0;
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.stat-card:hover .stat-icon {
+    transform: rotate(-4deg) scale(1.05);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
 }
 
 .stat-icon.blue {
@@ -286,9 +351,9 @@ a {
 }
 
 .action-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 18px 30px rgba(18, 63, 130, 0.22);
-    filter: brightness(1.02);
+    transform: translateY(-6px);
+    box-shadow: 0 18px 30px rgba(18, 63, 130, 0.24);
+    filter: brightness(1.03);
 }
 
 .action-icon {
@@ -301,6 +366,12 @@ a {
     justify-content: center;
     font-size: 1.35rem;
     margin-bottom: 16px;
+    transition: transform var(--transition), background var(--transition);
+}
+
+.action-card:hover .action-icon {
+    transform: translateY(-2px) scale(1.05);
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .action-card h3 {
@@ -329,6 +400,11 @@ a {
     font-size: 0.95rem;
     position: relative;
     z-index: 1;
+    transition: transform var(--transition), opacity var(--transition);
+}
+
+.action-card:hover .action-link-text {
+    transform: translateX(4px);
 }
 
 .content-grid {
@@ -350,6 +426,13 @@ a {
     border-radius: var(--radius-lg);
     padding: 22px;
     box-shadow: var(--shadow-sm);
+    transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+
+.panel:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+    border-color: #c8d9ef;
 }
 
 .panel-header {
@@ -377,10 +460,12 @@ a {
     font-weight: 700;
     font-size: 0.92rem;
     white-space: nowrap;
+    transition: transform var(--transition), opacity var(--transition);
 }
 
 .panel-header a:hover {
     text-decoration: underline;
+    transform: translateX(2px);
 }
 
 .alert-list {
@@ -397,6 +482,12 @@ a {
     gap: 18px;
     align-items: flex-start;
     border: 1px solid transparent;
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.alert-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 8px 18px rgba(18, 63, 130, 0.06);
 }
 
 .alert-copy h4 {
@@ -464,6 +555,7 @@ tbody td {
     color: #374151;
     font-size: 0.94rem;
     background: #fff;
+    transition: background var(--transition);
 }
 
 tbody tr:hover td {
@@ -523,6 +615,7 @@ tbody tr:hover td {
     font-size: 1.2rem;
     font-weight: 700;
     flex-shrink: 0;
+    box-shadow: 0 10px 18px rgba(18, 63, 130, 0.16);
 }
 
 .profile-meta h3 {
@@ -538,15 +631,36 @@ tbody tr:hover td {
 }
 
 .valuation-card {
+    position: relative;
+    overflow: hidden;
     background: linear-gradient(145deg, #0b2245, #255aa1);
     border-radius: 18px;
     padding: 22px;
     color: var(--white);
+    transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.valuation-card::after {
+    content: "";
+    position: absolute;
+    top: -50px;
+    right: -30px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.valuation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 28px rgba(18, 63, 130, 0.24);
 }
 
 .valuation-card h3 {
     font-size: 1.1rem;
     margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
 }
 
 .value-number {
@@ -554,24 +668,36 @@ tbody tr:hover td {
     font-weight: 800;
     margin-bottom: 8px;
     line-height: 1.05;
+    position: relative;
+    z-index: 1;
 }
 
 .valuation-card p {
     color: #dbe8ff;
     margin-bottom: 18px;
     line-height: 1.5;
+    position: relative;
+    z-index: 1;
 }
 
 .mini-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
+    position: relative;
+    z-index: 1;
 }
 
 .mini-stats div {
     background: rgba(255, 255, 255, 0.12);
     padding: 12px;
     border-radius: 12px;
+    transition: background var(--transition), transform var(--transition);
+}
+
+.mini-stats div:hover {
+    background: rgba(255, 255, 255, 0.18);
+    transform: translateY(-2px);
 }
 
 .mini-stats span {
@@ -595,12 +721,13 @@ tbody tr:hover td {
 .doc-list li {
     background: var(--theme-soft);
     border-radius: 12px;
-    transition: background var(--transition), transform var(--transition);
+    transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
 }
 
 .doc-list li:hover {
     background: #e6eef9;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(18, 63, 130, 0.05);
 }
 
 .doc-link {
@@ -617,6 +744,11 @@ tbody tr:hover td {
 .doc-link i {
     width: 18px;
     text-align: center;
+    transition: transform var(--transition);
+}
+
+.doc-list li:hover .doc-link i {
+    transform: translateX(2px);
 }
 
 .doc-link:hover {
@@ -669,6 +801,19 @@ tbody tr:hover td {
     flex-direction: column;
     overflow: hidden;
     z-index: 2000;
+    animation: chatbotPop 0.22s ease;
+    transform-origin: bottom right;
+}
+
+@keyframes chatbotPop {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .chatbot-header {
@@ -694,6 +839,12 @@ tbody tr:hover td {
     font-size: 1.4rem;
     cursor: pointer;
     line-height: 1;
+    transition: transform var(--transition), opacity var(--transition);
+}
+
+.chatbot-close:hover {
+    transform: scale(1.08);
+    opacity: 0.85;
 }
 
 .chatbot-messages {
@@ -714,6 +865,18 @@ tbody tr:hover td {
     font-size: 0.92rem;
     line-height: 1.5;
     word-wrap: break-word;
+    animation: messageIn 0.22s ease;
+}
+
+@keyframes messageIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .user-msg {
@@ -752,17 +915,25 @@ tbody tr:hover td {
     padding: 0 18px;
     font-weight: 700;
     cursor: pointer;
+    transition: filter var(--transition);
+}
+
+.chatbot-input button:hover {
+    filter: brightness(1.05);
 }
 
 .reveal-up {
     opacity: 0;
-    transform: translateY(18px);
-    transition: opacity 0.55s ease, transform 0.55s ease;
+    transform: translateY(32px) scale(0.98);
+    transition:
+        opacity 0.7s ease,
+        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
 }
 
 .reveal-up.revealed {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
 }
 
 @media (max-width: 1300px) {
