@@ -6,10 +6,92 @@ function formatLKR(value) {
     }).format(value);
 }
 
+function sanitizePositiveDecimalInput(value) {
+    let cleaned = String(value || "");
+
+    cleaned = cleaned.replace(/[^0-9.]/g, "");
+
+    const firstDotIndex = cleaned.indexOf(".");
+    if (firstDotIndex !== -1) {
+        cleaned =
+            cleaned.substring(0, firstDotIndex + 1) +
+            cleaned.substring(firstDotIndex + 1).replace(/\./g, "");
+    }
+
+    return cleaned;
+}
+
+function preventInvalidDecimalKey(event) {
+    const allowedControlKeys = [
+        "Backspace",
+        "Delete",
+        "Tab",
+        "Escape",
+        "Enter",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown",
+        "Home",
+        "End"
+    ];
+
+    if (allowedControlKeys.includes(event.key) || event.ctrlKey || event.metaKey) {
+        return;
+    }
+
+    if (event.key === "-") {
+        event.preventDefault();
+        return;
+    }
+
+    if (event.key === ".") {
+        if (event.target.value.includes(".")) {
+            event.preventDefault();
+        }
+        return;
+    }
+
+    if (!/[0-9]/.test(event.key)) {
+        event.preventDefault();
+    }
+}
+
+function attachPositiveDecimalValidation(fieldId) {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+
+    field.addEventListener("keydown", function (event) {
+        preventInvalidDecimalKey(event);
+    });
+
+    field.addEventListener("input", function () {
+        const cleanedValue = sanitizePositiveDecimalInput(this.value);
+        if (this.value !== cleanedValue) {
+            this.value = cleanedValue;
+        }
+
+        if (this.value !== "") {
+            setFieldError(fieldId, false);
+            clearValuationMessage();
+        }
+    });
+
+    field.addEventListener("paste", function () {
+        setTimeout(() => {
+            this.value = sanitizePositiveDecimalInput(this.value);
+            if (this.value !== "") {
+                setFieldError(fieldId, false);
+                clearValuationMessage();
+            }
+        }, 0);
+    });
+}
+
 function getLandValuationPayload() {
     return {
         land_size: parseFloat(document.getElementById("land_size").value),
-        access_road_size: parseInt(document.getElementById("access_road_size").value),
+        access_road_size: parseFloat(document.getElementById("access_road_size").value),
         location: document.getElementById("location").value,
         distance_to_city: parseFloat(document.getElementById("distance_to_city").value),
         zone_type: document.getElementById("zone_type").value,
@@ -253,15 +335,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     numericFields.forEach((fieldId) => {
-        const field = document.getElementById(fieldId);
-        if (!field) return;
-
-        field.addEventListener("input", function () {
-            if (this.value !== "") {
-                setFieldError(fieldId, false);
-                clearValuationMessage();
-            }
-        });
+        attachPositiveDecimalValidation(fieldId);
     });
 
     const selects = ["location", "zone_type", "electricity", "water", "flood_risk"];
