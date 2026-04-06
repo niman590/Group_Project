@@ -236,6 +236,34 @@
             </section>
         </main>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if ("scrollRestoration" in history) {
+                history.scrollRestoration = "manual";
+            }
+
+            const savedScrollY = sessionStorage.getItem("exactDashboardScrollY");
+            if (savedScrollY !== null) {
+                window.scrollTo(0, parseInt(savedScrollY, 10));
+                sessionStorage.removeItem("exactDashboardScrollY");
+            }
+
+            const filterForm = document.querySelector(".dashboard-filter-card");
+            if (filterForm) {
+                filterForm.addEventListener("submit", function () {
+                    sessionStorage.setItem("exactDashboardScrollY", String(window.scrollY));
+                });
+            }
+
+            const clearBtn = document.querySelector(".clear-search");
+            if (clearBtn) {
+                clearBtn.addEventListener("click", function () {
+                    sessionStorage.setItem("exactDashboardScrollY", String(window.scrollY));
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
