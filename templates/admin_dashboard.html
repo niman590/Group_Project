@@ -23,13 +23,13 @@
                     <p>Manage users, review applications, and monitor planning activity from one place.</p>
                 </div>
 
-                <div class="admin-chip">
+                <a href="{{ url_for('user.account') }}" class="admin-chip clickable-admin-chip" title="Go to My Account">
                     <div class="avatar">{{ user['first_name'][0] | upper }}</div>
                     <div>
                         <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
                         <span>User ID: USER-{{ user['user_id'] }}</span>
                     </div>
-                </div>
+                </a>
             </header>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -42,57 +42,57 @@
             {% endif %}
             {% endwith %}
 
-<section class="stats-section">
-    <div class="section-head">
-        <div>
-            <span class="section-kicker">Overview</span>
-            <h2>Application Summary</h2>
-            <p>Quick view of all planning application activity.</p>
-        </div>
-    </div>
+            <section class="stats-section">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Overview</span>
+                        <h2>Application Summary</h2>
+                        <p>Quick view of all planning application activity.</p>
+                    </div>
+                </div>
 
-    <div class="stats-grid application-stats-grid">
-        <div class="stat-card app-stat-card total">
-            <div class="stat-top-line"></div>
-            <div class="stat-icon"><i class="fa-regular fa-folder-open"></i></div>
-            <div class="stat-content">
-                <span class="stat-label">Total Planning Applications</span>
-                <h3>{{ total_applications }}</h3>
-                <p>All submitted applications in the selected timeline.</p>
-            </div>
-        </div>
+                <div class="stats-grid application-stats-grid">
+                    <div class="stat-card app-stat-card total">
+                        <div class="stat-top-line"></div>
+                        <div class="stat-icon"><i class="fa-regular fa-folder-open"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Planning Applications</span>
+                            <h3>{{ total_applications }}</h3>
+                            <p>All submitted applications in the selected timeline.</p>
+                        </div>
+                    </div>
 
-        <div class="stat-card app-stat-card approved">
-            <div class="stat-top-line"></div>
-            <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
-            <div class="stat-content">
-                <span class="stat-label">Approved Plans</span>
-                <h3>{{ approved_applications }}</h3>
-                <p>Applications reviewed and approved successfully.</p>
-            </div>
-        </div>
+                    <div class="stat-card app-stat-card approved">
+                        <div class="stat-top-line"></div>
+                        <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Approved Plans</span>
+                            <h3>{{ approved_applications }}</h3>
+                            <p>Applications reviewed and approved successfully.</p>
+                        </div>
+                    </div>
 
-        <div class="stat-card app-stat-card pending">
-            <div class="stat-top-line"></div>
-            <div class="stat-icon"><i class="fa-regular fa-clock"></i></div>
-            <div class="stat-content">
-                <span class="stat-label">Pending / Review Plans</span>
-                <h3>{{ pending_applications }}</h3>
-                <p>Applications currently waiting or under review.</p>
-            </div>
-        </div>
+                    <div class="stat-card app-stat-card pending">
+                        <div class="stat-top-line"></div>
+                        <div class="stat-icon"><i class="fa-regular fa-clock"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Pending / Review Plans</span>
+                            <h3>{{ pending_applications }}</h3>
+                            <p>Applications currently waiting or under review.</p>
+                        </div>
+                    </div>
 
-        <div class="stat-card app-stat-card rejected">
-            <div class="stat-top-line"></div>
-            <div class="stat-icon"><i class="fa-solid fa-circle-xmark"></i></div>
-            <div class="stat-content">
-                <span class="stat-label">Rejected Plans</span>
-                <h3>{{ rejected_applications }}</h3>
-                <p>Applications declined after administrative review.</p>
-            </div>
-        </div>
-    </div>
-</section>
+                    <div class="stat-card app-stat-card rejected">
+                        <div class="stat-top-line"></div>
+                        <div class="stat-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Rejected Plans</span>
+                            <h3>{{ rejected_applications }}</h3>
+                            <p>Applications declined after administrative review.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             <section class="filter-section">
                 <div class="section-head">

@@ -71,6 +71,22 @@ body {
     min-width: 220px;
 }
 
+.clickable-admin-chip {
+    text-decoration: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    cursor: pointer;
+}
+
+.clickable-admin-chip:hover {
+    background: #e4efff;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(18, 63, 130, 0.10);
+}
+
+.clickable-admin-chip:active {
+    transform: translateY(0);
+}
+
 .avatar {
     width: 48px;
     height: 48px;
@@ -647,5 +663,9 @@ body {
         width: 60px;
         height: 60px;
         border-radius: 18px;
+    }
+
+    .clickable-admin-chip {
+        width: 100%;
     }
 }
