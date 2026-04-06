@@ -34,4 +34,21 @@ document.addEventListener("DOMContentLoaded", function () {
             input.setAttribute("max", today.toISOString().split("T")[0]);
         });
     }
+
+    const viewAllButtons = document.querySelectorAll(".view-all-btn");
+
+    viewAllButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+            const targetClass = this.getAttribute("data-target");
+            const hiddenRows = document.querySelectorAll("." + targetClass + ".extra-row");
+            const isExpanded = this.getAttribute("data-expanded") === "true";
+
+            hiddenRows.forEach(function (row) {
+                row.classList.toggle("hidden-row", isExpanded);
+            });
+
+            this.setAttribute("data-expanded", isExpanded ? "false" : "true");
+            this.textContent = isExpanded ? "View All" : "Show Less";
+        });
+    });
 });

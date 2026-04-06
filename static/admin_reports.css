@@ -336,6 +336,20 @@
     padding: 18px 16px;
 }
 
+.hidden-row {
+    display: none;
+}
+
+.view-all-wrap {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.view-all-btn {
+    min-width: 110px;
+}
+
 /* Optional chart support */
 .chart-card {
     padding: 18px;

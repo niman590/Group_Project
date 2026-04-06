@@ -256,18 +256,18 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>User ID</th>
+                                <th>NO</th>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>NIC</th>
                                 <th>Created Date</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="users-table-body">
                             {% if recent_users %}
                             {% for item in recent_users %}
-                            <tr>
-                                <td>#{{ item['user_id'] }}</td>
+                            <tr class="user-row {% if loop.index > 5 %}extra-row hidden-row{% endif %}">
+                                <td>{{ loop.index }}</td>
                                 <td>{{ item['first_name'] }} {{ item['last_name'] }}</td>
                                 <td>{{ item['email'] }}</td>
                                 <td>{{ item['nic'] }}</td>
@@ -282,6 +282,14 @@
                         </tbody>
                     </table>
                 </div>
+
+                {% if recent_users and recent_users|length > 5 %}
+                <div class="view-all-wrap">
+                    <button type="button" class="btn secondary small view-all-btn" data-target="user-row">
+                        View All
+                    </button>
+                </div>
+                {% endif %}
             </section>
 
             <section class="panel report-table-panel">
@@ -346,7 +354,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Application ID</th>
+                                <th>NO</th>
                                 <th>Applicant Name</th>
                                 <th>Email</th>
                                 <th>NIC</th>
@@ -354,11 +362,11 @@
                                 <th>Submitted Date</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="applications-table-body">
                             {% if recent_applications %}
                             {% for item in recent_applications %}
-                            <tr>
-                                <td>#{{ item['application_id'] }}</td>
+                            <tr class="application-row {% if loop.index > 5 %}extra-row hidden-row{% endif %}">
+                                <td>{{ loop.index }}</td>
                                 <td>{{ item['first_name'] }} {{ item['last_name'] }}</td>
                                 <td>{{ item['email'] }}</td>
                                 <td>{{ item['nic'] }}</td>
@@ -382,6 +390,14 @@
                         </tbody>
                     </table>
                 </div>
+
+                {% if recent_applications and recent_applications|length > 5 %}
+                <div class="view-all-wrap">
+                    <button type="button" class="btn secondary small view-all-btn" data-target="application-row">
+                        View All
+                    </button>
+                </div>
+                {% endif %}
             </section>
         </main>
     </div>
