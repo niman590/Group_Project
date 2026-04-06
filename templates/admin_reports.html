@@ -20,6 +20,7 @@
         <main class="main-content">
             <header class="topbar report-page-topbar">
                 <div>
+                    <span class="page-label">Admin Reports</span>
                     <h1>Admin Reports</h1>
                     <p>View analytics, diagrams, user registrations, submitted applicants, and export reports.</p>
                 </div>
@@ -49,25 +50,59 @@
             {% endif %}
             {% endwith %}
 
-            <section class="stats-grid reports-stats-grid">
-                <div class="stat-card report-stat-card">
-                    <h3>{{ total_users }}</h3>
-                    <p>Total Users</p>
+            <section class="stats-section">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Overview</span>
+                        <h2>Reports Summary</h2>
+                        <p>Quick overview of user, admin, account, and application totals.</p>
+                    </div>
                 </div>
 
-                <div class="stat-card report-stat-card">
-                    <h3>{{ total_admins }}</h3>
-                    <p>Total Admins</p>
-                </div>
+                <div class="stats-grid reports-stats-grid">
+                    <div class="stat-card report-stat-card total-users">
+                        <div class="stat-icon blue">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Users</span>
+                            <h3>{{ total_users }}</h3>
+                            <p>All user accounts currently registered in the system.</p>
+                        </div>
+                    </div>
 
-                <div class="stat-card report-stat-card">
-                    <h3>{{ active_users }}</h3>
-                    <p>Active Users</p>
-                </div>
+                    <div class="stat-card report-stat-card total-admins">
+                        <div class="stat-icon indigo">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Admins</span>
+                            <h3>{{ total_admins }}</h3>
+                            <p>Accounts with administrator privileges and system access.</p>
+                        </div>
+                    </div>
 
-                <div class="stat-card report-stat-card">
-                    <h3>{{ total_applications }}</h3>
-                    <p>Total Applications</p>
+                    <div class="stat-card report-stat-card active-users">
+                        <div class="stat-icon green">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Active Users</span>
+                            <h3>{{ active_users }}</h3>
+                            <p>Currently active accounts available for normal system use.</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card report-stat-card total-applications">
+                        <div class="stat-icon amber">
+                            <i class="fa-solid fa-file-signature"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Applications</span>
+                            <h3>{{ total_applications }}</h3>
+                            <p>Planning applications recorded across the reporting period.</p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -101,7 +136,8 @@
                     </div>
 
                     <div class="report-actions">
-                        <button type="button" class="btn primary small report-toggle-btn" data-target="planning-report-details">
+                        <button type="button" class="btn primary small report-toggle-btn"
+                            data-target="planning-report-details">
                             View Details
                         </button>
                     </div>
@@ -143,7 +179,8 @@
                     </div>
 
                     <div class="report-actions">
-                        <button type="button" class="btn primary small report-toggle-btn" data-target="transaction-report-details">
+                        <button type="button" class="btn primary small report-toggle-btn"
+                            data-target="transaction-report-details">
                             View Details
                         </button>
                     </div>
@@ -170,16 +207,18 @@
                 </div>
 
                 <form class="inline-filter-form" method="GET" action="{{ url_for('admin_reports.admin_reports') }}">
-                    <input type="hidden" name="applicant_start_date" value="{{ applicant_start_date if applicant_start_date else '' }}">
-                    <input type="hidden" name="applicant_end_date" value="{{ applicant_end_date if applicant_end_date else '' }}">
+                    <input type="hidden" name="applicant_start_date"
+                        value="{{ applicant_start_date if applicant_start_date else '' }}">
+                    <input type="hidden" name="applicant_end_date"
+                        value="{{ applicant_end_date if applicant_end_date else '' }}">
 
                     <div class="filter-field">
                         <label for="user_start_date">Start Date</label>
                         <div class="calendar-input-wrap">
                             <i class="fa-regular fa-calendar"></i>
-                            <input type="text" id="user_start_date" name="user_start_date" class="friendly-date-input js-friendly-calendar"
-                                placeholder="Select start date" autocomplete="off"
-                                value="{{ user_start_date if user_start_date else '' }}">
+                            <input type="text" id="user_start_date" name="user_start_date"
+                                class="friendly-date-input js-friendly-calendar" placeholder="Select start date"
+                                autocomplete="off" value="{{ user_start_date if user_start_date else '' }}">
                         </div>
                     </div>
 
@@ -187,9 +226,9 @@
                         <label for="user_end_date">End Date</label>
                         <div class="calendar-input-wrap">
                             <i class="fa-regular fa-calendar"></i>
-                            <input type="text" id="user_end_date" name="user_end_date" class="friendly-date-input js-friendly-calendar"
-                                placeholder="Select end date" autocomplete="off"
-                                value="{{ user_end_date if user_end_date else '' }}">
+                            <input type="text" id="user_end_date" name="user_end_date"
+                                class="friendly-date-input js-friendly-calendar" placeholder="Select end date"
+                                autocomplete="off" value="{{ user_end_date if user_end_date else '' }}">
                         </div>
                     </div>
 
@@ -226,19 +265,19 @@
                         </thead>
                         <tbody>
                             {% if recent_users %}
-                                {% for item in recent_users %}
-                                <tr>
-                                    <td>#{{ item['user_id'] }}</td>
-                                    <td>{{ item['first_name'] }} {{ item['last_name'] }}</td>
-                                    <td>{{ item['email'] }}</td>
-                                    <td>{{ item['nic'] }}</td>
-                                    <td>{{ item['created_at'] if item['created_at'] else 'N/A' }}</td>
-                                </tr>
-                                {% endfor %}
+                            {% for item in recent_users %}
+                            <tr>
+                                <td>#{{ item['user_id'] }}</td>
+                                <td>{{ item['first_name'] }} {{ item['last_name'] }}</td>
+                                <td>{{ item['email'] }}</td>
+                                <td>{{ item['nic'] }}</td>
+                                <td>{{ item['created_at'] if item['created_at'] else 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
                             {% else %}
-                                <tr>
-                                    <td colspan="5" class="no-results">No user registration records found.</td>
-                                </tr>
+                            <tr>
+                                <td colspan="5" class="no-results">No user registration records found.</td>
+                            </tr>
                             {% endif %}
                         </tbody>
                     </table>
@@ -259,16 +298,17 @@
                 </div>
 
                 <form class="inline-filter-form" method="GET" action="{{ url_for('admin_reports.admin_reports') }}">
-                    <input type="hidden" name="user_start_date" value="{{ user_start_date if user_start_date else '' }}">
+                    <input type="hidden" name="user_start_date"
+                        value="{{ user_start_date if user_start_date else '' }}">
                     <input type="hidden" name="user_end_date" value="{{ user_end_date if user_end_date else '' }}">
 
                     <div class="filter-field">
                         <label for="applicant_start_date">Start Date</label>
                         <div class="calendar-input-wrap">
                             <i class="fa-regular fa-calendar"></i>
-                            <input type="text" id="applicant_start_date" name="applicant_start_date" class="friendly-date-input js-friendly-calendar"
-                                placeholder="Select start date" autocomplete="off"
-                                value="{{ applicant_start_date if applicant_start_date else '' }}">
+                            <input type="text" id="applicant_start_date" name="applicant_start_date"
+                                class="friendly-date-input js-friendly-calendar" placeholder="Select start date"
+                                autocomplete="off" value="{{ applicant_start_date if applicant_start_date else '' }}">
                         </div>
                     </div>
 
@@ -276,9 +316,9 @@
                         <label for="applicant_end_date">End Date</label>
                         <div class="calendar-input-wrap">
                             <i class="fa-regular fa-calendar"></i>
-                            <input type="text" id="applicant_end_date" name="applicant_end_date" class="friendly-date-input js-friendly-calendar"
-                                placeholder="Select end date" autocomplete="off"
-                                value="{{ applicant_end_date if applicant_end_date else '' }}">
+                            <input type="text" id="applicant_end_date" name="applicant_end_date"
+                                class="friendly-date-input js-friendly-calendar" placeholder="Select end date"
+                                autocomplete="off" value="{{ applicant_end_date if applicant_end_date else '' }}">
                         </div>
                     </div>
 
@@ -316,28 +356,28 @@
                         </thead>
                         <tbody>
                             {% if recent_applications %}
-                                {% for item in recent_applications %}
-                                <tr>
-                                    <td>#{{ item['application_id'] }}</td>
-                                    <td>{{ item['first_name'] }} {{ item['last_name'] }}</td>
-                                    <td>{{ item['email'] }}</td>
-                                    <td>{{ item['nic'] }}</td>
-                                    <td>
-                                        {% if item['status'] == 'Approved' %}
-                                            <span class="badge active">Approved</span>
-                                        {% elif item['status'] == 'Rejected' %}
-                                            <span class="badge inactive">Rejected</span>
-                                        {% else %}
-                                            <span class="badge user">{{ item['status'] }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ item['created_at'] if item['created_at'] else 'N/A' }}</td>
-                                </tr>
-                                {% endfor %}
+                            {% for item in recent_applications %}
+                            <tr>
+                                <td>#{{ item['application_id'] }}</td>
+                                <td>{{ item['first_name'] }} {{ item['last_name'] }}</td>
+                                <td>{{ item['email'] }}</td>
+                                <td>{{ item['nic'] }}</td>
+                                <td>
+                                    {% if item['status'] == 'Approved' %}
+                                    <span class="badge active">Approved</span>
+                                    {% elif item['status'] == 'Rejected' %}
+                                    <span class="badge inactive">Rejected</span>
+                                    {% else %}
+                                    <span class="badge user">{{ item['status'] }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item['created_at'] if item['created_at'] else 'N/A' }}</td>
+                            </tr>
+                            {% endfor %}
                             {% else %}
-                                <tr>
-                                    <td colspan="6" class="no-results">No planning application records found.</td>
-                                </tr>
+                            <tr>
+                                <td colspan="6" class="no-results">No planning application records found.</td>
+                            </tr>
                             {% endif %}
                         </tbody>
                     </table>
