@@ -17,7 +17,7 @@
 
         <main class="main-content">
 
-            <header class="topbar">
+            <header class="topbar reveal-up">
                 <div class="topbar-copy">
                     <span class="page-kicker">Citizen Dashboard</span>
                     <h1>Welcome back, {{ user['first_name'] if user and user['first_name'] else 'User' }}</h1>
@@ -32,7 +32,7 @@
                         <i class="fa-solid fa-gear"></i>
                     </button>
 
-                    <div class="user-chip">
+                    <a href="{{ url_for('user.account') }}" class="user-chip user-chip-link" title="Open My Profile">
                         <div class="avatar">
                             {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                         </div>
@@ -43,282 +43,320 @@
                             </strong>
                             <span>NIC: {{ user['nic'] if user and user['nic'] else 'N/A' }}</span>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </header>
 
-            <section class="stats-grid">
-                <div class="stat-card reveal-up">
-                    <div class="stat-icon blue"><i class="fa-solid fa-file-circle-check"></i></div>
+            <section class="dashboard-section">
+                <div class="section-head reveal-up">
                     <div>
-                        <h3>{{ stats.total_applications }}</h3>
-                        <p>Total Applications</p>
+                        <span class="section-kicker">Overview</span>
+                        <h2>Quick Summary</h2>
+                        <p>See your current application progress and account activity at a glance.</p>
                     </div>
                 </div>
 
-                <div class="stat-card reveal-up">
-                    <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
-                    <div>
-                        <h3>{{ stats.approved_cases }}</h3>
-                        <p>Approved Cases</p>
+                <section class="stats-grid">
+                    <div class="stat-card reveal-up">
+                        <div class="stat-glow"></div>
+                        <div class="stat-icon blue"><i class="fa-solid fa-file-circle-check"></i></div>
+                        <div>
+                            <h3>{{ stats.total_applications }}</h3>
+                            <p>Total Applications</p>
+                        </div>
                     </div>
-                </div>
 
-                <div class="stat-card reveal-up">
-                    <div class="stat-icon orange"><i class="fa-solid fa-hourglass-half"></i></div>
-                    <div>
-                        <h3>{{ stats.pending_reviews }}</h3>
-                        <p>Pending Reviews</p>
+                    <div class="stat-card reveal-up">
+                        <div class="stat-glow"></div>
+                        <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                        <div>
+                            <h3>{{ stats.approved_cases }}</h3>
+                            <p>Approved Cases</p>
+                        </div>
                     </div>
-                </div>
 
-                <div class="stat-card reveal-up">
-                    <div class="stat-icon red"><i class="fa-solid fa-bell"></i></div>
-                    <div>
-                        <h3>{{ stats.alerts_count }}</h3>
-                        <p>Alerts & Notifications</p>
+                    <div class="stat-card reveal-up">
+                        <div class="stat-glow"></div>
+                        <div class="stat-icon orange"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <div>
+                            <h3>{{ stats.pending_reviews }}</h3>
+                            <p>Pending Reviews</p>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="stat-card reveal-up">
+                        <div class="stat-glow"></div>
+                        <div class="stat-icon red"><i class="fa-solid fa-bell"></i></div>
+                        <div>
+                            <h3>{{ stats.alerts_count }}</h3>
+                            <p>Alerts & Notifications</p>
+                        </div>
+                    </div>
+                </section>
             </section>
 
-            <section class="action-grid">
-                <a href="{{ url_for('submit_documents.submit_documents') }}" class="action-card reveal-up">
-                    <div class="action-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
-                    <h3>Submit Planning Documents</h3>
-                    <p>Upload new planning approval files and supporting documents.</p>
-                </a>
+            <section class="dashboard-section">
+                <div class="section-head reveal-up">
+                    <div>
+                        <span class="section-kicker">Actions</span>
+                        <h2>Popular Services</h2>
+                        <p>Open the most-used citizen actions quickly from here.</p>
+                    </div>
+                </div>
 
-                <a href="{{ url_for('submit_documents.my_applications') }}" class="action-card reveal-up">
-                    <div class="action-icon"><i class="fa-solid fa-folder-open"></i></div>
-                    <h3>Track My Applications</h3>
-                    <p>Monitor review progress, approvals, rejections, and status updates.</p>
-                </a>
+                <section class="action-grid">
+                    <a href="{{ url_for('submit_documents.submit_documents') }}" class="action-card reveal-up">
+                        <div class="action-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
+                        <h3>Submit Planning Documents</h3>
+                        <p>Upload new planning approval files and supporting documents.</p>
+                        <span class="action-link-text">Open module <i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
 
-                <a href="{{ url_for('transaction_history.transaction_history_page') }}" class="action-card reveal-up">
-                    <div class="action-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
-                    <h3>View Land Transaction History</h3>
-                    <p>See past transactions and ownership changes.</p>
-                </a>
+                    <a href="{{ url_for('submit_documents.my_applications') }}" class="action-card reveal-up">
+                        <div class="action-icon"><i class="fa-solid fa-folder-open"></i></div>
+                        <h3>Track My Applications</h3>
+                        <p>Monitor review progress, approvals, rejections, and status updates.</p>
+                        <span class="action-link-text">View progress <i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
 
-                <a href="{{ url_for('prediction.land_valuation_page') }}" class="action-card reveal-up">
-                    <div class="action-icon"><i class="fa-solid fa-chart-line"></i></div>
-                    <h3>Check Land Value</h3>
-                    <p>View current land value and estimated future trends.</p>
-                </a>
+                    <a href="{{ url_for('transaction_history.transaction_history_page') }}" class="action-card reveal-up">
+                        <div class="action-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                        <h3>View Land Transaction History</h3>
+                        <p>See past transactions and ownership changes.</p>
+                        <span class="action-link-text">Open records <i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
+
+                    <a href="{{ url_for('prediction.land_valuation_page') }}" class="action-card reveal-up">
+                        <div class="action-icon"><i class="fa-solid fa-chart-line"></i></div>
+                        <h3>Check Land Value</h3>
+                        <p>View current land value and estimated future trends.</p>
+                        <span class="action-link-text">View valuation <i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
+                </section>
             </section>
 
-            <section class="content-grid">
-                <div class="left-column">
-
-                    <div class="panel reveal-up">
-                        <div class="panel-header">
-                            <div>
-                                <h2>Pending Requests & Alerts</h2>
-                                <p class="panel-subtext">Recent alerts and important activity related to your account.</p>
-                            </div>
-                            <a href="{{ url_for('submit_documents.my_applications') }}">View all</a>
-                        </div>
-
-                        <div class="alert-list">
-                            {% if alerts %}
-                            {% for alert in alerts %}
-                            <div class="alert-item {{ alert.type }}">
-                                <div class="alert-copy">
-                                    <h4>{{ alert.title }}</h4>
-                                    <p>{{ alert.message }}</p>
-                                </div>
-                                <span>{{ alert.time }}</span>
-                            </div>
-                            {% endfor %}
-                            {% else %}
-                            <div class="alert-item info">
-                                <div class="alert-copy">
-                                    <h4>No alerts right now</h4>
-                                    <p>You do not have any active application or property alerts yet.</p>
-                                </div>
-                                <span>—</span>
-                            </div>
-                            {% endif %}
-                        </div>
+            <section class="dashboard-section">
+                <div class="section-head reveal-up">
+                    <div>
+                        <span class="section-kicker">Details</span>
+                        <h2>My Activity & Records</h2>
+                        <p>Review alerts, property records, applications, and account information.</p>
                     </div>
-
-                    <div class="panel reveal-up">
-                        <div class="panel-header">
-                            <div>
-                                <h2>My Property Records</h2>
-                                <p class="panel-subtext">Property details and ownership records linked to your account.</p>
-                            </div>
-                            {% if gis_map_url %}
-                            <a href="{{ gis_map_url }}" target="_blank">Open records</a>
-                            {% else %}
-                            <a href="{{ url_for('user.account') }}">Update profile</a>
-                            {% endif %}
-                        </div>
-
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Land ID</th>
-                                        <th>Location</th>
-                                        <th>Status</th>
-                                        <th>Owner Since</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if property_records %}
-                                    {% for record in property_records %}
-                                    <tr>
-                                        <td>{{ record.land_id }}</td>
-                                        <td>{{ record.location }}</td>
-                                        <td><span class="badge {{ record.badge }}">{{ record.status }}</span></td>
-                                        <td>{{ record.owner_since }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% else %}
-                                    <tr>
-                                        <td colspan="4" class="empty-cell">No real property records found for this account yet.</td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="panel reveal-up">
-                        <div class="panel-header">
-                            <div>
-                                <h2>Application History</h2>
-                                <p class="panel-subtext">Your latest submissions and review outcomes.</p>
-                            </div>
-                            <a href="{{ url_for('submit_documents.my_applications') }}">Full history</a>
-                        </div>
-
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Case ID</th>
-                                        <th>Type</th>
-                                        <th>Submitted</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if application_history %}
-                                    {% for app in application_history %}
-                                    <tr>
-                                        <td>{{ app.case_id }}</td>
-                                        <td>{{ app.type }}</td>
-                                        <td>{{ app.submitted }}</td>
-                                        <td><span class="badge {{ app.badge }}">{{ app.status }}</span></td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% else %}
-                                    <tr>
-                                        <td colspan="4" class="empty-cell">No real applications found yet.</td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
                 </div>
 
-                <div class="right-column">
+                <section class="content-grid">
+                    <div class="left-column">
 
-                    <div class="panel reveal-up">
-                        <div class="panel-header">
-                            <div>
-                                <h2>Profile Summary</h2>
-                                <p class="panel-subtext">A quick overview of your registered account information.</p>
+                        <div class="panel reveal-up">
+                            <div class="panel-header">
+                                <div>
+                                    <h2>Pending Requests & Alerts</h2>
+                                    <p class="panel-subtext">Recent alerts and important activity related to your account.</p>
+                                </div>
+                                <a href="{{ url_for('submit_documents.my_applications') }}">View all</a>
                             </div>
-                            <a href="{{ url_for('user.account') }}">Edit</a>
+
+                            <div class="alert-list">
+                                {% if alerts %}
+                                {% for alert in alerts %}
+                                <div class="alert-item {{ alert.type }}">
+                                    <div class="alert-copy">
+                                        <h4>{{ alert.title }}</h4>
+                                        <p>{{ alert.message }}</p>
+                                    </div>
+                                    <span>{{ alert.time }}</span>
+                                </div>
+                                {% endfor %}
+                                {% else %}
+                                <div class="alert-item info">
+                                    <div class="alert-copy">
+                                        <h4>No alerts right now</h4>
+                                        <p>You do not have any active application or property alerts yet.</p>
+                                    </div>
+                                    <span>—</span>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
 
-                        <div class="profile-card">
-                            <div class="profile-avatar">
-                                {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
+                        <div class="panel reveal-up">
+                            <div class="panel-header">
+                                <div>
+                                    <h2>My Property Records</h2>
+                                    <p class="panel-subtext">Property details and ownership records linked to your account.</p>
+                                </div>
+                                {% if gis_map_url %}
+                                <a href="{{ gis_map_url }}" target="_blank">Open records</a>
+                                {% else %}
+                                <a href="{{ url_for('user.account') }}">Update profile</a>
+                                {% endif %}
                             </div>
-                            <div class="profile-meta">
-                                <h3>
-                                    {{ user['first_name'] if user and user['first_name'] else 'Citizen' }}
-                                    {{ user['last_name'] if user and user['last_name'] else 'User' }}
-                                </h3>
-                                <p>Email: {{ user['email'] if user and user['email'] else 'N/A' }}</p>
-                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else 'N/A' }}</p>
-                                <p>Address: {{ user['address'] if user and user['address'] else 'N/A' }}</p>
+
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Land ID</th>
+                                            <th>Location</th>
+                                            <th>Status</th>
+                                            <th>Owner Since</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if property_records %}
+                                        {% for record in property_records %}
+                                        <tr>
+                                            <td>{{ record.land_id }}</td>
+                                            <td>{{ record.location }}</td>
+                                            <td><span class="badge {{ record.badge }}">{{ record.status }}</span></td>
+                                            <td>{{ record.owner_since }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="4" class="empty-cell">No real property records found for this account yet.</td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
+
+                        <div class="panel reveal-up">
+                            <div class="panel-header">
+                                <div>
+                                    <h2>Application History</h2>
+                                    <p class="panel-subtext">Your latest submissions and review outcomes.</p>
+                                </div>
+                                <a href="{{ url_for('submit_documents.my_applications') }}">Full history</a>
+                            </div>
+
+                            <div class="table-wrap">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Case ID</th>
+                                            <th>Type</th>
+                                            <th>Submitted</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if application_history %}
+                                        {% for app in application_history %}
+                                        <tr>
+                                            <td>{{ app.case_id }}</td>
+                                            <td>{{ app.type }}</td>
+                                            <td>{{ app.submitted }}</td>
+                                            <td><span class="badge {{ app.badge }}">{{ app.status }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="4" class="empty-cell">No real applications found yet.</td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div class="panel reveal-up">
-                        <div class="panel-header">
-                            <div>
-                                <h2>Land Valuation</h2>
-                                <p class="panel-subtext">Latest saved valuation summary and estimated trend direction.</p>
+                    <div class="right-column">
+
+                        <div class="panel reveal-up">
+                            <div class="panel-header">
+                                <div>
+                                    <h2>Profile Summary</h2>
+                                    <p class="panel-subtext">A quick overview of your registered account information.</p>
+                                </div>
+                                <a href="{{ url_for('user.account') }}">Edit</a>
                             </div>
-                            <a href="{{ url_for('prediction.land_valuation_page') }}">Open module</a>
+
+                            <div class="profile-card">
+                                <div class="profile-avatar">
+                                    {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
+                                </div>
+                                <div class="profile-meta">
+                                    <h3>
+                                        {{ user['first_name'] if user and user['first_name'] else 'Citizen' }}
+                                        {{ user['last_name'] if user and user['last_name'] else 'User' }}
+                                    </h3>
+                                    <p>Email: {{ user['email'] if user and user['email'] else 'N/A' }}</p>
+                                    <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else 'N/A' }}</p>
+                                    <p>Address: {{ user['address'] if user and user['address'] else 'N/A' }}</p>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="valuation-card">
-                            {% if latest_valuation %}
-                            <h3>Estimated Current Value</h3>
-                            <div class="value-number">LKR {{ latest_valuation.current_value }}</div>
-                            <p>Property: {{ latest_valuation.property_label }}</p>
-
-                            <div class="mini-stats">
+                        <div class="panel reveal-up">
+                            <div class="panel-header">
                                 <div>
-                                    <span>Future Estimate</span>
-                                    <strong>LKR {{ latest_valuation.future_estimate }}</strong>
+                                    <h2>Land Valuation</h2>
+                                    <p class="panel-subtext">Latest saved valuation summary and estimated trend direction.</p>
                                 </div>
-                                <div>
-                                    <span>Trend</span>
-                                    <strong>{{ latest_valuation.trend }}</strong>
-                                </div>
+                                <a href="{{ url_for('prediction.land_valuation_page') }}">Open module</a>
                             </div>
-                            {% else %}
-                            <h3>No valuation data yet</h3>
-                            <div class="value-number">LKR 0</div>
-                            <p>Run a land valuation to see real saved results here.</p>
 
-                            <div class="mini-stats">
-                                <div>
-                                    <span>Future Estimate</span>
-                                    <strong>—</strong>
+                            <div class="valuation-card">
+                                {% if latest_valuation %}
+                                <h3>Estimated Current Value</h3>
+                                <div class="value-number">LKR {{ latest_valuation.current_value }}</div>
+                                <p>Property: {{ latest_valuation.property_label }}</p>
+
+                                <div class="mini-stats">
+                                    <div>
+                                        <span>Future Estimate</span>
+                                        <strong>LKR {{ latest_valuation.future_estimate }}</strong>
+                                    </div>
+                                    <div>
+                                        <span>Trend</span>
+                                        <strong>{{ latest_valuation.trend }}</strong>
+                                    </div>
                                 </div>
-                                <div>
-                                    <span>Trend</span>
-                                    <strong>—</strong>
+                                {% else %}
+                                <h3>No valuation data yet</h3>
+                                <div class="value-number">LKR 0</div>
+                                <p>Run a land valuation to see real saved results here.</p>
+
+                                <div class="mini-stats">
+                                    <div>
+                                        <span>Future Estimate</span>
+                                        <strong>—</strong>
+                                    </div>
+                                    <div>
+                                        <span>Trend</span>
+                                        <strong>—</strong>
+                                    </div>
                                 </div>
+                                {% endif %}
                             </div>
-                            {% endif %}
                         </div>
+
+                        <div class="panel reveal-up">
+                            <div class="panel-header">
+                                <div>
+                                    <h2>Support Documents</h2>
+                                    <p class="panel-subtext">Helpful documents, guides, and reference files.</p>
+                                </div>
+                                <a href="/support-documents">All files</a>
+                            </div>
+
+                            <ul class="doc-list">
+                                {% for doc in support_documents %}
+                                <li>
+                                    <a href="{{ doc.url }}" class="doc-link" target="_blank">
+                                        <i class="fa-solid {{ doc.icon }}"></i>
+                                        <span>{{ doc.title }}</span>
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
                     </div>
-
-                    <div class="panel reveal-up">
-                        <div class="panel-header">
-                            <div>
-                                <h2>Support Documents</h2>
-                                <p class="panel-subtext">Helpful documents, guides, and reference files.</p>
-                            </div>
-                            <a href="/support-documents">All files</a>
-                        </div>
-
-                        <ul class="doc-list">
-                            {% for doc in support_documents %}
-                            <li>
-                                <a href="{{ doc.url }}" class="doc-link" target="_blank">
-                                    <i class="fa-solid {{ doc.icon }}"></i>
-                                    <span>{{ doc.title }}</span>
-                                </a>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                </div>
+                </section>
             </section>
 
         </main>

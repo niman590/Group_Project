@@ -6,6 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const chatSendBtn = document.getElementById("chatSendBtn");
     const chatbotCloseBtn = document.getElementById("chatbotCloseBtn");
     const revealItems = document.querySelectorAll(".reveal-up");
+    const statNumbers = document.querySelectorAll(".stat-card h3, .value-number");
+    const topbar = document.querySelector(".topbar");
 
     let isDragging = false;
     let hasMoved = false;
@@ -49,13 +51,21 @@ document.addEventListener("DOMContentLoaded", function () {
             : chatbotBox.style.display !== "flex";
 
         if (!shouldOpen) {
-            chatbotBox.style.display = "none";
+            chatbotBox.classList.remove("chat-open");
+            setTimeout(() => {
+                if (!chatbotBox.classList.contains("chat-open")) {
+                    chatbotBox.style.display = "none";
+                }
+            }, 220);
             return;
         }
 
         chatbotBox.style.display = "flex";
-        positionChatBox();
-        chatInput.focus();
+        requestAnimationFrame(() => {
+            chatbotBox.classList.add("chat-open");
+            positionChatBox();
+            chatInput.focus();
+        });
     }
 
     function startDrag(clientX, clientY) {
@@ -124,12 +134,68 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function revealOnScroll() {
-        revealItems.forEach((item) => {
+        revealItems.forEach((item, index) => {
             const rect = item.getBoundingClientRect();
             if (rect.top < window.innerHeight - 70) {
+                item.style.transitionDelay = `${Math.min(index * 50, 280)}ms`;
                 item.classList.add("revealed");
             }
         });
+    }
+
+    function animateCount(el) {
+        if (!el || el.dataset.counted === "1") return;
+
+        const rawText = (el.textContent || "").trim();
+        const number = parseFloat(rawText.replace(/[^0-9.]/g, ""));
+
+        if (Number.isNaN(number)) {
+            el.dataset.counted = "1";
+            return;
+        }
+
+        el.dataset.counted = "1";
+
+        const duration = 900;
+        const start = performance.now();
+
+        function frame(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(number * eased);
+
+            if (rawText.startsWith("LKR")) {
+                el.textContent = `LKR ${current.toLocaleString()}`;
+            } else {
+                el.textContent = current.toLocaleString();
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(frame);
+            } else {
+                el.textContent = rawText;
+            }
+        }
+
+        requestAnimationFrame(frame);
+    }
+
+    function runCounterAnimations() {
+        statNumbers.forEach((el) => {
+            const rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight - 40) {
+                animateCount(el);
+            }
+        });
+    }
+
+    function handleTopbarScroll() {
+        if (!topbar) return;
+        if (window.scrollY > 14) {
+            topbar.classList.add("topbar-scrolled");
+        } else {
+            topbar.classList.remove("topbar-scrolled");
+        }
     }
 
     async function sendMessage() {
@@ -243,11 +309,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    window.addEventListener("scroll", revealOnScroll);
+    window.addEventListener("scroll", function () {
+        revealOnScroll();
+        runCounterAnimations();
+        handleTopbarScroll();
+    });
 
     restoreDashboardScroll();
     sessionStorage.removeItem("dashboardReturnRefreshDone");
     revealOnScroll();
+    runCounterAnimations();
+    handleTopbarScroll();
 
     window.toggleChat = toggleChat;
     window.sendMessage = sendMessage;
