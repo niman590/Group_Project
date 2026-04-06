@@ -1,8 +1,9 @@
-<aside class="sidebar" id="userSidebar">
+<aside class="sidebar user-sidebar" id="userSidebar">
     <div class="sidebar-top">
         <div class="sidebar-brand-wrap">
             <a href="{{ url_for('user.user_dashboard') }}" class="sidebar-brand">
-                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo" class="sidebar-logo" />
+                <img src="{{ url_for('static', filename='images/logo-removebackground.png') }}" alt="Civic Plan Logo"
+                    class="sidebar-logo" />
                 <div class="brand-text">
                     <h2>CIVIC PLAN</h2>
                     <p>Citizen Portal</p>
@@ -17,7 +18,8 @@
         <div class="sidebar-section-title">Main Menu</div>
 
         <nav class="sidebar-nav">
-            <a href="{{ url_for('user.user_dashboard') }}" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
+            <a href="{{ url_for('user.user_dashboard') }}"
+                class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
                 <span class="nav-icon"><i class="fa-solid fa-table-columns"></i></span>
                 <span class="nav-text">Dashboard</span>
             </a>
@@ -27,27 +29,32 @@
                 <span class="nav-text">My Profile</span>
             </a>
 
-            <a href="{{ url_for('submit_documents.submit_documents') }}" class="nav-link {% if active_page == 'submit_documents' %}active{% endif %}">
+            <a href="{{ url_for('submit_documents.submit_documents') }}"
+                class="nav-link {% if active_page == 'submit_documents' %}active{% endif %}">
                 <span class="nav-icon"><i class="fa-solid fa-file-arrow-up"></i></span>
                 <span class="nav-text">Submit Documents</span>
             </a>
 
-            <a href="{{ url_for('submit_documents.my_applications') }}" class="nav-link {% if active_page == 'my_applications' %}active{% endif %}">
+            <a href="{{ url_for('submit_documents.my_applications') }}"
+                class="nav-link {% if active_page == 'my_applications' %}active{% endif %}">
                 <span class="nav-icon"><i class="fa-solid fa-folder-open"></i></span>
                 <span class="nav-text">My Applications</span>
             </a>
 
-            <a href="{{ url_for('transaction_history.transaction_history_page') }}" class="nav-link {% if active_page == 'transaction_history' %}active{% endif %}">
+            <a href="{{ url_for('transaction_history.transaction_history_page') }}"
+                class="nav-link {% if active_page == 'transaction_history' %}active{% endif %}">
                 <span class="nav-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
                 <span class="nav-text">Transaction History</span>
             </a>
 
-            <a href="{{ url_for('prediction.land_valuation_page') }}" class="nav-link {% if active_page == 'land_valuation' %}active{% endif %}">
+            <a href="{{ url_for('prediction.land_valuation_page') }}"
+                class="nav-link {% if active_page == 'land_valuation' %}active{% endif %}">
                 <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span>
                 <span class="nav-text">Land Valuation</span>
             </a>
 
-            <a href="{{ url_for('support_documents.support_documents_page') }}" class="nav-link {% if active_page == 'support_documents' %}active{% endif %}">
+            <a href="{{ url_for('support_documents.support_documents_page') }}"
+                class="nav-link {% if active_page == 'support_documents' %}active{% endif %}">
                 <span class="nav-icon"><i class="fa-solid fa-book"></i></span>
                 <span class="nav-text">Support Documents</span>
             </a>
