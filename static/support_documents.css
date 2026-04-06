@@ -75,11 +75,9 @@ body {
     color: #123f82;
 }
 
+/* REMOVED SUPPORT STATS CARDS */
 .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-    margin-bottom: 22px;
+    display: none;
 }
 
 .stat-card {
@@ -134,7 +132,7 @@ body {
 
 .top-grid {
     display: grid;
-    grid-template-columns: 1.1fr 1fr;
+    grid-template-columns: 1.15fr 1fr;
     gap: 18px;
     margin-bottom: 22px;
 }
@@ -203,10 +201,10 @@ body {
     display: flex;
     gap: 14px;
     align-items: flex-start;
-    background: #f7faff;
+    background: linear-gradient(135deg, #f7faff 0%, #eef4fb 100%);
     border: 1px solid #e3ebf7;
     border-radius: 14px;
-    padding: 14px 16px;
+    padding: 18px 18px;
 }
 
 .mini-doc i {
@@ -218,13 +216,28 @@ body {
 .mini-doc strong {
     display: block;
     color: #123f82;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
+    font-size: 1rem;
 }
 
 .mini-doc p {
     margin: 0;
     color: #6b7280;
-    line-height: 1.5;
+    line-height: 1.6;
+}
+
+/* MAKE RIGHT PANEL FEEL MORE FILLED EVEN WITH ONE USER DOC */
+.top-grid .info-panel:last-child {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.top-grid .info-panel:last-child .mini-doc-grid {
+    min-height: 210px;
+    align-content: start;
+}
+
+.top-grid .info-panel:last-child .mini-doc {
+    min-height: 110px;
 }
 
 .toolbar {
@@ -526,10 +539,6 @@ body {
         padding: 20px;
     }
 
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
     .documents-grid {
         grid-template-columns: 1fr;
     }
@@ -541,10 +550,6 @@ body {
 }
 
 @media (max-width: 560px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-
     .modal-header {
         flex-direction: column;
     }
