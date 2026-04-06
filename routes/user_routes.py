@@ -62,6 +62,30 @@ def status_to_badge(status):
     return "neutral"
 
 
+def get_growth_rate_for_location(location_text):
+    growth_map = {
+        "malabe": 0.08,
+        "ragama": 0.06,
+        "rajagiriya": 0.07,
+        "ja-ela": 0.06,
+        "kelaniya": 0.065,
+        "kadana": 0.055,
+        "kadawatha": 0.06,
+        "kaduwela": 0.07,
+    }
+
+    if not location_text:
+        return 0.08
+
+    normalized_location = str(location_text).strip().lower()
+
+    for place_name, growth_rate in growth_map.items():
+        if place_name in normalized_location:
+            return growth_rate
+
+    return 0.08
+
+
 def build_application_alerts(applications):
     alerts = []
 
@@ -276,13 +300,16 @@ def get_dashboard_data(user_id, user):
 
         if valuation_row:
             current_value = float(valuation_row["predicted_value"] or 0)
-            future_estimate = round(current_value * 1.08, 2)
+            location_text = valuation_row["property_address"] or ""
+            growth_rate = get_growth_rate_for_location(location_text)
+            future_estimate = round(current_value * (1 + growth_rate), 2)
+            trend_percentage = f"+{growth_rate * 100:.1f}%"
 
             latest_valuation = {
                 "property_label": valuation_row["property_address"] or f"LR-{valuation_row['property_id']}",
                 "current_value": f"{current_value:,.0f}",
                 "future_estimate": f"{future_estimate:,.0f}",
-                "trend": "+8.0%",
+                "trend": trend_percentage,
                 "prediction_date": safe_date(valuation_row["prediction_date"]),
             }
         else:
@@ -304,13 +331,16 @@ def get_dashboard_data(user_id, user):
 
             if property_value_row and property_value_row["current_value"] is not None:
                 current_value = float(property_value_row["current_value"] or 0)
-                future_estimate = round(current_value * 1.08, 2)
+                location_text = property_value_row["property_address"] or ""
+                growth_rate = get_growth_rate_for_location(location_text)
+                future_estimate = round(current_value * (1 + growth_rate), 2)
+                trend_percentage = f"+{growth_rate * 100:.1f}%"
 
                 latest_valuation = {
                     "property_label": property_value_row["property_address"] or f"LR-{property_value_row['property_id']}",
                     "current_value": f"{current_value:,.0f}",
                     "future_estimate": f"{future_estimate:,.0f}",
-                    "trend": "+8.0%",
+                    "trend": trend_percentage,
                     "prediction_date": safe_date(property_value_row["created_at"]),
                 }
     except Exception:
