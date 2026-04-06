@@ -156,12 +156,21 @@ a {
     padding: 8px 12px;
     border-radius: 16px;
     border: 1px solid var(--theme-border);
-    transition: transform var(--transition), box-shadow var(--transition);
+    transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
 }
 
-.user-chip:hover {
+.user-chip-link {
+    cursor: pointer;
+}
+
+.user-chip-link:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-sm);
+    background: linear-gradient(180deg, #f8fbff 0%, #e9f2ff 100%);
+}
+
+.user-chip-link:active {
+    transform: translateY(0);
 }
 
 .user-chip strong {

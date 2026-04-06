@@ -29,7 +29,7 @@
                         <i class="fa-solid fa-bell"></i>
                     </button>
 
-                    <div class="user-chip">
+                    <a href="{{ url_for('user.account') }}" class="user-chip user-chip-link" title="Go to My Account">
                         <div class="avatar">
                             {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
                         </div>
@@ -40,7 +40,7 @@
                             </strong>
                             <span>NIC: {{ user['nic'] if user and user['nic'] else 'N/A' }}</span>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </header>
 
