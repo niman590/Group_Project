@@ -18,6 +18,15 @@ document.addEventListener("DOMContentLoaded", function () {
         return Math.min(Math.max(value, min), max);
     }
 
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function positionChatBox() {
         if (!chatbotButton || !chatbotBox) return;
 
@@ -198,15 +207,112 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function appendMessage(className, html) {
+        if (!chatMessages) return;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = className;
+        wrapper.innerHTML = html;
+        chatMessages.appendChild(wrapper);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function renderDataPayload(payload) {
+        if (!payload || !payload.kind) return "";
+
+        if (payload.kind === "application_summary" && payload.summary) {
+            const s = payload.summary;
+            return `
+                <div style="margin-top:8px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;">
+                    <div><strong>Total Applications:</strong> ${escapeHtml(s.total_applications)}</div>
+                    <div><strong>Approved:</strong> ${escapeHtml(s.approved_cases)}</div>
+                    <div><strong>Pending Review:</strong> ${escapeHtml(s.pending_reviews)}</div>
+                    <div><strong>Drafts:</strong> ${escapeHtml(s.draft_applications)}</div>
+                </div>
+            `;
+        }
+
+        if (payload.kind === "alerts_summary" && payload.summary) {
+            return `
+                <div style="margin-top:8px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;">
+                    <div><strong>Alerts Count:</strong> ${escapeHtml(payload.summary.alerts_count)}</div>
+                </div>
+            `;
+        }
+
+        if (payload.kind === "property_summary" && payload.summary) {
+            return `
+                <div style="margin-top:8px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;">
+                    <div><strong>Property Records Linked:</strong> ${escapeHtml(payload.summary.property_records_count)}</div>
+                </div>
+            `;
+        }
+
+        if (payload.kind === "valuation_summary" && payload.summary && payload.summary.latest_valuation) {
+            const v = payload.summary.latest_valuation;
+            return `
+                <div style="margin-top:8px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;">
+                    <div><strong>Property:</strong> ${escapeHtml(v.property_label)}</div>
+                    <div><strong>Estimated Current Value:</strong> LKR ${Number(v.current_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                </div>
+            `;
+        }
+
+        if (payload.kind === "transaction_history" && payload.record) {
+            const record = payload.record;
+            const historyHtml = (record.history || []).map((item) => `
+                <div style="margin-top:8px; padding-top:8px; border-top:1px solid #f0f0f0;">
+                    <div><strong>Owner:</strong> ${escapeHtml(item.owner_name)}</div>
+                    <div><strong>Transaction:</strong> ${escapeHtml(item.transaction_type)}</div>
+                    <div><strong>Date:</strong> ${escapeHtml(item.transfer_date)}</div>
+                    <div><strong>Order:</strong> ${escapeHtml(item.ownership_order)}</div>
+                </div>
+            `).join("");
+
+            return `
+                <div style="margin-top:8px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;">
+                    <div><strong>Deed Number:</strong> ${escapeHtml(record.deed_number)}</div>
+                    <div><strong>Property Address:</strong> ${escapeHtml(record.property_address || "N/A")}</div>
+                    <div><strong>Location:</strong> ${escapeHtml(record.location || "N/A")}</div>
+                    <div><strong>Current Owner:</strong> ${escapeHtml(record.current_owner_name || "N/A")}</div>
+                    ${historyHtml}
+                </div>
+            `;
+        }
+
+        return "";
+    }
+
+    function renderBotResponse(data) {
+        const reply = escapeHtml(data?.reply || "Sorry, I could not understand that.");
+        let extraHtml = "";
+
+        if (data?.payload) {
+            extraHtml += renderDataPayload(data.payload);
+        }
+
+        if (data?.action === "open_page" && data?.target) {
+            extraHtml += `
+                <div style="margin-top:10px;">
+                    <a href="${encodeURI(data.target)}"
+                       style="display:inline-block; padding:8px 12px; border-radius:8px; background:#123f88; color:#fff; text-decoration:none;">
+                        Open page
+                    </a>
+                </div>
+            `;
+        }
+
+        appendMessage("bot-msg", `<div>${reply}</div>${extraHtml}`);
+    }
+
     async function sendMessage() {
         if (!chatInput || !chatMessages) return;
 
         const text = chatInput.value.trim();
         if (!text) return;
 
-        chatMessages.innerHTML += `<div class="user-msg">${text}</div>`;
+        appendMessage("user-msg", escapeHtml(text));
         chatInput.value = "";
-        chatMessages.scrollTop = chatMessages.scrollHeight;
 
         try {
             const res = await fetch("/chat", {
@@ -218,11 +324,9 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             const data = await res.json();
-            chatMessages.innerHTML += `<div class="bot-msg">${data.reply}</div>`;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            renderBotResponse(data);
         } catch (error) {
-            chatMessages.innerHTML += `<div class="bot-msg">Sorry, something went wrong. Please try again.</div>`;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            appendMessage("bot-msg", "Sorry, something went wrong. Please try again.");
         }
     }
 
