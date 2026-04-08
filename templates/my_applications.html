@@ -4,22 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Applications</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='my_applications.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
-    <div class="dashboard-shell">
+    <div class="my-app-shell">
         {% include 'partials/user_sidebar.html' %}
 
-        <main class="main-content">
+        <main class="my-app-main">
             <section class="page-hero reveal-up">
                 <div class="page-hero-content">
                     <span class="page-kicker">Citizen Services</span>
                     <h1>My Applications</h1>
-                    <p>Track your planning applications, review progress, upload requested documents, and manage draft submissions.</p>
+                    <p>
+                        Track your planning applications, review progress, upload requested documents,
+                        and manage draft submissions.
+                    </p>
                 </div>
 
                 <div class="page-hero-meta">
@@ -50,7 +53,7 @@
 
                 <div class="cards-stack">
                     {% for item in application_cards %}
-                    <div class="app-card reveal-up">
+                    <article class="app-card reveal-up">
                         <div class="app-card-top">
                             <div class="app-id-block">
                                 <span class="mini-label">Application ID</span>
@@ -84,7 +87,7 @@
                                 <strong>{{ item.application['updated_at'] }}</strong>
                             </div>
 
-                            <div class="meta-box">
+                            <div class="meta-box meta-box-wide">
                                 <span class="mini-label">Admin Comment</span>
                                 <strong>{{ item.application['admin_comment'] or 'No admin comment yet.' }}</strong>
                             </div>
@@ -92,7 +95,10 @@
 
                         <div class="requested-docs-strip">
                             <div class="requested-docs-info">
-                                <i class="fa-solid fa-file-circle-plus"></i>
+                                <div class="requested-icon">
+                                    <i class="fa-solid fa-file-circle-plus"></i>
+                                </div>
+
                                 <div>
                                     <strong>Additional Documents</strong>
                                     <span>
@@ -115,11 +121,21 @@
 
                         <div class="progress-preview">
                             <div class="progress-mini done">Submitted</div>
-                            <div class="progress-mini {% if item.application['site_visit_status'] == 'Completed' %}done{% else %}active{% endif %}">Site Visit</div>
-                            <div class="progress-mini {% if item.application['additional_docs_required'] %}active{% else %}done{% endif %}">Additional Docs</div>
-                            <div class="progress-mini {% if item.application['first_officer_decision'] %}done{% else %}locked{% endif %}">First Officer</div>
-                            <div class="progress-mini {% if item.application['deputy_director_decision'] %}done{% else %}locked{% endif %}">Deputy Director</div>
-                            <div class="progress-mini {% if item.application['committee_decision'] %}done{% else %}locked{% endif %}">Committee</div>
+                            <div class="progress-mini {% if item.application['site_visit_status'] == 'Completed' %}done{% else %}active{% endif %}">
+                                Site Visit
+                            </div>
+                            <div class="progress-mini {% if item.application['additional_docs_required'] %}active{% else %}done{% endif %}">
+                                Additional Docs
+                            </div>
+                            <div class="progress-mini {% if item.application['first_officer_decision'] %}done{% else %}locked{% endif %}">
+                                First Officer
+                            </div>
+                            <div class="progress-mini {% if item.application['deputy_director_decision'] %}done{% else %}locked{% endif %}">
+                                Deputy Director
+                            </div>
+                            <div class="progress-mini {% if item.application['committee_decision'] %}done{% else %}locked{% endif %}">
+                                Committee
+                            </div>
                         </div>
 
                         <div class="app-actions">
@@ -139,7 +155,7 @@
                                     </button>
                                 </form>
                             {% else %}
-                                <a class="primary-btn action-btn"
+                                <a class="primary-btn"
                                    href="{{ url_for('submit_documents.planning_approval', application_id=item.application['application_id']) }}">
                                     <i class="fa-solid fa-chart-line"></i>
                                     View Progress
@@ -154,7 +170,7 @@
                                 {% endif %}
                             {% endif %}
                         </div>
-                    </div>
+                    </article>
                     {% else %}
                     <div class="empty-state reveal-up">
                         <i class="fa-regular fa-folder-open"></i>

@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const revealItems = document.querySelectorAll(".reveal-up");
-    const actionButtons = document.querySelectorAll(".action-btn");
+    const requestCards = document.querySelectorAll("[data-request-card]");
+    const uploadButtons = document.querySelectorAll(".upload-btn");
 
     function revealOnScroll() {
         revealItems.forEach((item, index) => {
@@ -12,9 +13,24 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    actionButtons.forEach((button) => {
+    requestCards.forEach((card, index) => {
+        const toggle = card.querySelector(".request-toggle");
+        if (!toggle) return;
+
+        if (index === 0) {
+            card.classList.add("open");
+        }
+
+        toggle.addEventListener("click", function () {
+            card.classList.toggle("open");
+        });
+    });
+
+    uploadButtons.forEach((button) => {
         button.addEventListener("click", function () {
             this.classList.add("loading");
+            this.style.opacity = "0.82";
+            this.style.pointerEvents = "none";
         });
     });
 
