@@ -24,7 +24,8 @@
                 <span class="nav-text">Dashboard</span>
             </a>
 
-            <a href="{{ url_for('user.account') }}" class="nav-link {% if active_page == 'account' %}active{% endif %}">
+            <a href="{{ url_for('user.account') }}"
+                class="nav-link {% if active_page == 'account' %}active{% endif %}">
                 <span class="nav-icon"><i class="fa-solid fa-user"></i></span>
                 <span class="nav-text">My Profile</span>
             </a>
@@ -59,8 +60,14 @@
                 <span class="nav-text">Support Documents</span>
             </a>
 
-            <a href="#" class="nav-link {% if active_page == 'notifications' %}active{% endif %}">
-                <span class="nav-icon"><i class="fa-solid fa-bell"></i></span>
+            <a href="{{ url_for('user.user_dashboard') }}?open_notifications=1"
+                class="nav-link {% if active_page == 'notifications' %}active{% endif %}">
+                <span class="nav-icon nav-icon-bell">
+                    <i class="fa-solid fa-bell"></i>
+                    {% if unread_notifications and unread_notifications > 0 %}
+                    <span class="sidebar-notification-badge">{{ unread_notifications }}</span>
+                    {% endif %}
+                </span>
                 <span class="nav-text">Notifications</span>
             </a>
         </nav>

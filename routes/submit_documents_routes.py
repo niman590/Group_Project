@@ -51,6 +51,77 @@ def create_user_notification(cursor, user_id, application_id, title, message, no
     )
 
 
+def get_status_label(app):
+    status = (app["status"] or "").strip().lower()
+    workflow_stage = (app["workflow_stage"] or "").strip().lower()
+    current_step = str(app["current_step"] or "").strip()
+    committee_decision = (app["committee_decision"] or "").strip().lower()
+    deputy_decision = (app["deputy_director_decision"] or "").strip().lower()
+    officer_decision = (app["first_officer_decision"] or "").strip().lower()
+    site_visit_status = (app["site_visit_status"] or "").strip().lower()
+    additional_docs_required = int(app["additional_docs_required"] or 0)
+
+    if status == "draft":
+        return "Draft"
+
+    if committee_decision == "approved" or status == "approved":
+        return "Approved"
+
+    if committee_decision == "rejected" or status == "rejected":
+        return "Rejected"
+
+    if workflow_stage == "submitted":
+        return "Submitted"
+
+    if "site visit" in workflow_stage or current_step == "1":
+        if site_visit_status == "completed":
+            return "Site Visit Completed"
+        return "Site Visit Pending"
+
+    if "additional docs" in workflow_stage or current_step == "2":
+        if additional_docs_required:
+            return "Waiting for Additional Documents"
+        return "Clearance Review"
+
+    if "first officer" in workflow_stage or current_step == "3":
+        if officer_decision == "approved":
+            return "First Officer Approved"
+        if officer_decision == "rejected":
+            return "First Officer Rejected"
+        return "First Officer Review"
+
+    if "deputy director" in workflow_stage or current_step == "4":
+        if deputy_decision == "approved":
+            return "Deputy Director Approved"
+        if deputy_decision == "rejected":
+            return "Deputy Director Rejected"
+        return "Deputy Director Review"
+
+    if "district project committee" in workflow_stage or current_step == "5":
+        return "Committee Review"
+
+    if status in ["under review", "pending", "submitted"]:
+        return "Under Review"
+
+    return status.title() if status else "Pending"
+
+
+def get_status_badge_class(label):
+    label = (label or "").lower()
+
+    if "approved" in label:
+        return "badge-success"
+    if "rejected" in label:
+        return "badge-danger"
+    if "draft" in label:
+        return "badge-warning"
+    if "waiting for additional documents" in label:
+        return "badge-warning"
+    if "pending" in label or "review" in label or "submitted" in label:
+        return "badge-info"
+    return "badge-secondary"
+
+
 @submit_documents_bp.route("/submit-documents", methods=["GET"])
 def submit_documents():
     return render_template("plan_approval.html", active_page="submit_documents")
@@ -479,7 +550,12 @@ def submit_planning_application():
 def my_applications():
     user_id = session.get("user_id")
     if not user_id:
-        return render_template("my_applications.html", applications=[], notifications=[])
+        return render_template(
+            "my_applications.html",
+            application_cards=[],
+            total_records=0,
+            active_page="my_applications",
+        )
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -495,35 +571,114 @@ def my_applications():
     """, (user_id,))
     applications = cursor.fetchall()
 
-    cursor.execute("""
-        SELECT *
-        FROM user_notifications
-        WHERE user_id = ?
-        ORDER BY created_at DESC, notification_id DESC
-        LIMIT 50
-    """, (user_id,))
-    notifications = cursor.fetchall()
+    application_cards = []
 
-    cursor.execute("""
-        SELECT *
-        FROM planning_application_requested_documents rd
-        JOIN planning_application_requests r ON rd.request_id = r.request_id
-        WHERE rd.uploaded_by_user_id IS NULL
-          AND rd.application_id IN (
-              SELECT application_id FROM planning_applications WHERE user_id = ?
-          )
-        ORDER BY rd.requested_doc_id DESC
-    """, (user_id,))
-    requested_documents = cursor.fetchall()
+    for app in applications:
+        cursor.execute("""
+            SELECT COUNT(*) AS total_requested
+            FROM planning_application_requested_documents
+            WHERE application_id = ?
+        """, (app["application_id"],))
+        requested_total = cursor.fetchone()["total_requested"]
+
+        cursor.execute("""
+            SELECT COUNT(*) AS uploaded_requested
+            FROM planning_application_requested_documents
+            WHERE application_id = ?
+              AND status = 'Uploaded'
+        """, (app["application_id"],))
+        uploaded_total = cursor.fetchone()["uploaded_requested"]
+
+        cursor.execute("""
+            SELECT rd.*, r.request_title, r.request_message
+            FROM planning_application_requested_documents rd
+            LEFT JOIN planning_application_requests r ON rd.request_id = r.request_id
+            WHERE rd.application_id = ?
+            ORDER BY rd.requested_doc_id DESC
+        """, (app["application_id"],))
+        requested_documents = cursor.fetchall()
+
+        cursor.execute("""
+            SELECT *
+            FROM planning_application_workflow_history
+            WHERE application_id = ?
+            ORDER BY acted_at DESC, history_id DESC
+        """, (app["application_id"],))
+        workflow_history = cursor.fetchall()
+
+        real_status = get_status_label(app)
+        badge_class = get_status_badge_class(real_status)
+
+        application_cards.append({
+            "application": app,
+            "real_status": real_status,
+            "badge_class": badge_class,
+            "requested_total": requested_total,
+            "uploaded_total": uploaded_total,
+            "requested_documents": requested_documents,
+            "workflow_history": workflow_history,
+        })
 
     conn.close()
+
     return render_template(
         "my_applications.html",
-        applications=applications,
-        notifications=notifications,
-        requested_documents=requested_documents,
+        application_cards=application_cards,
+        total_records=len(application_cards),
         active_page="my_applications",
     )
+
+
+@submit_documents_bp.route("/my-applications/<int:application_id>/delete-draft", methods=["POST"])
+def delete_draft_application(application_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Please log in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM planning_applications
+        WHERE application_id = ? AND user_id = ?
+    """, (application_id, user_id))
+    app = cursor.fetchone()
+
+    if not app:
+        conn.close()
+        flash("Application not found.", "error")
+        return redirect(url_for("submit_documents.my_applications"))
+
+    if (app["status"] or "").strip().lower() != "draft":
+        conn.close()
+        flash("Only draft applications can be deleted.", "warning")
+        return redirect(url_for("submit_documents.my_applications"))
+
+    cursor.execute("DELETE FROM planning_application_summary WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_proposed_uses WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_applicants WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_technical_details WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_land_owner WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_clearances WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_site_usage WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_dimensions WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_development_metrics WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_units_parking WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_submitted_plans WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_attachments WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_requests WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_requested_documents WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_workflow_history WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM user_notifications WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_applications WHERE application_id = ?", (application_id,))
+
+    conn.commit()
+    conn.close()
+
+    flash("Draft application deleted successfully.", "success")
+    return redirect(url_for("submit_documents.my_applications"))
 
 
 @submit_documents_bp.route("/upload-requested-document/<int:requested_doc_id>", methods=["POST"])
@@ -546,7 +701,7 @@ def upload_requested_document(requested_doc_id):
         FROM planning_application_requested_documents rd
         JOIN planning_applications pa ON rd.application_id = pa.application_id
         WHERE rd.requested_doc_id = ?
-        """, (requested_doc_id,))
+    """, (requested_doc_id,))
     row = cursor.fetchone()
 
     if not row or row["user_id"] != user_id:
@@ -592,7 +747,7 @@ def upload_requested_document(requested_doc_id):
     conn.close()
 
     flash("Requested document uploaded successfully.", "success")
-    return redirect(url_for("submit_documents.my_applications"))
+    return redirect(url_for("submit_documents.planning_approval", application_id=application_id))
 
 
 @submit_documents_bp.route("/notifications", methods=["GET"])
@@ -676,3 +831,80 @@ def download_decision_pdf(application_id):
         return redirect(url_for("submit_documents.my_applications"))
 
     return send_file(row["decision_pdf_path"], as_attachment=True)
+
+
+@submit_documents_bp.route("/planning-approval/<int:application_id>", methods=["GET"])
+def planning_approval(application_id):
+    user_id = session.get("user_id")
+    if not user_id:
+        flash("Please log in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT *
+        FROM planning_applications
+        WHERE application_id = ? AND user_id = ?
+    """, (application_id, user_id))
+    application = cursor.fetchone()
+
+    if not application:
+        conn.close()
+        flash("Application not found.", "error")
+        return redirect(url_for("submit_documents.my_applications"))
+
+    cursor.execute("""
+        SELECT rd.*, r.request_title, r.request_message
+        FROM planning_application_requested_documents rd
+        LEFT JOIN planning_application_requests r ON rd.request_id = r.request_id
+        WHERE rd.application_id = ?
+        ORDER BY rd.requested_doc_id DESC
+    """, (application_id,))
+    requested_documents = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT *
+        FROM planning_application_attachments
+        WHERE application_id = ?
+        ORDER BY uploaded_at DESC
+    """, (application_id,))
+    attachments = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT *
+        FROM planning_application_workflow_history
+        WHERE application_id = ?
+        ORDER BY acted_at DESC, history_id DESC
+    """, (application_id,))
+    workflow_history = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT *
+        FROM user_notifications
+        WHERE user_id = ?
+        ORDER BY created_at DESC, notification_id DESC
+        LIMIT 10
+    """, (user_id,))
+    notifications = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT COUNT(*) AS unread_count
+        FROM user_notifications
+        WHERE user_id = ? AND is_read = 0
+    """, (user_id,))
+    unread_notifications = cursor.fetchone()["unread_count"]
+
+    conn.close()
+
+    return render_template(
+        "planning_approval.html",
+        application=application,
+        requested_documents=requested_documents,
+        attachments=attachments,
+        workflow_history=workflow_history,
+        notifications=notifications,
+        unread_notifications=unread_notifications,
+        active_page="my_applications",
+    )

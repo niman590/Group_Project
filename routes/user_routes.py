@@ -1,6 +1,9 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from database.db_connection import get_connection
 from urllib.parse import quote_plus
+from werkzeug.utils import secure_filename
+from datetime import datetime
+import os
 
 user_bp = Blueprint("user", __name__)
 
@@ -35,6 +38,20 @@ def sync_session_user(user):
     session["address"] = user["address"] if user["address"] else ""
     session["city"] = user["city"] if user["city"] else ""
     session["is_admin"] = user["is_admin"]
+
+
+def user_required():
+    if "user_id" not in session:
+        flash("Please sign in first.", "error")
+        return None, redirect(url_for("auth.login"))
+
+    user = get_current_user()
+    if not user:
+        session.clear()
+        flash("User not found. Please sign in again.", "error")
+        return None, redirect(url_for("auth.login"))
+
+    return user, None
 
 
 def safe_date(value):
@@ -119,13 +136,58 @@ def build_application_alerts(applications):
     return alerts[:5]
 
 
+def save_uploaded_file(file_obj, subfolder="uploads/requested_documents"):
+    if not file_obj or not file_obj.filename:
+        return None
+
+    filename = secure_filename(file_obj.filename)
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    final_name = f"{timestamp}_{filename}"
+
+    upload_root = os.path.join("static", subfolder)
+    os.makedirs(upload_root, exist_ok=True)
+
+    file_path = os.path.join(upload_root, final_name)
+    file_obj.save(file_path)
+
+    return file_path.replace("\\", "/")
+
+
+def get_notifications_for_user(user_id, limit=10):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM user_notifications
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        LIMIT ?
+        """,
+        (user_id, limit),
+    )
+    notifications = cursor.fetchall()
+
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS unread_count
+        FROM user_notifications
+        WHERE user_id = ? AND is_read = 0
+        """,
+        (user_id,),
+    )
+    unread_row = cursor.fetchone()
+    unread_count = unread_row["unread_count"] if unread_row else 0
+
+    conn.close()
+    return notifications, unread_count
+
+
 def get_dashboard_data(user_id, user):
     conn = get_connection()
     cursor = conn.cursor()
 
-    # -----------------------------
-    # Applications
-    # -----------------------------
     cursor.execute(
         """
         SELECT
@@ -173,13 +235,11 @@ def get_dashboard_data(user_id, user):
             "submitted": safe_date(app["updated_at"] or app["created_at"]),
             "status": app["status"] or "Draft",
             "badge": status_to_badge(app["status"]),
+            "application_id": app["application_id"],
         })
 
     application_history = application_history[:5]
 
-    # -----------------------------
-    # Property records
-    # -----------------------------
     property_records = []
     map_query = None
 
@@ -225,9 +285,6 @@ def get_dashboard_data(user_id, user):
         elif user["city"]:
             map_query = user["city"]
 
-    # -----------------------------
-    # Alerts
-    # -----------------------------
     alerts = build_application_alerts(applications)
 
     try:
@@ -272,12 +329,28 @@ def get_dashboard_data(user_id, user):
     except Exception:
         pass
 
-    alerts = alerts[:5]
-    alerts_count = len(alerts)
+    notifications, unread_notifications = get_notifications_for_user(user_id, limit=10)
 
-    # -----------------------------
-    # Latest land valuation
-    # -----------------------------
+    for n in notifications[:5]:
+        alerts.append({
+            "type": "warning" if (n["notification_type"] or "").lower() == "warning" else
+                    "success" if (n["notification_type"] or "").lower() == "success" else
+                    "info",
+            "title": n["title"],
+            "message": n["message"],
+            "time": safe_date(n["created_at"]),
+        })
+
+    seen = set()
+    unique_alerts = []
+    for alert in alerts:
+        key = (alert["title"], alert["message"], alert["time"])
+        if key not in seen:
+            seen.add(key)
+            unique_alerts.append(alert)
+
+    alerts = unique_alerts[:5]
+
     latest_valuation = None
     try:
         cursor.execute(
@@ -346,14 +419,8 @@ def get_dashboard_data(user_id, user):
     except Exception:
         latest_valuation = None
 
-    # -----------------------------
-    # GIS map preview
-    # -----------------------------
     gis_map_url = f"https://www.google.com/maps/search/{quote_plus(map_query)}" if map_query else None
 
-    # -----------------------------
-    # Support documents shortcuts
-    # -----------------------------
     support_documents = [
         {
             "title": "Planning Approval Guidelines",
@@ -378,7 +445,7 @@ def get_dashboard_data(user_id, user):
         "total_applications": total_applications,
         "approved_cases": approved_cases,
         "pending_reviews": pending_reviews,
-        "alerts_count": alerts_count,
+        "alerts_count": len(alerts),
     }
 
     return {
@@ -389,21 +456,16 @@ def get_dashboard_data(user_id, user):
         "latest_valuation": latest_valuation,
         "gis_map_url": gis_map_url,
         "support_documents": support_documents,
+        "notifications": notifications,
+        "unread_notifications": unread_notifications,
     }
 
 
 @user_bp.route("/user_dashboard")
 def user_dashboard():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
-
-    user = get_current_user()
-
-    if not user:
-        session.clear()
-        flash("User not found. Please sign in again.", "error")
-        return redirect(url_for("auth.login"))
+    user, redirect_response = user_required()
+    if redirect_response:
+        return redirect_response
 
     dashboard_data = get_dashboard_data(session["user_id"], user)
 
@@ -418,21 +480,223 @@ def user_dashboard():
         latest_valuation=dashboard_data["latest_valuation"],
         gis_map_url=dashboard_data["gis_map_url"],
         support_documents=dashboard_data["support_documents"],
+        notifications=dashboard_data["notifications"],
+        unread_notifications=dashboard_data["unread_notifications"],
     )
+
+
+@user_bp.route("/planning-approval/<int:application_id>")
+def planning_approval(application_id):
+    user, redirect_response = user_required()
+    if redirect_response:
+        return redirect_response
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM planning_applications
+        WHERE application_id = ? AND user_id = ?
+        """,
+        (application_id, user["user_id"]),
+    )
+    application = cursor.fetchone()
+
+    if not application:
+        conn.close()
+        flash("Application not found.", "error")
+        return redirect(url_for("user.user_dashboard"))
+
+    cursor.execute(
+        """
+        SELECT rd.*, pr.request_title, pr.request_message
+        FROM planning_application_requested_documents rd
+        LEFT JOIN planning_application_requests pr ON rd.request_id = pr.request_id
+        WHERE rd.application_id = ?
+        ORDER BY rd.requested_doc_id DESC
+        """,
+        (application_id,),
+    )
+    requested_documents = cursor.fetchall()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM planning_application_attachments
+        WHERE application_id = ?
+        ORDER BY uploaded_at DESC
+        """,
+        (application_id,),
+    )
+    attachments = cursor.fetchall()
+
+    conn.close()
+
+    notifications, unread_notifications = get_notifications_for_user(user["user_id"], limit=10)
+
+    return render_template(
+        "planning_approval.html",
+        user=user,
+        application=application,
+        requested_documents=requested_documents,
+        attachments=attachments,
+        notifications=notifications,
+        unread_notifications=unread_notifications,
+        active_page="my_applications",
+    )
+
+
+@user_bp.route("/requested-document/<int:request_id>/upload", methods=["POST"])
+def upload_requested_document(request_id):
+    user, redirect_response = user_required()
+    if redirect_response:
+        return redirect_response
+
+    uploaded_file = request.files.get("requested_document")
+
+    if not uploaded_file or not uploaded_file.filename:
+        flash("Please choose a file to upload.", "error")
+        return redirect(request.referrer or url_for("user.user_dashboard"))
+
+    saved_path = save_uploaded_file(uploaded_file, "uploads/requested_documents")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM planning_application_requested_documents
+        WHERE requested_doc_id = ?
+        """,
+        (request_id,),
+    )
+    req = cursor.fetchone()
+
+    if not req:
+        conn.close()
+        flash("Requested document record not found.", "error")
+        return redirect(url_for("user.user_dashboard"))
+
+    cursor.execute(
+        """
+        UPDATE planning_application_requested_documents
+        SET uploaded_file_name = ?,
+            uploaded_file_path = ?,
+            uploaded_at = ?,
+            uploaded_by_user_id = ?,
+            status = 'Uploaded'
+        WHERE requested_doc_id = ?
+        """,
+        (
+            uploaded_file.filename,
+            saved_path,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            user["user_id"],
+            request_id,
+        ),
+    )
+
+    cursor.execute(
+        """
+        INSERT INTO user_notifications (
+            user_id, application_id, title, message, notification_type, is_read
+        )
+        VALUES (?, ?, ?, ?, ?, 0)
+        """,
+        (
+            user["user_id"],
+            req["application_id"],
+            "Document uploaded successfully",
+            f"You uploaded the requested document: {req['document_label']}.",
+            "success",
+        ),
+    )
+
+    conn.commit()
+    conn.close()
+
+    flash("Requested document uploaded successfully.", "success")
+    return redirect(url_for("user.planning_approval", application_id=req["application_id"]))
+
+
+@user_bp.route("/notifications")
+def get_notifications():
+    user, redirect_response = user_required()
+    if redirect_response:
+        return redirect_response
+
+    notifications, _ = get_notifications_for_user(user["user_id"], limit=20)
+
+    return jsonify([
+        {
+            "notification_id": n["notification_id"],
+            "title": n["title"],
+            "message": n["message"],
+            "notification_type": n["notification_type"],
+            "is_read": n["is_read"],
+            "application_id": n["application_id"],
+            "created_at": n["created_at"],
+        }
+        for n in notifications
+    ])
+
+
+@user_bp.route("/notifications/<int:notification_id>/read", methods=["POST"])
+def mark_notification_read(notification_id):
+    user, redirect_response = user_required()
+    if redirect_response:
+        return redirect_response
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE user_notifications
+        SET is_read = 1
+        WHERE notification_id = ? AND user_id = ?
+        """,
+        (notification_id, user["user_id"]),
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True})
+
+
+@user_bp.route("/notifications/read-all", methods=["POST"])
+def mark_all_notifications_read():
+    user, redirect_response = user_required()
+    if redirect_response:
+        return redirect_response
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE user_notifications
+        SET is_read = 1
+        WHERE user_id = ?
+        """,
+        (user["user_id"],),
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"success": True})
 
 
 @user_bp.route("/account", methods=["GET", "POST"])
 def account():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
-
-    user = get_current_user()
-
-    if not user:
-        session.clear()
-        flash("User not found. Please sign in again.", "error")
-        return redirect(url_for("auth.login"))
+    user, redirect_response = user_required()
+    if redirect_response:
+        return redirect_response
 
     if request.method == "POST":
         first_name = request.form.get("first_name", "").strip()
@@ -507,9 +771,9 @@ def account():
 
 @user_bp.route("/account/delete", methods=["POST"])
 def delete_account():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
+    user, redirect_response = user_required()
+    if redirect_response:
+        return redirect_response
 
     user_id = session["user_id"]
 
@@ -545,13 +809,16 @@ def delete_account():
             property_ids,
         )
 
-        cursor.execute(
-            f"""
-            DELETE FROM document
-            WHERE property_id IN ({placeholders})
-            """,
-            property_ids,
-        )
+        try:
+            cursor.execute(
+                f"""
+                DELETE FROM document
+                WHERE property_id IN ({placeholders})
+                """,
+                property_ids,
+            )
+        except Exception:
+            pass
 
         cursor.execute(
             f"""
@@ -561,17 +828,31 @@ def delete_account():
             property_ids,
         )
 
-    cursor.execute(
-        """
-        DELETE FROM plan_case
-        WHERE user_id = ?
-        """,
-        (user_id,),
-    )
+    try:
+        cursor.execute(
+            """
+            DELETE FROM plan_case
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        )
+    except Exception:
+        pass
 
-    cursor.execute(
+    try:
+        cursor.execute(
+            """
+            DELETE FROM document
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        )
+    except Exception:
+        pass
+
+    conn.execute(
         """
-        DELETE FROM document
+        DELETE FROM user_notifications
         WHERE user_id = ?
         """,
         (user_id,),

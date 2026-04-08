@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>District Project Committee Review</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_planning_workflow.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    {% include 'partials/admin_sidebar.html' %}
+
+    <div class="dashboard-shell">
+        <main class="main-content">
+            <div class="page-shell">
+
+                <section class="topbar">
+                    <div>
+                        <span class="page-kicker">District Project Committee Review</span>
+                        <h1>Application #{{ application['application_id'] }}</h1>
+                        <p>Complete the final approval or rejection for this planning application.</p>
+                    </div>
+
+                    <div class="topbar-right">
+                        <span class="chip">Deputy Director: {{ application['deputy_director_decision'] or 'Pending' }}</span>
+                        <span class="chip">Committee: {{ application['committee_decision'] or 'Pending' }}</span>
+                    </div>
+                </section>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-wrap">
+                            {% for category, message in messages %}
+                                <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <section class="content-grid">
+                    <div class="left-stack">
+                        <div class="stage-box">
+                            <h3>Final Committee Decision</h3>
+
+                            <div class="action-card" style="margin-top: 14px;">
+                                <h3>Approve Application</h3>
+                                <form method="POST"
+                                      action="{{ url_for('admin.committee_decision', application_id=application['application_id']) }}">
+                                    <input type="hidden" name="decision" value="Approved">
+                                    <textarea name="admin_comment" placeholder="Add final approval remarks"></textarea>
+                                    <button class="btn btn-success" type="submit">Approve Final</button>
+                                </form>
+                            </div>
+
+                            <div class="action-card" style="margin-top: 14px;">
+                                <h3>Reject Application</h3>
+                                <form method="POST"
+                                      action="{{ url_for('admin.committee_decision', application_id=application['application_id']) }}">
+                                    <input type="hidden" name="decision" value="Rejected">
+                                    <textarea name="admin_comment" placeholder="Enter reasons for final rejection" required></textarea>
+                                    <button class="btn btn-danger" type="submit">Reject Final</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="right-stack">
+                        <div class="action-card">
+                            <h3>Back to Main Review</h3>
+                            <a class="btn btn-outline"
+                               href="{{ url_for('admin.review_planning_application', application_id=application['application_id']) }}">
+                                <i class="fa-solid fa-arrow-left"></i>
+                                Back
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+</body>
+</html>

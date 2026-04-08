@@ -1,31 +1,362 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Planning Approval Applications</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <title>Civic Plan - Planning Approval</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='plan_approval.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
-
 <body>
-    <div class="info-page">
-        <h1>Planning Approval Applications</h1>
-        <p>
-            This service allows citizens and applicants to start a new planning approval application,
-            review the required submission details, and prepare the relevant documents before submission.
-        </p>
+    <div class="dashboard-shell">
 
-        <h3>Main Features</h3>
-        <ul>
-            <li>Submit new planning approval requests</li>
-            <li>Review required documents and conditions</li>
-            <li>Track submitted planning applications</li>
-            <li>Receive updates on approval progress</li>
-        </ul>
+        {% include 'partials/user_sidebar.html' %}
 
-        <a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a>
+        <main class="main-content">
+
+            <header class="topbar compact-topbar reveal-up">
+                <div class="topbar-copy">
+                    <span class="page-kicker">Planning Approval</span>
+                    <h1>Application #{{ application['application_id'] }}</h1>
+                    <p>
+                        Track your planning application progress, view admin updates,
+                        and upload any additional requested documents.
+                    </p>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="notification-wrap">
+                        <button
+                            class="icon-btn notification-toggle"
+                            id="notificationToggle"
+                            type="button"
+                            aria-label="Notifications"
+                            title="Notifications">
+                            <i class="fa-solid fa-bell"></i>
+                            {% if unread_notifications and unread_notifications > 0 %}
+                            <span class="notification-count">{{ unread_notifications }}</span>
+                            {% endif %}
+                        </button>
+
+                        <div class="notification-panel hidden" id="notificationPanel">
+                            <div class="notification-panel-header">
+                                <div>
+                                    <h3>Notifications</h3>
+                                    <p>Progress updates, admin messages, and document requests.</p>
+                                </div>
+                                <button type="button" class="notification-action-btn" id="markAllReadBtn">
+                                    Mark all read
+                                </button>
+                            </div>
+
+                            <div class="notification-panel-body" id="notificationList">
+                                {% if notifications %}
+                                    {% for n in notifications %}
+                                    <div
+                                        class="notification-item {% if not n['is_read'] %}unread{% endif %}"
+                                        data-id="{{ n['notification_id'] }}"
+                                        data-application-id="{{ n['application_id'] if n['application_id'] else '' }}">
+                                        <div class="notification-item-top">
+                                            <span class="notification-type {{ n['notification_type'] or 'info' }}">
+                                                {{ n['notification_type'] or 'info' }}
+                                            </span>
+                                            <span class="notification-time">{{ n['created_at'] }}</span>
+                                        </div>
+                                        <h4>{{ n['title'] }}</h4>
+                                        <p>{{ n['message'] }}</p>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="notification-empty">
+                                        <i class="fa-regular fa-bell-slash"></i>
+                                        <span>No notifications yet.</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{{ url_for('user.account') }}" class="user-chip user-chip-link" title="Go to My Account">
+                        <div class="avatar">
+                            {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
+                        </div>
+                        <div>
+                            <strong>
+                                {{ user['first_name'] if user and user['first_name'] else 'Citizen' }}
+                                {{ user['last_name'] if user and user['last_name'] else 'User' }}
+                            </strong>
+                            <span>NIC: {{ user['nic'] if user and user['nic'] else 'N/A' }}</span>
+                        </div>
+                    </a>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-wrap">
+                        {% for category, message in messages %}
+                            <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <section class="overview-services-box reveal-up">
+                <div class="overview-box-header">
+                    <div>
+                        <span class="section-kicker">Application Progress</span>
+                        <h2>Track Review Status</h2>
+                        <p>Follow each stage of your application from submission to final decision.</p>
+                    </div>
+                </div>
+
+                <div class="progress-strip">
+                    <div class="progress-step done">
+                        <div class="progress-badge">01</div>
+                        <div class="progress-title">Submitted</div>
+                    </div>
+
+                    <div class="progress-step {% if application['site_visit_status'] == 'Completed' %}done{% else %}active{% endif %}">
+                        <div class="progress-badge">02</div>
+                        <div class="progress-title">Site Visit</div>
+                    </div>
+
+                    <div class="progress-step {% if application['additional_docs_required'] %}active{% else %}done{% endif %}">
+                        <div class="progress-badge">03</div>
+                        <div class="progress-title">Additional Docs</div>
+                    </div>
+
+                    <div class="progress-step {% if application['first_officer_decision'] %}done{% else %}locked{% endif %}">
+                        <div class="progress-badge">04</div>
+                        <div class="progress-title">First Officer</div>
+                    </div>
+
+                    <div class="progress-step {% if application['deputy_director_decision'] %}done{% else %}locked{% endif %}">
+                        <div class="progress-badge">05</div>
+                        <div class="progress-title">Deputy Director</div>
+                    </div>
+
+                    <div class="progress-step {% if application['committee_decision'] %}done{% else %}locked{% endif %}">
+                        <div class="progress-badge">06</div>
+                        <div class="progress-title">Committee</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-grid">
+                <div class="left-column">
+
+                    <div class="panel reveal-up">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Application Summary</h2>
+                                <p class="panel-subtext">Current status and workflow details for this planning application.</p>
+                            </div>
+                        </div>
+
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <span class="summary-label">Application ID</span>
+                                <strong>{{ application['application_id'] }}</strong>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Status</span>
+                                <strong>{{ application['status'] or '-' }}</strong>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Workflow Stage</span>
+                                <strong>{{ application['workflow_stage'] or '-' }}</strong>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Current Step</span>
+                                <strong>{{ application['current_step'] or '-' }}</strong>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Site Visit</span>
+                                <strong>{{ application['site_visit_status'] or 'Pending' }}</strong>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Additional Documents</span>
+                                <strong>
+                                    {% if application['additional_docs_required'] %}
+                                        Required
+                                    {% else %}
+                                        Not Required / Cleared
+                                    {% endif %}
+                                </strong>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">First Officer</span>
+                                <strong>{{ application['first_officer_decision'] or 'Pending' }}</strong>
+                            </div>
+
+                            <div class="summary-item">
+                                <span class="summary-label">Deputy Director</span>
+                                <strong>{{ application['deputy_director_decision'] or 'Pending' }}</strong>
+                            </div>
+
+                            <div class="summary-item full-span">
+                                <span class="summary-label">District Project Committee</span>
+                                <strong>{{ application['committee_decision'] or 'Pending' }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel reveal-up">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Requested Additional Documents</h2>
+                                <p class="panel-subtext">Upload only the files requested by the admin team.</p>
+                            </div>
+                        </div>
+
+                        <div class="request-stack">
+                            {% for item in requested_documents %}
+                                <div class="request-card">
+                                    <div class="request-top">
+                                        <div>
+                                            <div class="request-title">{{ item['document_label'] }}</div>
+                                            <div class="request-sub">
+                                                {% if item['request_title'] %}
+                                                    {{ item['request_title'] }}
+                                                {% else %}
+                                                    Additional document request
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <span class="request-status {{ (item['status'] or 'Pending') | lower }}">
+                                            {{ item['status'] or 'Pending' }}
+                                        </span>
+                                    </div>
+
+                                    <p class="request-message">
+                                        {% if item['request_message'] %}
+                                            {{ item['request_message'] }}
+                                        {% else %}
+                                            Please upload the requested document.
+                                        {% endif %}
+                                    </p>
+
+                                    {% if item['uploaded_file_name'] %}
+                                        <div class="uploaded-meta">
+                                            <strong>Uploaded File:</strong> {{ item['uploaded_file_name'] }}<br>
+                                            <strong>Uploaded At:</strong> {{ item['uploaded_at'] or '-' }}
+                                        </div>
+                                    {% endif %}
+
+                                    <form method="POST"
+                                          action="{{ url_for('user.upload_requested_document', request_id=item['requested_doc_id']) }}"
+                                          enctype="multipart/form-data"
+                                          class="request-upload-form">
+                                        <input type="file" name="requested_document" required>
+                                        <button class="request-upload-btn" type="submit">
+                                            <i class="fa-solid fa-upload"></i>
+                                            Upload Document
+                                        </button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <div class="empty-state-card">
+                                    <i class="fa-regular fa-folder-open"></i>
+                                    <h4>No requested documents right now</h4>
+                                    <p>If the admin requests more files later, they will appear here and in your notifications.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="right-column">
+
+                    <div class="panel reveal-up">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Recent Notifications</h2>
+                                <p class="panel-subtext">Latest progress messages related to your application.</p>
+                            </div>
+                        </div>
+
+                        <div class="alert-list">
+                            {% if notifications %}
+                                {% for n in notifications[:5] %}
+                                <div class="alert-item {% if n['notification_type'] == 'success' %}success{% elif n['notification_type'] == 'warning' %}warning{% else %}info{% endif %}">
+                                    <div class="alert-copy">
+                                        <h4>{{ n['title'] }}</h4>
+                                        <p>{{ n['message'] }}</p>
+                                    </div>
+                                    <span>{{ n['created_at'] }}</span>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert-item info">
+                                    <div class="alert-copy">
+                                        <h4>No notifications yet</h4>
+                                        <p>Admin updates and document requests will appear here.</p>
+                                    </div>
+                                    <span>—</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="panel reveal-up">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Uploaded Supporting Files</h2>
+                                <p class="panel-subtext">Your submitted planning files and attachments.</p>
+                            </div>
+                        </div>
+
+                        <ul class="doc-list">
+                            {% for file in attachments %}
+                            <li>
+                                <a href="/{{ file['file_path'] }}" class="doc-link" target="_blank">
+                                    <i class="fa-solid fa-file-lines"></i>
+                                    <span>{{ file['file_name'] }} — {{ file['file_category'] or 'Document' }}</span>
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="empty-doc-item">
+                                <span>No uploaded supporting files found.</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    {% if application['decision_pdf_path'] %}
+                    <div class="panel reveal-up">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Final Decision PDF</h2>
+                                <p class="panel-subtext">Open the final generated decision document.</p>
+                            </div>
+                        </div>
+
+                        <a class="decision-pdf-link" href="/{{ application['decision_pdf_path'] }}" target="_blank">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            <span>Open final decision PDF</span>
+                        </a>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </section>
+
+        </main>
     </div>
-</body>
 
+    <script src="{{ url_for('static', filename='user_dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='plan_approval.js') }}"></script>
+</body>
 </html>

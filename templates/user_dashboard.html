@@ -25,9 +25,61 @@
                 </div>
 
                 <div class="topbar-actions">
-                    <button class="icon-btn" type="button" aria-label="Notifications" title="Notifications">
-                        <i class="fa-solid fa-bell"></i>
-                    </button>
+                    <div class="notification-wrap">
+                        <button
+                            class="icon-btn notification-toggle"
+                            id="notificationToggle"
+                            type="button"
+                            aria-label="Notifications"
+                            title="Notifications">
+                            <i class="fa-solid fa-bell"></i>
+                            {% if unread_notifications and unread_notifications > 0 %}
+                            <span class="notification-count" id="notificationCount">{{ unread_notifications }}</span>
+                            {% endif %}
+                        </button>
+
+                        <div class="notification-panel hidden" id="notificationPanel">
+                            <div class="notification-panel-header">
+                                <div>
+                                    <h3>Notifications</h3>
+                                    <p>Progress updates, admin messages, and document requests.</p>
+                                </div>
+                                <button type="button" id="markAllReadBtn" class="notification-action-btn">
+                                    Mark all as read
+                                </button>
+                            </div>
+
+                            <div class="notification-panel-body" id="notificationList">
+                                {% if notifications %}
+                                    {% for notification in notifications %}
+                                    <div class="notification-item {% if notification['is_read'] == 0 %}unread{% endif %}"
+                                         data-id="{{ notification['notification_id'] }}"
+                                         data-application-id="{{ notification['application_id'] or '' }}">
+                                        <div class="notification-item-top">
+                                            <span class="notification-type {{ notification['notification_type'] or 'info' }}">
+                                                {{ notification['notification_type'] or 'info' }}
+                                            </span>
+                                            <span class="notification-time">{{ notification['created_at'] or '' }}</span>
+                                        </div>
+                                        <h4>{{ notification['title'] }}</h4>
+                                        <p>{{ notification['message'] }}</p>
+
+                                        {% if notification['application_id'] %}
+                                        <div class="notification-link-hint">
+                                            Click to open application #{{ notification['application_id'] }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="notification-empty">
+                                        <i class="fa-regular fa-bell-slash"></i>
+                                        <span>No notifications yet.</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
 
                     <a href="{{ url_for('user.account') }}" class="user-chip user-chip-link" title="Go to My Account">
                         <div class="avatar">
@@ -81,7 +133,7 @@
                     <div class="stat-card reveal-up">
                         <div class="stat-icon red"><i class="fa-solid fa-bell"></i></div>
                         <div>
-                            <h3 class="count-up">{{ stats.alerts_count }}</h3>
+                            <h3 class="count-up">{{ unread_notifications }}</h3>
                             <p>Alerts & Notifications</p>
                         </div>
                     </div>

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,16 +19,26 @@
                 <div class="page-hero-content">
                     <span class="page-kicker">Citizen Services</span>
                     <h1>My Applications</h1>
-                    <p>Track your planning applications, review current progress, read admin comments, and download final decision documents.</p>
+                    <p>Track your planning applications, review progress, upload requested documents, and manage draft submissions.</p>
                 </div>
 
                 <div class="page-hero-meta">
                     <div class="hero-stat-card">
                         <span class="hero-stat-label">Total Records</span>
-                        <strong>{{ applications|length }}</strong>
+                        <strong>{{ total_records }}</strong>
                     </div>
                 </div>
             </section>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-wrap reveal-up">
+                        {% for category, message in messages %}
+                            <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
 
             <section class="applications-panel reveal-up">
                 <div class="panel-header">
@@ -39,97 +48,124 @@
                     </div>
                 </div>
 
-                <div class="table-wrap">
-                    <table class="applications-table">
-                        <thead>
-                            <tr>
-                                <th>Application ID</th>
-                                <th>Status</th>
-                                <th>Current Step</th>
-                                <th>Admin Comment</th>
-                                <th>Created At</th>
-                                <th>Updated At</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for app in applications %}
-                            <tr class="application-row">
-                                <td>
-                                    <div class="application-id-cell">
-                                        <span class="id-label">#</span>
-                                        <strong>{{ app['application_id'] }}</strong>
-                                    </div>
-                                </td>
+                <div class="cards-stack">
+                    {% for item in application_cards %}
+                    <div class="app-card reveal-up">
+                        <div class="app-card-top">
+                            <div class="app-id-block">
+                                <span class="mini-label">Application ID</span>
+                                <h3>#{{ item.application['application_id'] }}</h3>
+                            </div>
 
-                                <td>
-                                    {% if app['status'] == 'Draft' %}
-                                    <span class="status-badge status-draft">Draft</span>
-                                    {% elif app['status'] == 'Submitted' %}
-                                    <span class="status-badge status-submitted">Submitted</span>
-                                    {% elif app['status'] == 'Approved' %}
-                                    <span class="status-badge status-approved">Approved</span>
-                                    {% elif app['status'] == 'Rejected' %}
-                                    <span class="status-badge status-rejected">Rejected</span>
-                                    {% else %}
-                                    <span class="status-badge status-other">{{ app['status'] }}</span>
-                                    {% endif %}
-                                </td>
+                            <div class="app-status-block">
+                                <span class="mini-label">Status</span>
+                                <span class="status-badge {{ item.badge_class }}">{{ item.real_status }}</span>
+                            </div>
 
-                                <td>
-                                    <span class="step-pill">Step {{ app['current_step'] }}</span>
-                                </td>
+                            <div class="app-step-block">
+                                <span class="mini-label">Current Step</span>
+                                <span class="step-pill">Step {{ item.application['current_step'] or '-' }}</span>
+                            </div>
+                        </div>
 
-                                <td>
-                                    <div class="comment-box">
-                                        {{ app['admin_comment'] if app['admin_comment'] else 'No admin comment yet.' }}
-                                    </div>
-                                </td>
+                        <div class="app-meta-grid">
+                            <div class="meta-box">
+                                <span class="mini-label">Workflow Stage</span>
+                                <strong>{{ item.application['workflow_stage'] or 'Not started' }}</strong>
+                            </div>
 
-                                <td>
-                                    <span class="date-text">{{ app['created_at'] }}</span>
-                                </td>
+                            <div class="meta-box">
+                                <span class="mini-label">Created At</span>
+                                <strong>{{ item.application['created_at'] }}</strong>
+                            </div>
 
-                                <td>
-                                    <span class="date-text">{{ app['updated_at'] }}</span>
-                                </td>
+                            <div class="meta-box">
+                                <span class="mini-label">Updated At</span>
+                                <strong>{{ item.application['updated_at'] }}</strong>
+                            </div>
 
-                                <td>
-                                    <div class="action-stack">
-                                        {% if app['status'] == 'Draft' %}
-                                        <a class="btn btn-edit action-btn"
-                                            href="{{ url_for('submit_documents.edit_planning_draft', application_id=app['application_id']) }}">
-                                            <i class="fa-solid fa-pen-to-square"></i>
-                                            <span>Edit Draft</span>
-                                        </a>
+                            <div class="meta-box">
+                                <span class="mini-label">Admin Comment</span>
+                                <strong>{{ item.application['admin_comment'] or 'No admin comment yet.' }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="requested-docs-strip">
+                            <div class="requested-docs-info">
+                                <i class="fa-solid fa-file-circle-plus"></i>
+                                <div>
+                                    <strong>Additional Documents</strong>
+                                    <span>
+                                        {{ item.uploaded_total }} / {{ item.requested_total }} uploaded
+                                        {% if item.requested_total == 0 %}
+                                            — No requests yet
                                         {% endif %}
+                                    </span>
+                                </div>
+                            </div>
 
-                                        {% if app['status'] in ['Approved', 'Rejected'] and app['decision_pdf_path'] %}
-                                        <a class="btn btn-pdf action-btn"
-                                            href="{{ url_for('submit_documents.download_decision_pdf', application_id=app['application_id']) }}">
-                                            <i class="fa-solid fa-file-pdf"></i>
-                                            <span>Download PDF</span>
-                                        </a>
-                                        {% endif %}
+                            {% if item.requested_total > 0 %}
+                            <a href="{{ url_for('submit_documents.planning_approval', application_id=item.application['application_id']) }}"
+                               class="secondary-btn action-btn">
+                                <i class="fa-solid fa-upload"></i>
+                                Add Additional Documents
+                            </a>
+                            {% endif %}
+                        </div>
 
-                                        {% if app['status'] != 'Draft' and not (app['status'] in ['Approved', 'Rejected'] and app['decision_pdf_path']) %}
-                                        <span class="no-action-text">No actions available</span>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
+                        <div class="progress-preview">
+                            <div class="progress-mini done">Submitted</div>
+                            <div class="progress-mini {% if item.application['site_visit_status'] == 'Completed' %}done{% else %}active{% endif %}">Site Visit</div>
+                            <div class="progress-mini {% if item.application['additional_docs_required'] %}active{% else %}done{% endif %}">Additional Docs</div>
+                            <div class="progress-mini {% if item.application['first_officer_decision'] %}done{% else %}locked{% endif %}">First Officer</div>
+                            <div class="progress-mini {% if item.application['deputy_director_decision'] %}done{% else %}locked{% endif %}">Deputy Director</div>
+                            <div class="progress-mini {% if item.application['committee_decision'] %}done{% else %}locked{% endif %}">Committee</div>
+                        </div>
+
+                        <div class="app-actions">
+                            {% if (item.application['status'] or '').lower() == 'draft' %}
+                                <a class="primary-btn action-btn"
+                                   href="{{ url_for('submit_documents.edit_planning_draft', application_id=item.application['application_id']) }}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    Edit Draft
+                                </a>
+
+                                <form method="POST"
+                                      action="{{ url_for('submit_documents.delete_draft_application', application_id=item.application['application_id']) }}"
+                                      onsubmit="return confirm('Delete this draft application?');">
+                                    <button type="submit" class="danger-btn action-btn">
+                                        <i class="fa-solid fa-trash"></i>
+                                        Delete Draft
+                                    </button>
+                                </form>
                             {% else %}
-                            <tr>
-                                <td colspan="7" class="empty">
-                                    <div class="empty-state">
-                                        <i class="fa-regular fa-folder-open"></i>
-                                        <p>No applications found.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                <a class="primary-btn action-btn"
+                                   href="{{ url_for('submit_documents.planning_approval', application_id=item.application['application_id']) }}">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    View Progress
+                                </a>
+
+                                {% if item.application['decision_pdf_path'] %}
+                                <a class="secondary-btn action-btn"
+                                   href="{{ url_for('submit_documents.download_decision_pdf', application_id=item.application['application_id']) }}">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                    Download PDF
+                                </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state reveal-up">
+                        <i class="fa-regular fa-folder-open"></i>
+                        <h3>No applications found</h3>
+                        <p>You have not created any planning applications yet.</p>
+                        <a href="{{ url_for('submit_documents.submit_documents') }}" class="primary-btn action-btn">
+                            <i class="fa-solid fa-plus"></i>
+                            Start New Application
+                        </a>
+                    </div>
+                    {% endfor %}
                 </div>
             </section>
         </main>
@@ -137,5 +173,4 @@
 
     <script src="{{ url_for('static', filename='my_applications.js') }}"></script>
 </body>
-
 </html>

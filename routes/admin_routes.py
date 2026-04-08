@@ -5,6 +5,7 @@ from io import BytesIO
 
 from flask import (
     Blueprint,
+    current_app,
     flash,
     redirect,
     render_template,
@@ -13,16 +14,19 @@ from flask import (
     session,
     url_for,
 )
-
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from werkzeug.utils import secure_filename
 
 from database.db_connection import get_connection
 
 admin_bp = Blueprint("admin", __name__)
 
 PDF_FOLDER = "static/uploads/planning_decisions"
+PLANNING_OFFICE_FOLDER = "static/uploads/planning_office_letters"
+
 os.makedirs(PDF_FOLDER, exist_ok=True)
+os.makedirs(PLANNING_OFFICE_FOLDER, exist_ok=True)
 
 WORKFLOW_STAGES = [
     "Submitted",
@@ -34,6 +38,8 @@ WORKFLOW_STAGES = [
     "Approved",
     "Rejected",
 ]
+
+ALLOWED_DOC_EXTENSIONS = {"pdf", "doc", "docx"}
 
 
 def get_current_user():
@@ -76,6 +82,101 @@ def is_protected_system_admin(user):
     )
 
 
+def ensure_planning_schema():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("PRAGMA table_info(planning_applications)")
+    existing_columns = {row["name"] for row in cursor.fetchall()}
+
+    required_columns = {
+        "reviewed_by": "INTEGER",
+        "reviewed_at": "TEXT",
+        "admin_comment": "TEXT",
+        "decision_pdf_path": "TEXT",
+        "workflow_stage": "TEXT DEFAULT 'Submitted'",
+        "site_visit_required": "INTEGER DEFAULT 1",
+        "site_visit_status": "TEXT DEFAULT 'Pending'",
+        "additional_docs_required": "INTEGER DEFAULT 0",
+        "planning_office_decision": "TEXT",
+        "planning_office_comment": "TEXT",
+        "planning_office_letter_path": "TEXT",
+        "first_officer_decision": "TEXT",
+        "first_officer_comment": "TEXT",
+        "first_officer_by": "INTEGER",
+        "first_officer_at": "TEXT",
+        "deputy_director_decision": "TEXT",
+        "deputy_director_comment": "TEXT",
+        "deputy_director_by": "INTEGER",
+        "deputy_director_at": "TEXT",
+        "committee_decision": "TEXT",
+        "committee_comment": "TEXT",
+        "committee_by": "INTEGER",
+        "committee_at": "TEXT",
+    }
+
+    for column_name, column_definition in required_columns.items():
+        if column_name not in existing_columns:
+            cursor.execute(
+                f"ALTER TABLE planning_applications ADD COLUMN {column_name} {column_definition}"
+            )
+
+    cursor.execute(
+        """
+        UPDATE planning_applications
+        SET workflow_stage = 'Submitted'
+        WHERE workflow_stage IS NULL
+        """
+    )
+    cursor.execute(
+        """
+        UPDATE planning_applications
+        SET site_visit_status = 'Pending'
+        WHERE site_visit_status IS NULL
+        """
+    )
+    cursor.execute(
+        """
+        UPDATE planning_applications
+        SET additional_docs_required = 0
+        WHERE additional_docs_required IS NULL
+        """
+    )
+
+    conn.commit()
+    conn.close()
+
+
+ensure_planning_schema()
+
+
+def allowed_extension(filename, allowed_set=None):
+    allowed_set = allowed_set or ALLOWED_DOC_EXTENSIONS
+    if not filename or "." not in filename:
+        return False
+    return filename.rsplit(".", 1)[1].lower() in allowed_set
+
+
+def save_uploaded_file(file_obj, subfolder, allowed_set=None):
+    if not file_obj or not file_obj.filename:
+        return None
+
+    if not allowed_extension(file_obj.filename, allowed_set):
+        return None
+
+    filename = secure_filename(file_obj.filename)
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    stored_name = f"{timestamp}_{filename}"
+
+    abs_folder = os.path.join(current_app.root_path, "static", subfolder)
+    os.makedirs(abs_folder, exist_ok=True)
+
+    abs_path = os.path.join(abs_folder, stored_name)
+    file_obj.save(abs_path)
+
+    return f"static/{subfolder}/{stored_name}"
+
+
 def generate_decision_pdf(application_id, applicant_name, decision, comment):
     filename = f"planning_decision_{application_id}_{decision.lower()}.pdf"
     filepath = os.path.join(PDF_FOLDER, filename)
@@ -103,7 +204,6 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
         c.setFont("Helvetica-Bold", 13)
         c.drawString(50, y, "Approval Notice")
         y -= 25
-
         c.setFont("Helvetica", 12)
         lines = [
             "Your planning application has been approved.",
@@ -115,7 +215,6 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
         c.setFont("Helvetica-Bold", 13)
         c.drawString(50, y, "Rejection Notice")
         y -= 25
-
         c.setFont("Helvetica", 12)
         lines = [
             "Your planning application has been rejected.",
@@ -355,16 +454,153 @@ def get_application_user_id(cursor, application_id):
     return row["user_id"] if row else None
 
 
-def update_application_stage(cursor, application_id, stage_name):
+def update_application_stage(cursor, application_id, stage_name, current_step=None):
+    if current_step is None:
+        cursor.execute(
+            """
+            UPDATE planning_applications
+            SET workflow_stage = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE application_id = ?
+            """,
+            (stage_name, application_id),
+        )
+    else:
+        cursor.execute(
+            """
+            UPDATE planning_applications
+            SET workflow_stage = ?,
+                current_step = ?,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE application_id = ?
+            """,
+            (stage_name, current_step, application_id),
+        )
+
+
+def fetch_full_application_bundle(application_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
     cursor.execute(
         """
-        UPDATE planning_applications
-        SET workflow_stage = ?,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE application_id = ?
+        SELECT pa.*, u.first_name, u.last_name, u.email, u.nic
+        FROM planning_applications pa
+        JOIN users u ON pa.user_id = u.user_id
+        WHERE pa.application_id = ?
         """,
-        (stage_name, application_id),
+        (application_id,),
     )
+    application = cursor.fetchone()
+
+    if not application:
+        conn.close()
+        return None
+
+    cursor.execute("SELECT * FROM planning_application_summary WHERE application_id = ?", (application_id,))
+    summary = cursor.fetchone()
+
+    cursor.execute("SELECT proposed_use FROM planning_application_proposed_uses WHERE application_id = ?", (application_id,))
+    proposed_uses = cursor.fetchall()
+
+    cursor.execute(
+        """
+        SELECT * FROM planning_application_applicants
+        WHERE application_id = ?
+        ORDER BY applicant_order
+        """,
+        (application_id,),
+    )
+    applicants = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM planning_application_technical_details WHERE application_id = ?", (application_id,))
+    technical = cursor.fetchone()
+
+    cursor.execute("SELECT * FROM planning_application_land_owner WHERE application_id = ?", (application_id,))
+    land_owner = cursor.fetchone()
+
+    cursor.execute("SELECT * FROM planning_application_clearances WHERE application_id = ?", (application_id,))
+    clearances = cursor.fetchone()
+
+    cursor.execute("SELECT * FROM planning_application_site_usage WHERE application_id = ?", (application_id,))
+    site_usage = cursor.fetchone()
+
+    cursor.execute("SELECT * FROM planning_application_dimensions WHERE application_id = ?", (application_id,))
+    dimensions = cursor.fetchone()
+
+    cursor.execute("SELECT * FROM planning_application_development_metrics WHERE application_id = ?", (application_id,))
+    metrics = cursor.fetchone()
+
+    cursor.execute("SELECT * FROM planning_application_units_parking WHERE application_id = ?", (application_id,))
+    units = cursor.fetchone()
+
+    cursor.execute("SELECT plan_name FROM planning_application_submitted_plans WHERE application_id = ?", (application_id,))
+    plans = cursor.fetchall()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM planning_application_attachments
+        WHERE application_id = ?
+        ORDER BY uploaded_at DESC
+        """,
+        (application_id,),
+    )
+    attachments = cursor.fetchall()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM planning_application_requests
+        WHERE application_id = ?
+        ORDER BY requested_at DESC
+        """,
+        (application_id,),
+    )
+    requests_list = cursor.fetchall()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM planning_application_requested_documents
+        WHERE application_id = ?
+        ORDER BY requested_doc_id DESC
+        """,
+        (application_id,),
+    )
+    requested_documents = cursor.fetchall()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM planning_application_workflow_history
+        WHERE application_id = ?
+        ORDER BY acted_at DESC, history_id DESC
+        """,
+        (application_id,),
+    )
+    workflow_history = cursor.fetchall()
+
+    conn.close()
+
+    return {
+        "application": application,
+        "summary": summary,
+        "proposed_uses": proposed_uses,
+        "applicants": applicants,
+        "technical": technical,
+        "land_owner": land_owner,
+        "clearances": clearances,
+        "site_usage": site_usage,
+        "dimensions": dimensions,
+        "metrics": metrics,
+        "units": units,
+        "plans": plans,
+        "attachments": attachments,
+        "requests_list": requests_list,
+        "requested_documents": requested_documents,
+        "workflow_history": workflow_history,
+    }
 
 
 @admin_bp.route("/admin/dashboard")
@@ -854,12 +1090,17 @@ def admin_planning_applications():
         """
         SELECT pa.application_id, pa.status, pa.current_step, pa.created_at, pa.updated_at,
                pa.workflow_stage, pa.site_visit_status, pa.additional_docs_required,
+               pa.planning_office_decision, pa.planning_office_letter_path,
                pa.first_officer_decision, pa.deputy_director_decision, pa.committee_decision,
                u.first_name, u.last_name, u.email, u.nic
         FROM planning_applications pa
         JOIN users u ON pa.user_id = u.user_id
-        WHERE pa.status IN ('Submitted', 'Under Review', 'Approved', 'Rejected')
-        ORDER BY pa.updated_at DESC
+        WHERE pa.status IN ('Submitted', 'Under Review', 'Approved', 'Rejected') OR pa.status IS NULL
+        ORDER BY
+            CASE
+                WHEN pa.updated_at IS NULL THEN pa.created_at
+                ELSE pa.updated_at
+            END DESC
         """
     )
     applications = cursor.fetchall()
@@ -873,142 +1114,43 @@ def admin_planning_applications():
     )
 
 
-@admin_bp.route("/admin/planning-applications/<int:application_id>")
+@admin_bp.route("/admin/planning-applications/<int:application_id>", endpoint="admin_planning_application_detail")
+@admin_bp.route("/admin/planning/<int:application_id>", endpoint="review_planning_application")
 def admin_planning_application_detail(application_id):
     admin_user, redirect_response = admin_required()
     if redirect_response:
         return redirect_response
 
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT pa.*, u.first_name, u.last_name, u.email, u.nic
-        FROM planning_applications pa
-        JOIN users u ON pa.user_id = u.user_id
-        WHERE pa.application_id = ?
-        """,
-        (application_id,),
-    )
-    application = cursor.fetchone()
-
-    if not application:
-        conn.close()
+    data = fetch_full_application_bundle(application_id)
+    if not data:
         flash("Application not found.", "error")
         return redirect(url_for("admin.admin_planning_applications"))
-
-    cursor.execute("SELECT * FROM planning_application_summary WHERE application_id = ?", (application_id,))
-    summary = cursor.fetchone()
-
-    cursor.execute("SELECT proposed_use FROM planning_application_proposed_uses WHERE application_id = ?", (application_id,))
-    proposed_uses = cursor.fetchall()
-
-    cursor.execute(
-        """
-        SELECT * FROM planning_application_applicants
-        WHERE application_id = ?
-        ORDER BY applicant_order
-        """,
-        (application_id,),
-    )
-    applicants = cursor.fetchall()
-
-    cursor.execute("SELECT * FROM planning_application_technical_details WHERE application_id = ?", (application_id,))
-    technical = cursor.fetchone()
-
-    cursor.execute("SELECT * FROM planning_application_land_owner WHERE application_id = ?", (application_id,))
-    land_owner = cursor.fetchone()
-
-    cursor.execute("SELECT * FROM planning_application_clearances WHERE application_id = ?", (application_id,))
-    clearances = cursor.fetchone()
-
-    cursor.execute("SELECT * FROM planning_application_site_usage WHERE application_id = ?", (application_id,))
-    site_usage = cursor.fetchone()
-
-    cursor.execute("SELECT * FROM planning_application_dimensions WHERE application_id = ?", (application_id,))
-    dimensions = cursor.fetchone()
-
-    cursor.execute("SELECT * FROM planning_application_development_metrics WHERE application_id = ?", (application_id,))
-    metrics = cursor.fetchone()
-
-    cursor.execute("SELECT * FROM planning_application_units_parking WHERE application_id = ?", (application_id,))
-    units = cursor.fetchone()
-
-    cursor.execute("SELECT plan_name FROM planning_application_submitted_plans WHERE application_id = ?", (application_id,))
-    plans = cursor.fetchall()
-
-    cursor.execute(
-        """
-        SELECT *
-        FROM planning_application_attachments
-        WHERE application_id = ?
-        ORDER BY uploaded_at DESC
-        """,
-        (application_id,),
-    )
-    attachments = cursor.fetchall()
-
-    cursor.execute(
-        """
-        SELECT *
-        FROM planning_application_requests
-        WHERE application_id = ?
-        ORDER BY requested_at DESC
-        """,
-        (application_id,),
-    )
-    requests_list = cursor.fetchall()
-
-    cursor.execute(
-        """
-        SELECT *
-        FROM planning_application_requested_documents
-        WHERE application_id = ?
-        ORDER BY requested_doc_id DESC
-        """,
-        (application_id,),
-    )
-    requested_documents = cursor.fetchall()
-
-    cursor.execute(
-        """
-        SELECT *
-        FROM planning_application_workflow_history
-        WHERE application_id = ?
-        ORDER BY acted_at DESC, history_id DESC
-        """,
-        (application_id,),
-    )
-    workflow_history = cursor.fetchall()
-
-    conn.close()
 
     return render_template(
         "admin_planning_application_detail.html",
         user=admin_user,
-        application=application,
-        summary=summary,
-        proposed_uses=proposed_uses,
-        applicants=applicants,
-        technical=technical,
-        land_owner=land_owner,
-        clearances=clearances,
-        site_usage=site_usage,
-        dimensions=dimensions,
-        metrics=metrics,
-        units=units,
-        plans=plans,
-        attachments=attachments,
-        requests_list=requests_list,
-        requested_documents=requested_documents,
-        workflow_history=workflow_history,
+        application=data["application"],
+        summary=data["summary"],
+        proposed_uses=data["proposed_uses"],
+        applicants=data["applicants"],
+        technical=data["technical"],
+        land_owner=data["land_owner"],
+        clearances=data["clearances"],
+        site_usage=data["site_usage"],
+        dimensions=data["dimensions"],
+        metrics=data["metrics"],
+        units=data["units"],
+        plans=data["plans"],
+        attachments=data["attachments"],
+        requests_list=data["requests_list"],
+        requested_documents=data["requested_documents"],
+        workflow_history=data["workflow_history"],
         workflow_stages=WORKFLOW_STAGES,
         active_page="planning_applications",
     )
 
 
-@admin_bp.route("/admin/planning-applications/<int:application_id>/site-visit", methods=["POST"])
+@admin_bp.route("/admin/planning-applications/<int:application_id>/site-visit", methods=["POST"], endpoint="mark_site_visit")
 def mark_site_visit(application_id):
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -1026,19 +1168,35 @@ def mark_site_visit(application_id):
         flash("Application not found.", "error")
         return redirect(url_for("admin.admin_planning_applications"))
 
+    next_stage = "Site Visit"
+    next_step = "1"
+
+    if visit_status == "Completed":
+        next_stage = "Additional Docs / Clearance"
+        next_step = "2"
+
     cursor.execute(
         """
         UPDATE planning_applications
-        SET workflow_stage = 'Site Visit',
+        SET workflow_stage = ?,
+            current_step = ?,
             site_visit_status = ?,
             status = 'Under Review',
             updated_at = CURRENT_TIMESTAMP
         WHERE application_id = ?
         """,
-        (visit_status, application_id),
+        (next_stage, next_step, visit_status, application_id),
     )
 
-    add_workflow_history(cursor, application_id, "Site Visit", visit_status, admin_comment, admin_user["user_id"])
+    add_workflow_history(
+        cursor,
+        application_id,
+        "Site Visit",
+        visit_status,
+        admin_comment or "-",
+        admin_user["user_id"],
+    )
+
     create_user_notification(
         cursor,
         user_id,
@@ -1055,7 +1213,7 @@ def mark_site_visit(application_id):
     return redirect(url_for("admin.admin_planning_application_detail", application_id=application_id))
 
 
-@admin_bp.route("/admin/planning-applications/<int:application_id>/request-documents", methods=["POST"])
+@admin_bp.route("/admin/planning-applications/<int:application_id>/request-documents", methods=["POST"], endpoint="request_additional_documents")
 def request_additional_documents(application_id):
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -1106,6 +1264,7 @@ def request_additional_documents(application_id):
         """
         UPDATE planning_applications
         SET workflow_stage = 'Additional Docs / Clearance',
+            current_step = '2',
             additional_docs_required = 1,
             status = 'Under Review',
             updated_at = CURRENT_TIMESTAMP
@@ -1172,8 +1331,146 @@ def notify_application_user(application_id):
     return redirect(url_for("admin.admin_planning_application_detail", application_id=application_id))
 
 
+@admin_bp.route("/admin/planning-applications/<int:application_id>/planning-office", endpoint="planning_office_approval")
+def planning_office_approval(application_id):
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    data = fetch_full_application_bundle(application_id)
+    if not data:
+        flash("Application not found.", "error")
+        return redirect(url_for("admin.admin_planning_applications"))
+
+    return render_template(
+        "planning_office_approval.html",
+        user=admin_user,
+        application=data["application"],
+        attachments=data["attachments"],
+        requested_documents=data["requested_documents"],
+        workflow_history=data["workflow_history"],
+        active_page="planning_applications",
+    )
+
+
+@admin_bp.route("/admin/planning-applications/<int:application_id>/planning-office/submit", methods=["POST"], endpoint="submit_planning_office_review")
+def submit_planning_office_review(application_id):
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    decision = request.form.get("decision", "").strip()
+    po_comment = request.form.get("po_comment", "").strip()
+    approval_letter = request.files.get("approval_letter")
+
+    if decision not in ["Approved", "Rejected"]:
+        flash("Invalid Planning Office decision.", "error")
+        return redirect(url_for("admin.planning_office_approval", application_id=application_id))
+
+    saved_letter_path = None
+    if approval_letter and approval_letter.filename:
+        saved_letter_path = save_uploaded_file(
+            approval_letter,
+            "uploads/planning_office_letters",
+            ALLOWED_DOC_EXTENSIONS,
+        )
+        if not saved_letter_path:
+            flash("Invalid approval letter file. Upload PDF, DOC, or DOCX.", "error")
+            return redirect(url_for("admin.planning_office_approval", application_id=application_id))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    user_id = get_application_user_id(cursor, application_id)
+    if not user_id:
+        conn.close()
+        flash("Application not found.", "error")
+        return redirect(url_for("admin.admin_planning_applications"))
+
+    if saved_letter_path:
+        cursor.execute(
+            """
+            UPDATE planning_applications
+            SET workflow_stage = 'Deputy Director Review',
+                current_step = '3',
+                planning_office_decision = ?,
+                planning_office_comment = ?,
+                planning_office_letter_path = ?,
+                first_officer_decision = ?,
+                first_officer_comment = ?,
+                first_officer_by = ?,
+                first_officer_at = CURRENT_TIMESTAMP,
+                status = 'Under Review',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE application_id = ?
+            """,
+            (
+                decision,
+                po_comment,
+                saved_letter_path,
+                decision,
+                po_comment,
+                admin_user["user_id"],
+                application_id,
+            ),
+        )
+    else:
+        cursor.execute(
+            """
+            UPDATE planning_applications
+            SET workflow_stage = 'Deputy Director Review',
+                current_step = '3',
+                planning_office_decision = ?,
+                planning_office_comment = ?,
+                first_officer_decision = ?,
+                first_officer_comment = ?,
+                first_officer_by = ?,
+                first_officer_at = CURRENT_TIMESTAMP,
+                status = 'Under Review',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE application_id = ?
+            """,
+            (
+                decision,
+                po_comment,
+                decision,
+                po_comment,
+                admin_user["user_id"],
+                application_id,
+            ),
+        )
+
+    add_workflow_history(
+        cursor,
+        application_id,
+        "First Officer Review",
+        f"Planning Office {decision}",
+        po_comment or "-",
+        admin_user["user_id"],
+    )
+
+    create_user_notification(
+        cursor,
+        user_id,
+        application_id,
+        "First officer review completed",
+        f"The first officer has marked your application as {decision}. It will continue to Deputy Director review.",
+        "info" if decision == "Approved" else "warning",
+    )
+
+    conn.commit()
+    conn.close()
+
+    flash("Planning Office review submitted successfully.", "success")
+    return redirect(url_for("admin.planning_office_approval", application_id=application_id))
+
+
 @admin_bp.route("/admin/planning-applications/<int:application_id>/first-officer-decision", methods=["POST"])
 def first_officer_decision(application_id):
+    approval_letter = request.files.get("approval_letter")
+    if approval_letter and approval_letter.filename:
+        return submit_planning_office_review(application_id)
+
     admin_user, redirect_response = admin_required()
     if redirect_response:
         return redirect_response
@@ -1197,7 +1494,10 @@ def first_officer_decision(application_id):
     cursor.execute(
         """
         UPDATE planning_applications
-        SET workflow_stage = 'First Officer Review',
+        SET workflow_stage = 'Deputy Director Review',
+            current_step = '3',
+            planning_office_decision = ?,
+            planning_office_comment = ?,
             first_officer_decision = ?,
             first_officer_comment = ?,
             first_officer_by = ?,
@@ -1206,7 +1506,14 @@ def first_officer_decision(application_id):
             updated_at = CURRENT_TIMESTAMP
         WHERE application_id = ?
         """,
-        (decision, admin_comment, admin_user["user_id"], application_id),
+        (
+            decision,
+            admin_comment,
+            decision,
+            admin_comment,
+            admin_user["user_id"],
+            application_id,
+        ),
     )
 
     add_workflow_history(
@@ -1214,7 +1521,7 @@ def first_officer_decision(application_id):
         application_id,
         "First Officer Review",
         f"First Officer {decision}",
-        admin_comment,
+        admin_comment or "-",
         admin_user["user_id"],
     )
 
@@ -1234,6 +1541,28 @@ def first_officer_decision(application_id):
     return redirect(url_for("admin.admin_planning_application_detail", application_id=application_id))
 
 
+@admin_bp.route("/admin/planning-applications/<int:application_id>/deputy-director", endpoint="deputy_director_review_page")
+def deputy_director_review_page(application_id):
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    data = fetch_full_application_bundle(application_id)
+    if not data:
+        flash("Application not found.", "error")
+        return redirect(url_for("admin.admin_planning_applications"))
+
+    return render_template(
+        "deputy_director_review.html",
+        user=admin_user,
+        application=data["application"],
+        attachments=data["attachments"],
+        workflow_history=data["workflow_history"],
+        active_page="planning_applications",
+    )
+
+
+@admin_bp.route("/admin/planning-applications/<int:application_id>/deputy-director/submit", methods=["POST"], endpoint="deputy_director_decision")
 @admin_bp.route("/admin/planning-applications/<int:application_id>/deputy-director-decision", methods=["POST"])
 def deputy_director_decision(application_id):
     admin_user, redirect_response = admin_required()
@@ -1245,7 +1574,7 @@ def deputy_director_decision(application_id):
 
     if decision not in ["Approved", "Rejected"]:
         flash("Invalid Deputy Director decision.", "error")
-        return redirect(url_for("admin.admin_planning_application_detail", application_id=application_id))
+        return redirect(url_for("admin.deputy_director_review_page", application_id=application_id))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -1259,7 +1588,8 @@ def deputy_director_decision(application_id):
     cursor.execute(
         """
         UPDATE planning_applications
-        SET workflow_stage = 'Deputy Director Review',
+        SET workflow_stage = 'District Project Committee Review',
+            current_step = '4',
             deputy_director_decision = ?,
             deputy_director_comment = ?,
             deputy_director_by = ?,
@@ -1268,7 +1598,12 @@ def deputy_director_decision(application_id):
             updated_at = CURRENT_TIMESTAMP
         WHERE application_id = ?
         """,
-        (decision, admin_comment, admin_user["user_id"], application_id),
+        (
+            decision,
+            admin_comment,
+            admin_user["user_id"],
+            application_id,
+        ),
     )
 
     add_workflow_history(
@@ -1276,7 +1611,7 @@ def deputy_director_decision(application_id):
         application_id,
         "Deputy Director Review",
         f"Deputy Director {decision}",
-        admin_comment,
+        admin_comment or "-",
         admin_user["user_id"],
     )
 
@@ -1293,10 +1628,30 @@ def deputy_director_decision(application_id):
     conn.close()
 
     flash("Deputy Director decision saved.", "success")
-    return redirect(url_for("admin.admin_planning_application_detail", application_id=application_id))
+    return redirect(url_for("admin.deputy_director_review_page", application_id=application_id))
 
 
-@admin_bp.route("/admin/planning-applications/<int:application_id>/committee-decision", methods=["POST"])
+@admin_bp.route("/admin/planning-applications/<int:application_id>/district-project-committee", endpoint="district_project_committee_review")
+def district_project_committee_review(application_id):
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    data = fetch_full_application_bundle(application_id)
+    if not data:
+        flash("Application not found.", "error")
+        return redirect(url_for("admin.admin_planning_applications"))
+
+    return render_template(
+        "district_project_committee_review.html",
+        user=admin_user,
+        application=data["application"],
+        workflow_history=data["workflow_history"],
+        active_page="planning_applications",
+    )
+
+
+@admin_bp.route("/admin/planning-applications/<int:application_id>/committee-decision", methods=["POST"], endpoint="committee_decision")
 def committee_decision(application_id):
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -1307,7 +1662,7 @@ def committee_decision(application_id):
 
     if decision not in ["Approved", "Rejected"]:
         flash("Invalid committee decision.", "error")
-        return redirect(url_for("admin.admin_planning_application_detail", application_id=application_id))
+        return redirect(url_for("admin.district_project_committee_review", application_id=application_id))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -1336,6 +1691,7 @@ def committee_decision(application_id):
         """
         UPDATE planning_applications
         SET workflow_stage = ?,
+            current_step = '5',
             committee_decision = ?,
             committee_comment = ?,
             committee_by = ?,
@@ -1366,7 +1722,7 @@ def committee_decision(application_id):
         application_id,
         "District Project Committee Review",
         f"Committee {decision}",
-        admin_comment,
+        admin_comment or "-",
         admin_user["user_id"],
     )
 
@@ -1383,173 +1739,17 @@ def committee_decision(application_id):
     conn.close()
 
     flash(f"Application {final_status.lower()} successfully.", "success")
-    return redirect(url_for("admin.admin_planning_application_detail", application_id=application_id))
+    return redirect(url_for("admin.district_project_committee_review", application_id=application_id))
 
 
 @admin_bp.route("/admin/planning-applications/<int:application_id>/approve", methods=["POST"])
 def approve_planning_application(application_id):
-    admin_user, redirect_response = admin_required()
-    if redirect_response:
-        return redirect_response
-
-    admin_comment = request.form.get("admin_comment", "").strip()
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT pa.application_id, pa.user_id, u.first_name, u.last_name
-        FROM planning_applications pa
-        JOIN users u ON pa.user_id = u.user_id
-        WHERE pa.application_id = ?
-        """,
-        (application_id,),
-    )
-    app = cursor.fetchone()
-
-    if not app:
-        conn.close()
-        flash("Application not found.", "error")
-        return redirect(url_for("admin.admin_planning_applications"))
-
-    applicant_name = f"{app['first_name']} {app['last_name']}"
-    pdf_path = generate_decision_pdf(application_id, applicant_name, "Approved", admin_comment)
-
-    cursor.execute(
-        """
-        UPDATE planning_applications
-        SET workflow_stage = 'Approved',
-            committee_decision = 'Approved',
-            committee_comment = ?,
-            committee_by = ?,
-            committee_at = CURRENT_TIMESTAMP,
-            status = 'Approved',
-            reviewed_by = ?,
-            reviewed_at = CURRENT_TIMESTAMP,
-            admin_comment = ?,
-            decision_pdf_path = ?,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE application_id = ?
-        """,
-        (
-            admin_comment,
-            admin_user["user_id"],
-            admin_user["user_id"],
-            admin_comment,
-            pdf_path,
-            application_id,
-        ),
-    )
-
-    add_workflow_history(
-        cursor,
-        application_id,
-        "District Project Committee Review",
-        "Approved",
-        admin_comment,
-        admin_user["user_id"],
-    )
-
-    create_user_notification(
-        cursor,
-        app["user_id"],
-        application_id,
-        "Final decision: Approved",
-        "Your planning application has been approved.",
-        "success",
-    )
-
-    conn.commit()
-    conn.close()
-
-    flash("Application approved successfully.", "success")
-    return redirect(url_for("admin.admin_planning_application_detail", application_id=application_id))
+    return committee_decision(application_id)
 
 
 @admin_bp.route("/admin/planning-applications/<int:application_id>/reject", methods=["POST"])
 def reject_planning_application(application_id):
-    admin_user, redirect_response = admin_required()
-    if redirect_response:
-        return redirect_response
-
-    admin_comment = request.form.get("admin_comment", "").strip()
-
-    if not admin_comment:
-        flash("Reason for rejection is required.", "warning")
-        return redirect(url_for("admin.admin_planning_application_detail", application_id=application_id))
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT pa.application_id, pa.user_id, u.first_name, u.last_name
-        FROM planning_applications pa
-        JOIN users u ON pa.user_id = u.user_id
-        WHERE pa.application_id = ?
-        """,
-        (application_id,),
-    )
-    app = cursor.fetchone()
-
-    if not app:
-        conn.close()
-        flash("Application not found.", "error")
-        return redirect(url_for("admin.admin_planning_applications"))
-
-    applicant_name = f"{app['first_name']} {app['last_name']}"
-    pdf_path = generate_decision_pdf(application_id, applicant_name, "Rejected", admin_comment)
-
-    cursor.execute(
-        """
-        UPDATE planning_applications
-        SET workflow_stage = 'Rejected',
-            committee_decision = 'Rejected',
-            committee_comment = ?,
-            committee_by = ?,
-            committee_at = CURRENT_TIMESTAMP,
-            status = 'Rejected',
-            reviewed_by = ?,
-            reviewed_at = CURRENT_TIMESTAMP,
-            admin_comment = ?,
-            decision_pdf_path = ?,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE application_id = ?
-        """,
-        (
-            admin_comment,
-            admin_user["user_id"],
-            admin_user["user_id"],
-            admin_comment,
-            pdf_path,
-            application_id,
-        ),
-    )
-
-    add_workflow_history(
-        cursor,
-        application_id,
-        "District Project Committee Review",
-        "Rejected",
-        admin_comment,
-        admin_user["user_id"],
-    )
-
-    create_user_notification(
-        cursor,
-        app["user_id"],
-        application_id,
-        "Final decision: Rejected",
-        "Your planning application has been rejected.",
-        "error",
-    )
-
-    conn.commit()
-    conn.close()
-
-    flash("Application rejected successfully.", "success")
-    return redirect(url_for("admin.admin_planning_application_detail", application_id=application_id))
+    return committee_decision(application_id)
 
 
 @admin_bp.route("/admin/planning-applications/<int:application_id>/decision-pdf")

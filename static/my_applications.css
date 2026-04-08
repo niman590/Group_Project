@@ -85,6 +85,37 @@ body {
     line-height: 1;
 }
 
+.flash-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.flash-msg {
+    padding: 14px 16px;
+    border-radius: 14px;
+    font-weight: 700;
+}
+
+.flash-success {
+    background: #e8fff2;
+    color: #0f8b4f;
+    border: 1px solid #bde7cb;
+}
+
+.flash-error {
+    background: #ffeaea;
+    color: #c72d2d;
+    border: 1px solid #efb7b7;
+}
+
+.flash-warning {
+    background: #fff4df;
+    color: #b76d00;
+    border: 1px solid #f0d79f;
+}
+
 .applications-panel {
     background: #ffffff;
     border: 1px solid #d8e3f3;
@@ -109,195 +140,254 @@ body {
     line-height: 1.55;
 }
 
-.table-wrap {
-    overflow-x: auto;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-}
-
-.applications-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 1040px;
-}
-
-.applications-table th,
-.applications-table td {
-    padding: 15px 14px;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
-    vertical-align: top;
-}
-
-.applications-table th {
-    background: #eef3fa;
-    color: #123f88;
-    white-space: nowrap;
-    font-size: 0.92rem;
-}
-
-.applications-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.application-row {
-    transition: background 0.2s ease;
-}
-
-.application-row:hover td {
-    background: #fbfdff;
-}
-
-.application-id-cell {
+.cards-stack {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 140px;
+    flex-direction: column;
+    gap: 18px;
 }
 
-.id-label {
-    width: 28px;
-    height: 28px;
-    border-radius: 10px;
-    background: #edf4ff;
-    color: #123f88;
+.app-card {
+    border: 1px solid #d7e2f2;
+    border-radius: 20px;
+    padding: 20px;
+    background: #fbfdff;
+    box-shadow: 0 8px 18px rgba(18, 63, 130, 0.04);
+}
+
+.app-card-top {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr 1fr;
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.mini-label {
+    display: block;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.app-id-block h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #123f82;
+}
+
+.status-badge,
+.step-pill,
+.progress-mini {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.82rem;
-    font-weight: 800;
-    flex-shrink: 0;
-}
-
-.application-id-cell strong {
-    color: #1e293b;
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 8px 12px;
+    min-height: 38px;
+    padding: 0 14px;
     border-radius: 999px;
-    font-size: 12px;
     font-weight: 700;
-    white-space: nowrap;
+    font-size: 14px;
 }
 
-.status-draft {
-    background: #fff4dc;
-    color: #b97700;
+.badge-success {
+    background: #e8fff2;
+    color: #0f8b4f;
 }
 
-.status-submitted {
+.badge-danger {
+    background: #ffeaea;
+    color: #c72d2d;
+}
+
+.badge-warning {
+    background: #fff4df;
+    color: #b76d00;
+}
+
+.badge-info {
     background: #e8f1ff;
-    color: #1c4b9c;
+    color: #1656b6;
 }
 
-.status-approved {
-    background: #e9f8ef;
-    color: #1d7d3c;
-}
-
-.status-rejected {
-    background: #fdecec;
-    color: #b03030;
-}
-
-.status-other {
-    background: #eef3fa;
-    color: #334155;
+.badge-secondary {
+    background: #edf0f5;
+    color: #5f6b7a;
 }
 
 .step-pill {
-    display: inline-flex;
-    align-items: center;
-    padding: 8px 12px;
-    border-radius: 999px;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     color: #334155;
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
 }
 
-.comment-box {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 12px 13px;
-    color: #475569;
-    line-height: 1.55;
-    min-width: 230px;
+.app-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
 }
 
-.date-text {
-    color: #475569;
-    white-space: nowrap;
+.meta-box {
+    background: #ffffff;
+    border: 1px solid #d7e2f2;
+    border-radius: 16px;
+    padding: 14px;
 }
 
-.action-stack {
+.meta-box strong {
+    color: #334155;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.requested-docs-strip {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 190px;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: center;
+    background: #eef6ff;
+    border: 1px solid #d7e8ff;
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
 }
 
-.btn {
+.requested-docs-info {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.requested-docs-info i {
+    font-size: 20px;
+    color: #1656b6;
+}
+
+.requested-docs-info strong {
+    display: block;
+    color: #123f82;
+}
+
+.requested-docs-info span {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.progress-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.progress-mini {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 13px;
+    border: 1px solid #d7e2f2;
+    background: #ffffff;
+    color: #475569;
+}
+
+.progress-mini.done {
+    background: #e8fff2;
+    color: #0f8b4f;
+    border-color: #bde7cb;
+}
+
+.progress-mini.active {
+    background: #e8f1ff;
+    color: #1656b6;
+    border-color: #bfd6fb;
+}
+
+.progress-mini.locked {
+    background: #f8fafc;
+    color: #94a3b8;
+}
+
+.app-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.app-actions form {
+    margin: 0;
+}
+
+.primary-btn,
+.secondary-btn,
+.danger-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 11px 12px;
-    border-radius: 10px;
-    text-decoration: none;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 12px;
     font-weight: 700;
-    font-size: 13px;
-    text-align: center;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
     transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
 }
 
-.btn:hover {
+.primary-btn:hover,
+.secondary-btn:hover,
+.danger-btn:hover {
     transform: translateY(-1px);
     opacity: 0.96;
 }
 
-.btn.loading {
+.primary-btn.loading,
+.secondary-btn.loading,
+.danger-btn.loading {
     opacity: 0.82;
     pointer-events: none;
 }
 
-.btn-edit {
-    background: #123f88;
-    color: white;
+.primary-btn {
+    background: linear-gradient(135deg, #123f82, #1c4a87);
+    color: #ffffff;
 }
 
-.btn-pdf {
-    background: #1d7d3c;
-    color: white;
+.secondary-btn {
+    background: #ffffff;
+    color: #123f82;
+    border: 1px solid #c9d9ee;
 }
 
-.no-action-text {
-    color: #64748b;
-    font-size: 0.86rem;
-    font-weight: 600;
-}
-
-.empty {
-    padding: 24px 14px;
-    color: #64748b;
-    text-align: center;
+.danger-btn {
+    background: #ffeaea;
+    color: #c72d2d;
+    border: 1px solid #efb7b7;
 }
 
 .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+    border: 1px dashed #c8d9ef;
+    border-radius: 20px;
+    padding: 40px 24px;
+    text-align: center;
+    background: #fbfdff;
 }
 
 .empty-state i {
-    font-size: 1.7rem;
-    color: #94a3b8;
+    font-size: 38px;
+    color: #123f82;
+    margin-bottom: 12px;
+}
+
+.empty-state h3 {
+    margin: 0 0 8px;
+    color: #123f82;
+}
+
+.empty-state p {
+    margin: 0 0 18px;
+    color: #6b7280;
 }
 
 .reveal-up {
@@ -309,6 +399,13 @@ body {
 .reveal-up.revealed {
     opacity: 1;
     transform: translateY(0);
+}
+
+@media (max-width: 1200px) {
+    .app-card-top,
+    .app-meta-grid {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 @media (max-width: 980px) {
@@ -337,6 +434,11 @@ body {
     .applications-panel {
         padding: 18px;
     }
+
+    .app-card-top,
+    .app-meta-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 640px) {
@@ -346,5 +448,10 @@ body {
 
     .panel-header h2 {
         font-size: 1.2rem;
+    }
+
+    .requested-docs-strip {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
