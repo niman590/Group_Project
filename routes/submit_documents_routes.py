@@ -1,4 +1,8 @@
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 from flask import Blueprint, render_template, request, jsonify, session, send_file, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 from database.db_connection import get_connection
@@ -10,6 +14,107 @@ REQUESTED_DOCS_FOLDER = "static/uploads/requested_planning_documents"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(REQUESTED_DOCS_FOLDER, exist_ok=True)
+
+
+def send_planning_submission_email(to_email, first_name):
+    sender_email = "planapprovalsystem@gmail.com"
+    sender_password = "fikz sauz rsmz zkee"
+
+    msg = MIMEMultipart("alternative")
+    msg["From"] = sender_email
+    msg["To"] = to_email
+    msg["Subject"] = "Planning Approval Application Submitted"
+
+    text_body = f"""Hello {first_name},
+
+Your planning approval application has been submitted successfully.
+
+Thank you,
+Civic Plan Team
+
+This is an automated email from Civic Plan Team.
+"""
+
+    html_body = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Planning Approval Application Submitted</title>
+    </head>
+    <body style="margin:0; padding:0; background-color:#f2f2f2; font-family:Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f2f2f2; margin:0; padding:20px 0;">
+            <tr>
+                <td align="center">
+                    <table width="680" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff; border-radius:14px; overflow:hidden;">
+                        <tr>
+                            <td align="center" style="background-color:#234a8a; padding:36px 20px;">
+                                <div style="font-size:24px; font-weight:bold; color:#ffffff; letter-spacing:0.5px;">
+                                    CIVIC PLAN
+                                </div>
+                                <div style="font-size:14px; color:#ffffff; margin-top:10px;">
+                                    Land Management Portal
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td style="padding:40px 28px 50px 28px; color:#333333;">
+                                <div style="font-size:18px; font-weight:bold; color:#234a8a; margin-bottom:24px;">
+                                    Planning Approval Application Submitted
+                                </div>
+
+                                <div style="font-size:15px; line-height:1.7; margin-bottom:14px;">
+                                    Hello <strong>{first_name}</strong>,
+                                </div>
+
+                                <div style="font-size:15px; line-height:1.8; margin-bottom:28px;">
+                                    We received your planning approval application successfully. Your application is now submitted and will be reviewed by the relevant officers.
+                                </div>
+
+                                <table align="center" cellpadding="0" cellspacing="0" border="0" style="margin:10px auto 28px auto;">
+                                    <tr>
+                                        <td align="center" style="border:2px dashed #3a67b8; border-radius:12px; padding:22px 34px; font-size:18px; font-weight:bold; color:#234a8a;">
+                                            Application Submitted Successfully
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <div style="font-size:15px; line-height:1.8; margin-bottom:14px;">
+                                    <strong>Note:</strong> You can log in to your Civic Plan account at any time to check the application progress and upload any additional requested documents.
+                                </div>
+
+                                <div style="font-size:15px; line-height:1.8; margin-bottom:34px;">
+                                    If you did not submit this application, please contact support immediately.
+                                </div>
+
+                                <div style="font-size:15px; line-height:1.8;">
+                                    Thank you,<br>
+                                    <strong>Civic Plan Team</strong>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    """
+
+    msg.attach(MIMEText(text_body, "plain"))
+    msg.attach(MIMEText(html_body, "html"))
+
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, to_email, msg.as_string())
+        server.quit()
+        return True
+    except Exception as e:
+        print("Planning submission email error:", e)
+        return False
 
 
 def get_or_create_draft_application(user_id):
@@ -521,6 +626,13 @@ def submit_planning_application():
     application_id = row["application_id"] if hasattr(row, "keys") else row[0]
 
     cursor.execute("""
+        SELECT first_name, email
+        FROM users
+        WHERE user_id = ?
+    """, (user_id,))
+    user = cursor.fetchone()
+
+    cursor.execute("""
         UPDATE planning_applications
         SET status = 'Submitted',
             workflow_stage = 'Submitted',
@@ -539,6 +651,11 @@ def submit_planning_application():
 
     conn.commit()
     conn.close()
+
+    if user:
+        first_name = user["first_name"] if hasattr(user, "keys") else user[0]
+        email = user["email"] if hasattr(user, "keys") else user[1]
+        send_planning_submission_email(email, first_name)
 
     return jsonify({
         "success": True,
@@ -670,7 +787,7 @@ def delete_draft_application(application_id):
     cursor.execute("DELETE FROM planning_application_attachments WHERE application_id = ?", (application_id,))
     cursor.execute("DELETE FROM planning_application_requests WHERE application_id = ?", (application_id,))
     cursor.execute("DELETE FROM planning_application_requested_documents WHERE application_id = ?", (application_id,))
-    cursor.execute("DELETE FROM planning_application_workflow_history WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_workflow_HISTORY WHERE application_id = ?", (application_id,))
     cursor.execute("DELETE FROM user_notifications WHERE application_id = ?", (application_id,))
     cursor.execute("DELETE FROM planning_applications WHERE application_id = ?", (application_id,))
 
