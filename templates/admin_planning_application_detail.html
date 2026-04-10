@@ -101,7 +101,6 @@
 
                 <section class="content-grid">
                     <div class="left-stack">
-
                         <div class="card">
                             <div class="card-header">
                                 <h2 class="card-title">Applicant Information</h2>
@@ -273,7 +272,7 @@
                             <h3>Site Visit Update</h3>
                             <p>Record the visit status and field notes. After completion, the file can move forward.</p>
 
-                            <form method="POST" action="{{ url_for('admin.mark_site_visit', application_id=application['application_id']) }}">
+                            <form method="POST" action="{{ url_for('admin_planning.mark_site_visit', application_id=application['application_id']) }}">
                                 <select name="visit_status" required>
                                     <option value="Pending" {% if application['site_visit_status'] == 'Pending' %}selected{% endif %}>Pending</option>
                                     <option value="Scheduled" {% if application['site_visit_status'] == 'Scheduled' %}selected{% endif %}>Scheduled</option>
@@ -293,7 +292,7 @@
                             <h3>Request Additional Documents / Clearance</h3>
                             <p>Use this if any extra supporting document or clearance is still needed from the applicant.</p>
 
-                            <form method="POST" action="{{ url_for('admin.request_additional_documents', application_id=application['application_id']) }}">
+                            <form method="POST" action="{{ url_for('admin_planning.request_additional_documents', application_id=application['application_id']) }}">
                                 <input type="text" name="request_title" placeholder="Request title" required>
                                 <textarea name="request_message" placeholder="Explain clearly what is missing and what the user must upload" required></textarea>
                                 <textarea name="document_labels" placeholder="One required document per line&#10;Example: Updated Survey Plan&#10;Drainage Clearance Letter" required></textarea>
@@ -331,7 +330,7 @@
                                     <div class="small-note">After the site visit is completed, continue to the First Officer / Planning Office page.</div>
                                 </div>
                                 <div class="arrow-icon"><i class="fa-solid fa-arrow-right"></i></div>
-                                <a class="btn btn-success" href="{{ url_for('admin.planning_office_approval', application_id=application['application_id']) }}">
+                                <a class="btn btn-success" href="{{ url_for('admin_planning.planning_office_approval', application_id=application['application_id']) }}">
                                     Go to Planning Office
                                 </a>
                             </div>
@@ -361,7 +360,7 @@
                                     </div>
 
                                     <form method="POST"
-                                          action="{{ url_for('admin.first_officer_decision', application_id=application['application_id']) }}"
+                                          action="{{ url_for('admin_planning.first_officer_decision', application_id=application['application_id']) }}"
                                           class="stage-form">
                                         <div class="form-row">
                                             <div class="form-group">
@@ -406,7 +405,7 @@
                                     </div>
 
                                     <form method="POST"
-                                          action="{{ url_for('admin.deputy_director_decision', application_id=application['application_id']) }}"
+                                          action="{{ url_for('admin_planning.deputy_director_decision', application_id=application['application_id']) }}"
                                           class="stage-form">
                                         <div class="form-row">
                                             <div class="form-group">
@@ -451,7 +450,7 @@
                                     </div>
 
                                     <form method="POST"
-                                          action="{{ url_for('admin.committee_decision', application_id=application['application_id']) }}"
+                                          action="{{ url_for('admin_planning.committee_decision', application_id=application['application_id']) }}"
                                           class="stage-form">
                                         <div class="form-row">
                                             <div class="form-group">

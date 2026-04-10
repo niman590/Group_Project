@@ -55,7 +55,7 @@
                                         <p>Use this to record the final approval from the District Project Committee.</p>
 
                                         <form method="POST"
-                                              action="{{ url_for('admin.committee_decision', application_id=application['application_id']) }}"
+                                              action="{{ url_for('admin_planning.committee_decision', application_id=application['application_id']) }}"
                                               class="stage-form">
                                             <input type="hidden" name="decision" value="Approved">
 
@@ -78,7 +78,7 @@
                                         <p>Use this to record the final rejection and provide the official reason.</p>
 
                                         <form method="POST"
-                                              action="{{ url_for('admin.committee_decision', application_id=application['application_id']) }}"
+                                              action="{{ url_for('admin_planning.committee_decision', application_id=application['application_id']) }}"
                                               class="stage-form">
                                             <input type="hidden" name="decision" value="Rejected">
 
@@ -109,7 +109,7 @@
                             <p>Return to the main planning application review page.</p>
 
                             <a class="btn btn-outline"
-                               href="{{ url_for('admin.review_planning_application', application_id=application['application_id']) }}">
+                               href="{{ url_for('admin_planning.review_planning_application', application_id=application['application_id']) }}">
                                 <i class="fa-solid fa-arrow-left"></i>
                                 Back
                             </a>

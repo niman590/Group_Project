@@ -75,7 +75,7 @@
 
                             <div class="card-body">
                                 <form method="POST"
-                                      action="{{ url_for('admin.deputy_director_decision', application_id=application['application_id']) }}"
+                                      action="{{ url_for('admin_planning.deputy_director_decision', application_id=application['application_id']) }}"
                                       class="stage-form">
 
                                     <div class="form-group">
@@ -125,7 +125,7 @@
                             </div>
 
                             <a class="btn btn-success"
-                               href="{{ url_for('admin.district_project_committee_review', application_id=application['application_id']) }}">
+                               href="{{ url_for('admin_planning.district_project_committee_review', application_id=application['application_id']) }}">
                                 Go to Committee Review
                             </a>
                         </div>
@@ -136,7 +136,7 @@
                             <p>Return to the previous review stage.</p>
 
                             <a class="btn btn-outline"
-                               href="{{ url_for('admin.planning_office_approval', application_id=application['application_id']) }}">
+                               href="{{ url_for('admin_planning.planning_office_approval', application_id=application['application_id']) }}">
                                 <i class="fa-solid fa-arrow-left"></i>
                                 Back
                             </a>

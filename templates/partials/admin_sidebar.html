@@ -21,8 +21,8 @@
                 <span class="nav-text">Dashboard</span>
             </a>
 
-            <a href="{{ url_for('admin.admin_planning_applications') }}"
-                class="nav-link {% if active_page == 'planning_applications' or request.endpoint == 'admin.admin_planning_applications' or request.endpoint == 'admin.admin_planning_application_detail' %}active{% endif %}">
+            <a href="{{ url_for('admin_planning.admin_planning_applications') }}"
+                class="nav-link {% if active_page == 'planning_applications' or request.endpoint == 'admin_planning.admin_planning_applications' or request.endpoint == 'admin_planning.admin_planning_application_detail' or request.endpoint == 'admin_planning.review_planning_application' or request.endpoint == 'admin_planning.planning_office_approval' or request.endpoint == 'admin_planning.deputy_director_review_page' or request.endpoint == 'admin_planning.district_project_committee_review' %}active{% endif %}">
                 <span class="nav-icon"><i class="fa-solid fa-file-circle-check"></i></span>
                 <span class="nav-text">Planning Applications</span>
             </a>

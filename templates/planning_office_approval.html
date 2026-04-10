@@ -57,7 +57,7 @@
                                 </p>
 
                                 <form method="POST"
-                                      action="{{ url_for('admin.submit_planning_office_review', application_id=application['application_id']) }}"
+                                      action="{{ url_for('admin_planning.submit_planning_office_review', application_id=application['application_id']) }}"
                                       enctype="multipart/form-data"
                                       class="stage-form">
 
@@ -139,7 +139,7 @@
                             </div>
 
                             <a class="btn btn-success"
-                               href="{{ url_for('admin.deputy_director_review_page', application_id=application['application_id']) }}">
+                               href="{{ url_for('admin_planning.deputy_director_review_page', application_id=application['application_id']) }}">
                                 Go to Deputy Director
                             </a>
                         </div>
@@ -150,7 +150,7 @@
                             <p>Return to the main planning application detail page.</p>
 
                             <a class="btn btn-outline"
-                               href="{{ url_for('admin.review_planning_application', application_id=application['application_id']) }}">
+                               href="{{ url_for('admin_planning.review_planning_application', application_id=application['application_id']) }}">
                                 <i class="fa-solid fa-arrow-left"></i>
                                 Back
                             </a>
