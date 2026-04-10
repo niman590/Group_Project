@@ -14,8 +14,13 @@ from flask import (
     session,
     url_for,
 )
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from werkzeug.utils import secure_filename
 
 from database.db_connection import get_connection
@@ -179,60 +184,257 @@ def save_uploaded_file(file_obj, subfolder, allowed_set=None):
 
 def generate_decision_pdf(application_id, applicant_name, decision, comment):
     filename = f"planning_decision_{application_id}_{decision.lower()}.pdf"
-    filepath = os.path.join(PDF_FOLDER, filename)
+    relative_path = os.path.join(PDF_FOLDER, filename)
+    absolute_path = os.path.join(current_app.root_path, relative_path)
 
-    c = canvas.Canvas(filepath, pagesize=A4)
-    width, height = A4
+    os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
 
-    y = height - 60
+    doc = SimpleDocTemplate(
+        absolute_path,
+        pagesize=A4,
+        rightMargin=22 * mm,
+        leftMargin=22 * mm,
+        topMargin=18 * mm,
+        bottomMargin=18 * mm,
+    )
 
-    c.setFont("Helvetica-Bold", 18)
-    c.drawString(50, y, "CIVIC PLAN - Planning Application Decision")
-    y -= 40
+    styles = getSampleStyleSheet()
 
-    c.setFont("Helvetica", 12)
-    c.drawString(50, y, f"Application ID: {application_id}")
-    y -= 25
-    c.drawString(50, y, f"Applicant Name: {applicant_name}")
-    y -= 25
-    c.drawString(50, y, f"Decision: {decision}")
-    y -= 25
-    c.drawString(50, y, f"Decision Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    y -= 40
+    title_style = ParagraphStyle(
+        "title_style",
+        parent=styles["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=15,
+        leading=18,
+        alignment=TA_CENTER,
+        spaceAfter=6,
+        textColor=colors.HexColor("#9b1c1c"),
+    )
+
+    sub_title_style = ParagraphStyle(
+        "sub_title_style",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10.5,
+        leading=13,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor("#444444"),
+        spaceAfter=8,
+    )
+
+    normal_style = ParagraphStyle(
+        "normal_style",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10.5,
+        leading=16,
+        alignment=TA_JUSTIFY,
+        textColor=colors.black,
+    )
+
+    left_style = ParagraphStyle(
+        "left_style",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10.5,
+        leading=15,
+        alignment=TA_LEFT,
+        textColor=colors.black,
+    )
+
+    bold_style = ParagraphStyle(
+        "bold_style",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10.5,
+        leading=15,
+        alignment=TA_LEFT,
+        textColor=colors.black,
+    )
+
+    small_style = ParagraphStyle(
+        "small_style",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=9,
+        leading=13,
+        alignment=TA_LEFT,
+        textColor=colors.black,
+    )
+
+    permit_heading_style = ParagraphStyle(
+        "permit_heading_style",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=12,
+        leading=16,
+        alignment=TA_CENTER,
+        textColor=colors.black,
+        spaceAfter=2,
+        spaceBefore=6,
+    )
+
+    story = []
+
+    issue_date = datetime.now().strftime("%d %B %Y")
+    permit_no = f"FD/{application_id}/{datetime.now().strftime('%Y')}"
+    online_ref = f"PA/{application_id}/{datetime.now().strftime('%Y%m%d%H%M')}"
+    my_no = f"CP/ADMIN/{application_id}/{datetime.now().strftime('%Y')}"
+
+    story.append(Paragraph("MINISTRY OF URBAN DEVELOPMENT, CONSTRUCTION AND HOUSING", sub_title_style))
+    story.append(Paragraph("Civic Plan Authority", title_style))
+    story.append(Spacer(1, 4))
+
+    header_table = Table(
+        [
+            [
+                Paragraph(f"Online Reference No: {online_ref}", left_style),
+                Paragraph(f"<b>Permit No.</b> {permit_no}", left_style),
+            ],
+            [
+                Paragraph(f"My No: {my_no}", left_style),
+                Paragraph("", left_style),
+            ],
+            [
+                Paragraph(issue_date, left_style),
+                Paragraph("", left_style),
+            ],
+        ],
+        colWidths=[95 * mm, 65 * mm],
+    )
+    header_table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ]
+        )
+    )
+    story.append(header_table)
+    story.append(Spacer(1, 14))
+
+    story.append(Paragraph("Director,", left_style))
+    story.append(Paragraph(applicant_name or "Applicant", left_style))
+    story.append(Paragraph("Applicant / Authorized Party", left_style))
+    story.append(Spacer(1, 16))
 
     if decision == "Approved":
-        c.setFont("Helvetica-Bold", 13)
-        c.drawString(50, y, "Approval Notice")
-        y -= 25
-        c.setFont("Helvetica", 12)
-        lines = [
-            "Your planning application has been approved.",
-            "Please proceed with the next required compliance steps.",
-            "Carry this approval document for future administrative reference.",
-            f"Instructions / Notes: {comment or 'No additional instructions provided.'}",
+        story.append(Paragraph("FINAL DECISION APPROVAL", permit_heading_style))
+        story.append(
+            Paragraph(
+                "(Issued under the Civic Plan Administrative Review Process)",
+                small_style,
+            )
+        )
+        story.append(Spacer(1, 10))
+
+        approval_text = f"""
+        This is to inform you that the planning application bearing Application ID
+        <b>{application_id}</b>, submitted by <b>{applicant_name}</b>, has been
+        <b>approved</b> after completion of the required administrative workflow,
+        including officer review, deputy director review, and final committee decision.
+        """
+        story.append(Paragraph(approval_text, normal_style))
+        story.append(Spacer(1, 10))
+
+        note_text = f"""
+        Accordingly, the proposed development/plan connected to this application is hereby
+        granted final decision approval, subject to the conditions and instructions stated below.
+        This document shall be treated as the official system-generated final approval letter
+        for record and administrative reference purposes.
+        """
+        story.append(Paragraph(note_text, normal_style))
+        story.append(Spacer(1, 12))
+
+        story.append(Paragraph("<b>Conditions of Approval</b>", bold_style))
+        story.append(Spacer(1, 4))
+
+        conditions = [
+            "This approval is issued based on the records, plans, and documents submitted with the application.",
+            "Any material deviation from the approved submission may require a fresh review or additional approval.",
+            "This approval does not remove the applicant's responsibility to comply with all applicable planning, building, environmental, and local authority requirements.",
+            "The applicant shall keep this approval document available for administrative verification whenever required.",
+            f"Special instructions / comments: {comment or 'No additional instructions were provided.'}",
         ]
+
+        for idx, item in enumerate(conditions, start=1):
+            story.append(Paragraph(f"<b>{idx}.</b> {item}", normal_style))
+            story.append(Spacer(1, 4))
+
     else:
-        c.setFont("Helvetica-Bold", 13)
-        c.drawString(50, y, "Rejection Notice")
-        y -= 25
-        c.setFont("Helvetica", 12)
-        lines = [
-            "Your planning application has been rejected.",
-            "Please review the reasons below and resubmit after corrections.",
-            f"Reasons for rejection: {comment or 'No reason provided.'}",
-        ]
+        story.append(Paragraph("FINAL DECISION REJECTION", permit_heading_style))
+        story.append(
+            Paragraph(
+                "(Issued under the Civic Plan Administrative Review Process)",
+                small_style,
+            )
+        )
+        story.append(Spacer(1, 10))
 
-    for line in lines:
-        c.drawString(50, y, line)
-        y -= 22
+        reject_text = f"""
+        This is to inform you that the planning application bearing Application ID
+        <b>{application_id}</b>, submitted by <b>{applicant_name}</b>, has been
+        <b>rejected</b> upon completion of the final decision review process.
+        """
+        story.append(Paragraph(reject_text, normal_style))
+        story.append(Spacer(1, 10))
 
-    y -= 20
-    c.drawString(50, y, "Issued by Civic Plan Administration")
-    y -= 20
-    c.drawString(50, y, "This is a system-generated document.")
+        reason_text = f"""
+        Reason(s) / observations recorded for this decision:
+        <b>{comment or 'No reason was entered by the reviewing authority.'}</b>
+        """
+        story.append(Paragraph(reason_text, normal_style))
+        story.append(Spacer(1, 10))
 
-    c.save()
-    return filepath
+        next_step_text = """
+        The applicant may review the observations, correct any deficiencies if applicable,
+        and proceed according to the guidance provided by the relevant authority or resubmit
+        when eligible.
+        """
+        story.append(Paragraph(next_step_text, normal_style))
+        story.append(Spacer(1, 12))
+
+    story.append(Spacer(1, 16))
+    story.append(Paragraph("Thank You", left_style))
+    story.append(Paragraph("Yours faithfully,", left_style))
+    story.append(Spacer(1, 26))
+
+    story.append(Paragraph("....................................................", left_style))
+    story.append(Paragraph("Authorized Officer", bold_style))
+    story.append(Paragraph("Civic Plan Administration", left_style))
+    story.append(Paragraph(f"Issued Date: {issue_date}", left_style))
+    story.append(Spacer(1, 8))
+
+    story.append(
+        Paragraph(
+            "This is a system-generated document and is valid without a physical signature.",
+            small_style,
+        )
+    )
+
+    def draw_page(canvas_obj, doc_obj):
+        canvas_obj.saveState()
+        width, height = A4
+
+        canvas_obj.setStrokeColor(colors.HexColor("#c62828"))
+        canvas_obj.setLineWidth(1)
+        canvas_obj.line(20 * mm, height - 12 * mm, width - 20 * mm, height - 12 * mm)
+
+        canvas_obj.setStrokeColor(colors.HexColor("#d0d7e2"))
+        canvas_obj.setLineWidth(0.6)
+        canvas_obj.line(20 * mm, 12 * mm, width - 20 * mm, 12 * mm)
+
+        canvas_obj.setFont("Helvetica", 9)
+        canvas_obj.setFillColor(colors.grey)
+        canvas_obj.drawCentredString(width / 2, 7 * mm, str(doc_obj.page))
+
+        canvas_obj.restoreState()
+
+    doc.build(story, onFirstPage=draw_page, onLaterPages=draw_page)
+    return relative_path
 
 
 def safe_fetchall(cursor, query, params=()):
