@@ -66,12 +66,13 @@
                             <div class="form-grid two">
                                 <div class="form-group">
                                     <label for="previous_plan_no">Previous Approved Plan No.</label>
-                                    <input type="text" id="previous_plan_no" name="previous_plan_no">
+                                    <input type="text" id="previous_plan_no" name="previous_plan_no" class="number-only-no">
+                                    <small class="error-text"></small>
                                 </div>
 
                                 <div class="form-group">
                                     <label for="assessment_no">Assessment No. <span class="req">*</span></label>
-                                    <input type="text" id="assessment_no" name="assessment_no" required>
+                                    <input type="text" id="assessment_no" name="assessment_no" class="number-only-no" required>
                                     <small class="error-text"></small>
                                 </div>
 
@@ -84,6 +85,7 @@
                                 <div class="form-group">
                                     <label for="postal_code">Postal Code</label>
                                     <input type="text" id="postal_code" name="postal_code">
+                                    <small class="error-text"></small>
                                 </div>
 
                                 <div class="form-group">
@@ -96,6 +98,7 @@
                                 <div class="form-group">
                                     <label for="gnd_name">GND Name</label>
                                     <input type="text" id="gnd_name" name="gnd_name">
+                                    <small class="error-text"></small>
                                 </div>
                             </div>
 
@@ -114,6 +117,7 @@
                             <div class="form-group">
                                 <label for="land_ownership_other">If Other, Specify</label>
                                 <input type="text" id="land_ownership_other" name="land_ownership_other">
+                                <small class="error-text"></small>
                             </div>
 
                             <h3>Proposed Use of the Building</h3>
@@ -139,6 +143,7 @@
                             <div class="form-group">
                                 <label for="proposed_use_other">If Other, Specify</label>
                                 <input type="text" id="proposed_use_other" name="proposed_use_other">
+                                <small class="error-text"></small>
                             </div>
                         </section>
 
@@ -156,18 +161,20 @@
 
                                     <div class="form-group">
                                         <label for="applicant1_nic">NIC No. <span class="req">*</span></label>
-                                        <input type="text" id="applicant1_nic" name="applicant1_nic" required>
+                                        <input type="text" id="applicant1_nic" name="applicant1_nic" class="nic-field" required maxlength="12">
                                         <small class="error-text"></small>
                                     </div>
 
                                     <div class="form-group">
                                         <label for="applicant1_tel">Telephone No.</label>
-                                        <input type="text" id="applicant1_tel" name="applicant1_tel">
+                                        <input type="text" id="applicant1_tel" name="applicant1_tel" class="phone-10" maxlength="10">
+                                        <small class="error-text"></small>
                                     </div>
 
                                     <div class="form-group">
                                         <label for="applicant1_email">Email</label>
-                                        <input type="email" id="applicant1_email" name="applicant1_email">
+                                        <input type="text" id="applicant1_email" name="applicant1_email" class="email-gmail">
+                                        <small class="error-text"></small>
                                     </div>
 
                                     <div class="form-group full">
@@ -189,21 +196,25 @@
                                     <div class="form-group">
                                         <label for="applicant2_name">Name</label>
                                         <input type="text" id="applicant2_name" name="applicant2_name">
+                                        <small class="error-text"></small>
                                     </div>
 
                                     <div class="form-group">
                                         <label for="applicant2_nic">NIC No.</label>
-                                        <input type="text" id="applicant2_nic" name="applicant2_nic">
+                                        <input type="text" id="applicant2_nic" name="applicant2_nic" class="nic-field" maxlength="12">
+                                        <small class="error-text"></small>
                                     </div>
 
                                     <div class="form-group">
                                         <label for="applicant2_tel">Telephone No.</label>
-                                        <input type="text" id="applicant2_tel" name="applicant2_tel">
+                                        <input type="text" id="applicant2_tel" name="applicant2_tel" class="phone-10" maxlength="10">
+                                        <small class="error-text"></small>
                                     </div>
 
                                     <div class="form-group">
                                         <label for="applicant2_email">Email</label>
-                                        <input type="email" id="applicant2_email" name="applicant2_email">
+                                        <input type="text" id="applicant2_email" name="applicant2_email" class="email-gmail">
+                                        <small class="error-text"></small>
                                     </div>
 
                                     <div class="form-group full">
@@ -228,14 +239,17 @@
                                     <label for="architect_town_planner_name">Architect / Town Planner</label>
                                     <input type="text" id="architect_town_planner_name"
                                         name="architect_town_planner_name">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="draughtsman_name">Draughtsman</label>
                                     <input type="text" id="draughtsman_name" name="draughtsman_name">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="engineer_name">Engineer</label>
                                     <input type="text" id="engineer_name" name="engineer_name">
+                                    <small class="error-text"></small>
                                 </div>
                             </div>
 
@@ -257,18 +271,22 @@
                                 <div class="form-group">
                                     <label for="land_owner_name">Owner Name</label>
                                     <input type="text" id="land_owner_name" name="land_owner_name">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="land_owner_nic">NIC No.</label>
-                                    <input type="text" id="land_owner_nic" name="land_owner_nic">
+                                    <input type="text" id="land_owner_nic" name="land_owner_nic" class="nic-field" maxlength="12">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="land_owner_tel">Telephone No.</label>
-                                    <input type="text" id="land_owner_tel" name="land_owner_tel">
+                                    <input type="text" id="land_owner_tel" name="land_owner_tel" class="phone-10" maxlength="10">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="land_owner_email">Email</label>
-                                    <input type="email" id="land_owner_email" name="land_owner_email">
+                                    <input type="text" id="land_owner_email" name="land_owner_email" class="email-gmail">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group full">
                                     <label for="land_owner_address">Postal Address</label>
@@ -292,7 +310,8 @@
                                     <div class="form-grid two">
                                         <div class="form-group">
                                             <label>Reference No.</label>
-                                            <input type="text" name="rate_clearance_ref">
+                                            <input type="text" name="rate_clearance_ref" class="number-only-no">
+                                            <small class="error-text"></small>
                                         </div>
                                         <div class="form-group">
                                             <label>Date</label>
@@ -318,7 +337,8 @@
                                     <div class="form-grid two">
                                         <div class="form-group">
                                             <label>Reference No.</label>
-                                            <input type="text" name="water_clearance_ref">
+                                            <input type="text" name="water_clearance_ref" class="number-only-no">
+                                            <small class="error-text"></small>
                                         </div>
                                         <div class="form-group">
                                             <label>Date</label>
@@ -344,7 +364,8 @@
                                     <div class="form-grid two">
                                         <div class="form-group">
                                             <label>Reference No.</label>
-                                            <input type="text" name="drainage_clearance_ref">
+                                            <input type="text" name="drainage_clearance_ref" class="number-only-no">
+                                            <small class="error-text"></small>
                                         </div>
                                         <div class="form-group">
                                             <label>Date</label>
@@ -371,7 +392,8 @@
                                     <div class="form-grid two">
                                         <div class="form-group">
                                             <label>Reference No.</label>
-                                            <input type="text" name="uda_preliminary_ref">
+                                            <input type="text" name="uda_preliminary_ref" class="number-only-no">
+                                            <small class="error-text"></small>
                                         </div>
                                         <div class="form-group">
                                             <label>Date</label>
@@ -401,28 +423,34 @@
                                 <div class="form-group">
                                     <label for="existing_use">Existing Use</label>
                                     <input type="text" id="existing_use" name="existing_use">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="proposed_use_text">Proposed Use</label>
                                     <input type="text" id="proposed_use_text" name="proposed_use_text">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="zoning_category">Zoning Category</label>
                                     <input type="text" id="zoning_category" name="zoning_category">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="site_extent">Site Extent</label>
                                     <input type="number" min="0" step="0.01" id="site_extent" name="site_extent">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="site_frontage_width">Road Frontage Width</label>
                                     <input type="number" min="0" step="0.01" id="site_frontage_width"
                                         name="site_frontage_width">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="physical_width_of_road">Physical Width of Road / Access</label>
                                     <input type="number" min="0" step="0.01" id="physical_width_of_road"
                                         name="physical_width_of_road">
+                                    <small class="error-text"></small>
                                 </div>
                             </div>
                         </section>
@@ -435,30 +463,36 @@
                                     <label for="distance_street_boundary">Street Boundary Distance</label>
                                     <input type="number" min="0" step="0.01" id="distance_street_boundary"
                                         name="distance_street_boundary">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="distance_rear_boundary">Rear Boundary Distance</label>
                                     <input type="number" min="0" step="0.01" id="distance_rear_boundary"
                                         name="distance_rear_boundary">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="distance_left_boundary">Left Boundary Distance</label>
                                     <input type="number" min="0" step="0.01" id="distance_left_boundary"
                                         name="distance_left_boundary">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="distance_right_boundary">Right Boundary Distance</label>
                                     <input type="number" min="0" step="0.01" id="distance_right_boundary"
                                         name="distance_right_boundary">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="no_of_floors">No. of Floors</label>
                                     <input type="number" min="0" id="no_of_floors" name="no_of_floors">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="total_building_height">Total Building Height</label>
                                     <input type="number" min="0" step="0.01" id="total_building_height"
                                         name="total_building_height">
+                                    <small class="error-text"></small>
                                 </div>
                             </div>
                         </section>
@@ -470,27 +504,32 @@
                                 <div class="form-group">
                                     <label for="plot_coverage">Plot Coverage (%)</label>
                                     <input type="number" min="0" step="0.01" id="plot_coverage" name="plot_coverage">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="floor_area_ratio">Floor Area Ratio (%)</label>
                                     <input type="number" min="0" step="0.01" id="floor_area_ratio"
                                         name="floor_area_ratio">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="water_usage_liters">Estimated Water Usage</label>
                                     <input type="number" min="0" step="0.01" id="water_usage_liters"
                                         name="water_usage_liters">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="electricity_usage_kw">Estimated Electricity Usage</label>
                                     <input type="number" min="0" step="0.01" id="electricity_usage_kw"
                                         name="electricity_usage_kw">
+                                    <small class="error-text"></small>
                                 </div>
                             </div>
 
                             <div class="form-group">
                                 <label for="site_development_notes">Site Development Notes</label>
                                 <textarea id="site_development_notes" name="site_development_notes"></textarea>
+                                <small class="error-text"></small>
                             </div>
                         </section>
 
@@ -501,18 +540,22 @@
                                 <div class="form-group">
                                     <label for="existing_units">Existing Units</label>
                                     <input type="number" min="0" id="existing_units" name="existing_units">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="proposed_units">Proposed Units</label>
                                     <input type="number" min="0" id="proposed_units" name="proposed_units">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="total_units">Total Units</label>
                                     <input type="number" min="0" id="total_units" name="total_units">
+                                    <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
                                     <label for="parking_car_proposed">Proposed Car Parking Bays</label>
                                     <input type="number" min="0" id="parking_car_proposed" name="parking_car_proposed">
+                                    <small class="error-text"></small>
                                 </div>
                             </div>
                         </section>

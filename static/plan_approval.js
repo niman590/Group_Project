@@ -83,6 +83,101 @@ function clearFieldError(field) {
     if (errorEl) errorEl.textContent = "";
 }
 
+function isNumbersOnly(value) {
+    return /^\d+$/.test(value);
+}
+
+function isValidPhoneNumber(value) {
+    return /^\d{10}$/.test(value);
+}
+
+function isValidGmail(value) {
+    return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(value);
+}
+
+function isValidSriLankanNIC(value) {
+    const normalized = value.trim().toUpperCase();
+    const oldNicPattern = /^\d{9}[VX]$/;
+    const newNicPattern = /^\d{12}$/;
+    return oldNicPattern.test(normalized) || newNicPattern.test(normalized);
+}
+
+function validateNoFields(stepIndex) {
+    const activeStep = steps[stepIndex];
+    const noFields = activeStep.querySelectorAll(".number-only-no");
+    let isValid = true;
+
+    noFields.forEach((field) => {
+        clearFieldError(field);
+
+        const value = field.value.trim();
+        if (value && !isNumbersOnly(value)) {
+            setFieldError(field, "Only numbers are allowed.");
+            if (isValid) field.focus();
+            isValid = false;
+        }
+    });
+
+    return isValid;
+}
+
+function validatePhoneFields(stepIndex) {
+    const activeStep = steps[stepIndex];
+    const phoneFields = activeStep.querySelectorAll(".phone-10");
+    let isValid = true;
+
+    phoneFields.forEach((field) => {
+        clearFieldError(field);
+
+        const value = field.value.trim();
+        if (value && !isValidPhoneNumber(value)) {
+            setFieldError(field, "Phone number must contain exactly 10 digits.");
+            if (isValid) field.focus();
+            isValid = false;
+        }
+    });
+
+    return isValid;
+}
+
+function validateEmailFields(stepIndex) {
+    const activeStep = steps[stepIndex];
+    const emailFields = activeStep.querySelectorAll(".email-gmail");
+    let isValid = true;
+
+    emailFields.forEach((field) => {
+        clearFieldError(field);
+
+        const value = field.value.trim();
+        if (value && !isValidGmail(value)) {
+            setFieldError(field, "Email must be a valid @gmail.com address.");
+            if (isValid) field.focus();
+            isValid = false;
+        }
+    });
+
+    return isValid;
+}
+
+function validateNICFields(stepIndex) {
+    const activeStep = steps[stepIndex];
+    const nicFields = activeStep.querySelectorAll(".nic-field");
+    let isValid = true;
+
+    nicFields.forEach((field) => {
+        clearFieldError(field);
+
+        const value = field.value.trim();
+        if (value && !isValidSriLankanNIC(value)) {
+            setFieldError(field, "Enter a valid Sri Lankan NIC (old: 9 digits + V/X, new: 12 digits).");
+            if (isValid) field.focus();
+            isValid = false;
+        }
+    });
+
+    return isValid;
+}
+
 function validateStep(stepIndex) {
     const activeStep = steps[stepIndex];
     const requiredFields = activeStep.querySelectorAll("[required]");
@@ -97,7 +192,41 @@ function validateStep(stepIndex) {
         }
     });
 
+    if (!validateNoFields(stepIndex)) {
+        isValid = false;
+    }
+
+    if (!validatePhoneFields(stepIndex)) {
+        isValid = false;
+    }
+
+    if (!validateEmailFields(stepIndex)) {
+        isValid = false;
+    }
+
+    if (!validateNICFields(stepIndex)) {
+        isValid = false;
+    }
+
     return isValid;
+}
+
+function allowOnlyNumbersInput() {
+    document.querySelectorAll(".number-only-no, .phone-10").forEach((field) => {
+        field.addEventListener("input", () => {
+            field.value = field.value.replace(/\D/g, "");
+            clearFieldError(field);
+        });
+    });
+}
+
+function allowNICInput() {
+    document.querySelectorAll(".nic-field").forEach((field) => {
+        field.addEventListener("input", () => {
+            field.value = field.value.replace(/[^0-9vVxX]/g, "").toUpperCase();
+            clearFieldError(field);
+        });
+    });
 }
 
 function toggleOwnerStep() {
@@ -879,6 +1008,8 @@ if (useCurrentLocationBtn) {
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    if (!validateStep(currentStep)) return;
+
     try {
         const res = await fetch("/submit-planning-application", {
             method: "POST"
@@ -900,4 +1031,6 @@ initializeDateGroups();
 showStep(currentStep);
 toggleOwnerStep();
 updateFilePreview();
+allowOnlyNumbersInput();
+allowNICInput();
 loadDraftFromServer();
