@@ -86,10 +86,16 @@
                         <div class="flow-step-note">First Officer can approve or reject after review.</div>
                     </div>
 
-                    <div class="flow-step {% if deputy_done or committee_done %}done{% elif first_officer_done %}active{% else %}locked{% endif %}">
+                    <div class="flow-step {% if deputy_done %}done{% elif first_officer_done %}active{% else %}locked{% endif %}">
                         <div class="flow-step-badge">05</div>
-                        <div class="flow-step-label">Deputy + Committee</div>
-                        <div class="flow-step-note">Deputy Director and District Project Committee complete the final stages.</div>
+                        <div class="flow-step-label">Deputy Director</div>
+                        <div class="flow-step-note">Deputy Director reviews the Planning Office recommendation.</div>
+                    </div>
+
+                    <div class="flow-step {% if committee_done %}done{% elif deputy_done %}active{% else %}locked{% endif %}">
+                        <div class="flow-step-badge">06</div>
+                        <div class="flow-step-label">Committee</div>
+                        <div class="flow-step-note">District Project Committee records the final decision.</div>
                     </div>
                 </section>
 
@@ -153,7 +159,7 @@
                                         <div class="info-item full-span"><span class="label">Ownership / Other Notes</span><span class="value">{{ summary['land_ownership_other'] or summary['proposed_use_other'] or '-' }}</span></div>
                                     </div>
 
-                                    <div style="margin-top: 16px;">
+                                    <div class="subsection-block">
                                         <div class="subsection-title">Proposed Uses</div>
                                         <div class="tag-list">
                                             {% for use in proposed_uses %}
@@ -264,7 +270,7 @@
 
                         <div class="stage-box">
                             <span class="step-chip">Step 1</span>
-                            <h3 style="margin-top:10px;">Site Visit Update</h3>
+                            <h3>Site Visit Update</h3>
                             <p>Record the visit status and field notes. After completion, the file can move forward.</p>
 
                             <form method="POST" action="{{ url_for('admin.mark_site_visit', application_id=application['application_id']) }}">
@@ -284,7 +290,7 @@
                         {% if site_visit_done %}
                         <div class="stage-box">
                             <span class="step-chip">Step 2</span>
-                            <h3 style="margin-top:10px;">Request Additional Documents / Clearance</h3>
+                            <h3>Request Additional Documents / Clearance</h3>
                             <p>Use this if any extra supporting document or clearance is still needed from the applicant.</p>
 
                             <form method="POST" action="{{ url_for('admin.request_additional_documents', application_id=application['application_id']) }}">
@@ -331,6 +337,153 @@
                             </div>
                         </div>
                         {% endif %}
+
+                        <div class="workflow-section">
+                            <div class="section-header">
+                                <div>
+                                    <span class="section-kicker">Approval Workflow</span>
+                                    <h2>Decision Stages</h2>
+                                    <p>Display and record the First Officer, Deputy Director, and Final Committee decisions clearly.</p>
+                                </div>
+                            </div>
+
+                            <div class="approval-stage-grid">
+                                <div class="stage-card">
+                                    <div class="stage-card-head">
+                                        <div>
+                                            <span class="stage-kicker">Step 3</span>
+                                            <h3>First Officer / Planning Office Decision</h3>
+                                            <p>Record the Planning Office review decision and add remarks for the application.</p>
+                                        </div>
+                                        <span class="stage-state">
+                                            {{ application['first_officer_decision'] or 'Pending' }}
+                                        </span>
+                                    </div>
+
+                                    <form method="POST"
+                                          action="{{ url_for('admin.first_officer_decision', application_id=application['application_id']) }}"
+                                          class="stage-form">
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="first_officer_decision">Decision</label>
+                                                <select id="first_officer_decision" name="decision" required>
+                                                    <option value="">Select decision</option>
+                                                    <option value="Approved" {% if application['first_officer_decision'] == 'Approved' %}selected{% endif %}>Approved</option>
+                                                    <option value="Rejected" {% if application['first_officer_decision'] == 'Rejected' %}selected{% endif %}>Rejected</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="first_officer_comment">Comments</label>
+                                                <textarea id="first_officer_comment"
+                                                          name="admin_comment"
+                                                          rows="4"
+                                                          placeholder="Add first officer comments">{{ application['first_officer_comment'] or '' }}</textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn-primary">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                                Save First Officer Decision
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="stage-card">
+                                    <div class="stage-card-head">
+                                        <div>
+                                            <span class="stage-kicker">Step 4</span>
+                                            <h3>Deputy Director Decision</h3>
+                                            <p>Review the Planning Office recommendation and record the Deputy Director decision.</p>
+                                        </div>
+                                        <span class="stage-state">
+                                            {{ application['deputy_director_decision'] or 'Pending' }}
+                                        </span>
+                                    </div>
+
+                                    <form method="POST"
+                                          action="{{ url_for('admin.deputy_director_decision', application_id=application['application_id']) }}"
+                                          class="stage-form">
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="deputy_director_decision">Decision</label>
+                                                <select id="deputy_director_decision" name="decision" required>
+                                                    <option value="">Select decision</option>
+                                                    <option value="Approved" {% if application['deputy_director_decision'] == 'Approved' %}selected{% endif %}>Approved</option>
+                                                    <option value="Rejected" {% if application['deputy_director_decision'] == 'Rejected' %}selected{% endif %}>Rejected</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="deputy_director_comment">Comments</label>
+                                                <textarea id="deputy_director_comment"
+                                                          name="admin_comment"
+                                                          rows="4"
+                                                          placeholder="Add deputy director comments">{{ application['deputy_director_comment'] or '' }}</textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn-primary">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                                Save Deputy Director Decision
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <div class="stage-card final-stage-card">
+                                    <div class="stage-card-head">
+                                        <div>
+                                            <span class="stage-kicker">Step 5</span>
+                                            <h3>Final Committee Decision</h3>
+                                            <p>Record the District Project Committee final decision and complete the planning workflow.</p>
+                                        </div>
+                                        <span class="stage-state">
+                                            {{ application['committee_decision'] or 'Pending' }}
+                                        </span>
+                                    </div>
+
+                                    <form method="POST"
+                                          action="{{ url_for('admin.committee_decision', application_id=application['application_id']) }}"
+                                          class="stage-form">
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="committee_decision">Decision</label>
+                                                <select id="committee_decision" name="decision" required>
+                                                    <option value="">Select decision</option>
+                                                    <option value="Approved" {% if application['committee_decision'] == 'Approved' %}selected{% endif %}>Approved</option>
+                                                    <option value="Rejected" {% if application['committee_decision'] == 'Rejected' %}selected{% endif %}>Rejected</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="committee_comment">Comments</label>
+                                                <textarea id="committee_comment"
+                                                          name="admin_comment"
+                                                          rows="4"
+                                                          placeholder="Add committee comments">{{ application['committee_comment'] or '' }}</textarea>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn-primary">
+                                                <i class="fa-solid fa-gavel"></i>
+                                                Save Final Committee Decision
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="card">
                             <div class="card-header"><h2 class="card-title">Workflow History</h2></div>

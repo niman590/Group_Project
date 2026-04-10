@@ -1,4 +1,5 @@
 @import url("admin_planning_workflow.css");
+
 :root {
     --bg: #f6f8fc;
     --surface: #ffffff;
@@ -81,7 +82,10 @@ textarea {
 .chip,
 .tag,
 .step-badge,
-.step-state {
+.step-state,
+.stage-kicker,
+.stage-state,
+.step-chip {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -106,7 +110,9 @@ textarea {
 .workflow-card h3,
 .decision-box h4,
 .mini-heading,
-.workflow-step-card h3 {
+.workflow-step-card h3,
+.stage-card-head h3,
+.section-title {
     color: var(--heading);
 }
 
@@ -121,7 +127,9 @@ textarea {
 .list-item,
 .decision-note,
 .step-desc,
-.step-helper {
+.step-helper,
+.stage-card-head p,
+.small-note {
     line-height: 1.6;
 }
 
@@ -131,7 +139,10 @@ textarea {
 .empty-text,
 .attachment-type,
 .step-desc,
-.step-helper {
+.step-helper,
+.stage-card-head p,
+.small-note,
+.muted {
     color: var(--muted);
 }
 
@@ -148,6 +159,11 @@ textarea {
     color: #2258b8;
 }
 
+.status-under-review {
+    background: #eef6ff;
+    color: #1e56a6;
+}
+
 .status-approved {
     background: var(--success-soft);
     color: var(--success);
@@ -160,16 +176,20 @@ textarea {
 
 .status-other,
 .chip,
-.tag {
+.tag,
+.stage-state,
+.step-chip {
     background: #f4f7fb;
     color: #445469;
     border: 1px solid var(--line);
 }
 
 .flash-wrap,
-.column,
-.list-block,
-.attachments-list {
+.left-stack,
+.right-stack,
+.list-stack,
+.docs-list,
+.history-list {
     display: flex;
     flex-direction: column;
 }
@@ -211,20 +231,77 @@ textarea {
     color: var(--info);
 }
 
+.workflow-strip {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.flow-step {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 18px 16px;
+    box-shadow: var(--shadow);
+}
+
+.flow-step.done {
+    background: linear-gradient(180deg, #ffffff 0%, #f3fff7 100%);
+    border-color: #cfe6d7;
+}
+
+.flow-step.active {
+    background: linear-gradient(180deg, #ffffff 0%, #eef6ff 100%);
+    border-color: #cfe0ff;
+}
+
+.flow-step.locked {
+    opacity: 0.72;
+}
+
+.flow-step-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    margin-bottom: 12px;
+}
+
+.flow-step-label {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--heading);
+    margin-bottom: 6px;
+}
+
+.flow-step-note {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
 .content-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.9fr);
     gap: 20px;
     align-items: start;
     margin-bottom: 22px;
 }
 
-.column {
+.left-stack,
+.right-stack {
     gap: 18px;
 }
 
 .card,
-.workflow-section {
+.workflow-section,
+stage-box {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
@@ -248,7 +325,9 @@ textarea {
 .workflow-card h3,
 .decision-box h4,
 .mini-heading,
-.workflow-step-card h3 {
+.workflow-step-card h3,
+.stage-card-head h3,
+.section-title {
     margin: 0;
 }
 
@@ -256,10 +335,15 @@ textarea {
     padding: 18px 20px 20px;
 }
 
-.mini-heading {
-    margin-top: 18px;
+.subsection-block {
+    margin-top: 16px;
+}
+
+.subsection-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--heading);
     margin-bottom: 10px;
-    font-size: 1rem;
 }
 
 .info-grid {
@@ -270,10 +354,9 @@ textarea {
 
 .info-item,
 .list-item,
-.attachment-link,
-.workflow-card,
-.decision-box,
-.workflow-step-card {
+.doc-card,
+.request-item,
+.history-item {
     border: 1px solid var(--line);
     background: var(--surface-soft);
     border-radius: var(--radius-md);
@@ -302,23 +385,28 @@ textarea {
     grid-column: 1 / -1;
 }
 
-.list-block,
-.attachments-list {
+.list-stack,
+.docs-list,
+.history-list {
     gap: 12px;
 }
 
-.list-item {
+.list-item,
+.request-item,
+.history-item {
     padding: 14px;
     font-size: 14px;
 }
 
-.list-item-title {
+.list-title,
+.request-title,
+.history-title {
     margin-bottom: 6px;
     font-weight: 700;
     color: var(--heading);
 }
 
-.attachment-link {
+.doc-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -330,34 +418,48 @@ textarea {
     transition: 0.2s ease;
 }
 
-.attachment-link:hover {
+.doc-card:hover {
     transform: translateY(-1px);
     border-color: var(--line-strong);
     background: #eff6ff;
+}
+
+.doc-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.doc-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: #edf5ff;
+    color: #1656b6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.doc-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: #f4f7fb;
+    border: 1px solid var(--line);
+    color: #445469;
+    font-size: 12px;
+    font-weight: 700;
 }
 
 .tag-list {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-}
-
-.tag-active {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-}
-
-.tag-success {
-    background: var(--success-soft);
-    color: var(--success);
-    border-color: #bde3c8;
-}
-
-.tag-danger {
-    background: var(--danger-soft);
-    color: var(--danger);
-    border-color: #efc4c4;
 }
 
 .workflow-section {
@@ -382,88 +484,125 @@ textarea {
     text-transform: uppercase;
 }
 
-.approval-steps-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
-}
-
-.workflow-step-card {
-    position: relative;
+.stage-box {
     background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
     padding: 20px;
-    box-shadow: 0 8px 20px rgba(18, 63, 136, 0.05);
 }
 
-.workflow-step-card h3 {
+.stage-box h3 {
     margin: 10px 0 8px;
+    color: var(--heading);
     font-size: 1.08rem;
 }
 
-.step-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 4px;
-}
-
-.step-badge {
-    background: #eaf2ff;
-    color: #123f88;
-}
-
-.final-badge {
-    background: #e7f8ec;
-    color: #157347;
-}
-
-.step-state {
-    border: 1px solid var(--line);
-    background: #f4f7fb;
-    color: #445469;
-}
-
-.step-state-done {
-    background: var(--success-soft);
-    color: var(--success);
-    border-color: #bde3c8;
-}
-
-.step-state-active {
-    background: var(--primary-soft);
-    color: var(--primary);
-    border-color: #bfd3ff;
-}
-
-.step-state-locked {
-    background: #f5f7fa;
-    color: #98a2b3;
-    border-color: #e3e8ef;
-}
-
-.step-desc {
+.stage-box p {
     margin: 0 0 14px;
+    color: var(--muted);
+    line-height: 1.6;
     font-size: 14px;
 }
 
-.step-helper {
-    margin: 0 0 14px;
-    font-size: 13px;
-    padding: 10px 12px;
-    border-radius: 12px;
-    background: #f8fafc;
-    border: 1px dashed #d8e1ec;
+.arrow-panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 20px;
 }
 
-.final-step-card {
-    border: 1px solid #cfe3d5;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fff9 100%);
+.arrow-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px dashed #c8d8ef;
+    border-radius: var(--radius-md);
+    padding: 18px;
 }
 
-.workflow-step-card form {
+.arrow-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #eef4ff;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.approval-stage-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 22px;
     margin-top: 10px;
+}
+
+.stage-card {
+    background: #ffffff;
+    border: 1px solid #d9e3f3;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 10px 24px rgba(15, 45, 92, 0.06);
+}
+
+.final-stage-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fff9 100%);
+    border-color: #cfe3d5;
+}
+
+.stage-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.stage-kicker {
+    background: #edf4ff;
+    color: #184b99;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.stage-card-head h3 {
+    font-size: 1.25rem;
+}
+
+.stage-state {
+    white-space: nowrap;
+}
+
+.stage-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #123f82;
 }
 
 select,
@@ -475,7 +614,6 @@ textarea {
     padding: 12px 14px;
     background: #fff;
     color: var(--text);
-    margin-bottom: 12px;
     transition: 0.2s ease;
 }
 
@@ -492,7 +630,15 @@ textarea:focus {
     outline: none;
 }
 
-.btn {
+.form-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn,
+.btn-primary {
     border: none;
     border-radius: var(--radius-sm);
     padding: 12px 18px;
@@ -500,9 +646,14 @@ textarea:focus {
     font-weight: 700;
     cursor: pointer;
     transition: 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
 }
 
-.btn:hover {
+.btn:hover,
+.btn-primary:hover {
     transform: translateY(-1px);
     filter: brightness(0.98);
 }
@@ -512,28 +663,6 @@ textarea:focus {
 .btn-warning { background: #d97706; }
 .btn-danger  { background: var(--danger); }
 
-.decision-box {
-    padding: 14px;
-    background: #fff;
-}
-
-.second-box {
-    margin-top: 14px;
-}
-
-.decision-note {
-    margin-top: 14px;
-    padding: 12px 14px;
-    border-radius: var(--radius-sm);
-    background: var(--info-soft);
-    border: 1px solid #d5e6ff;
-    color: var(--info);
-}
-
-.locked-step {
-    opacity: 0.82;
-}
-
 .empty-text {
     font-style: italic;
 }
@@ -541,7 +670,7 @@ textarea:focus {
 @media (max-width: 1280px) {
     .topbar,
     .content-grid,
-    .approval-steps-grid {
+    .workflow-strip {
         grid-template-columns: 1fr;
     }
 }
@@ -562,5 +691,15 @@ textarea:focus {
     .topbar-right,
     .section-header {
         justify-content: flex-start;
+    }
+
+    .stage-card-head,
+    .arrow-box {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .stage-state {
+        white-space: normal;
     }
 }
