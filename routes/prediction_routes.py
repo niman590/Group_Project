@@ -18,6 +18,12 @@ def land_valuation_page():
     return render_template("land_valuation.html", active_page="land_valuation")
 
 
+def to_binary(value):
+    if value in [1, "1", True, "true", "True", "on", "yes", "Yes"]:
+        return 1
+    return 0
+
+
 def validate_land_inputs(data):
     try:
         land_size = float(data["land_size"])
@@ -26,19 +32,27 @@ def validate_land_inputs(data):
     except (KeyError, TypeError, ValueError):
         return None, jsonify({"error": "Invalid or missing numeric input values."}), 400
 
-    if land_size < 0 or access_road_size < 0 or distance_to_city < 0:
-        return None, jsonify({"error": "Negative values are not allowed."}), 400
+    if land_size <= 0 or access_road_size <= 0 or distance_to_city < 0:
+        return None, jsonify({
+            "error": "Land size and access road size must be greater than 0, and distance cannot be negative."
+        }), 400
 
     cleaned_data = {
         "land_size": land_size,
         "access_road_size": access_road_size,
-        "location": data.get("location", "").strip(),
+        "location": str(data.get("location", "")).strip(),
         "distance_to_city": distance_to_city,
-        "zone_type": data.get("zone_type", "").strip(),
-        "electricity": int(data.get("electricity", 0)),
-        "water": int(data.get("water", 0)),
-        "flood_risk": int(data.get("flood_risk", 0))
+        "zone_type": str(data.get("zone_type", "")).strip(),
+        "electricity": to_binary(data.get("electricity", 0)),
+        "water": to_binary(data.get("water", 0)),
+        "flood_risk": to_binary(data.get("flood_risk", 0))
     }
+
+    if not cleaned_data["location"]:
+        return None, jsonify({"error": "Location is required."}), 400
+
+    if not cleaned_data["zone_type"]:
+        return None, jsonify({"error": "Zone type is required."}), 400
 
     return cleaned_data, None, None
 
