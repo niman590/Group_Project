@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for, send_file
 
 from database.db_connection import get_connection
 from routes.admin_routes import (
@@ -65,10 +65,30 @@ def admin_planning_application_detail(application_id):
         flash("Application not found.", "error")
         return redirect(url_for("admin_planning.admin_planning_applications"))
 
+    application = data["application"]
+
+    site_visit_done = application["site_visit_status"] == "Completed"
+    docs_done = (
+        (not application["additional_docs_required"])
+        or (
+            len(data["requested_documents"]) > 0
+            and application["workflow_stage"] in [
+                "First Officer Review",
+                "Deputy Director Review",
+                "District Project Committee Review",
+                "Approved",
+                "Rejected",
+            ]
+        )
+    )
+    first_officer_done = application["first_officer_decision"] in ["Approved", "Rejected"]
+    deputy_done = application["deputy_director_decision"] in ["Approved", "Rejected"]
+    committee_done = application["committee_decision"] in ["Approved", "Rejected"]
+
     return render_template(
         "admin_planning_application_detail.html",
         user=admin_user,
-        application=data["application"],
+        application=application,
         summary=data["summary"],
         proposed_uses=data["proposed_uses"],
         applicants=data["applicants"],
@@ -85,6 +105,11 @@ def admin_planning_application_detail(application_id):
         requested_documents=data["requested_documents"],
         workflow_history=data["workflow_history"],
         workflow_stages=WORKFLOW_STAGES,
+        site_visit_done=site_visit_done,
+        docs_done=docs_done,
+        first_officer_done=first_officer_done,
+        deputy_done=deputy_done,
+        committee_done=committee_done,
         active_page="planning_applications",
     )
 
@@ -95,7 +120,7 @@ def mark_site_visit(application_id):
     if redirect_response:
         return redirect_response
 
-    visit_status = request.form.get("visit_status", "Completed").strip()
+    visit_status = request.form.get("visit_status", "Pending").strip()
     admin_comment = request.form.get("admin_comment", "").strip()
 
     conn = get_connection()
@@ -161,12 +186,7 @@ def request_additional_documents(application_id):
     request_title = request.form.get("request_title", "").strip()
     request_message = request.form.get("request_message", "").strip()
     documents_raw = request.form.get("document_labels", "").strip()
-
-    if not request_title or not request_message or not documents_raw:
-        flash("Request title, message, and document labels are required.", "warning")
-        return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
-
-    document_labels = [item.strip() for item in documents_raw.split("\n") if item.strip()]
+    docs_cleared = request.form.get("docs_cleared", "").strip()
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -176,6 +196,51 @@ def request_additional_documents(application_id):
         conn.close()
         flash("Application not found.", "error")
         return redirect(url_for("admin_planning.admin_planning_applications"))
+
+    if docs_cleared == "1":
+        cursor.execute(
+            """
+            UPDATE planning_applications
+            SET workflow_stage = 'First Officer Review',
+                current_step = '3',
+                additional_docs_required = 0,
+                status = 'Under Review',
+                updated_at = CURRENT_TIMESTAMP
+            WHERE application_id = ?
+            """,
+            (application_id,),
+        )
+
+        add_workflow_history(
+            cursor,
+            application_id,
+            "Additional Docs / Clearance",
+            "Documents Cleared",
+            request_message or "All required additional documents were reviewed and cleared.",
+            admin_user["user_id"],
+        )
+
+        create_user_notification(
+            cursor,
+            user_id,
+            application_id,
+            "Additional documents cleared",
+            "Your planning application has passed the additional document review stage.",
+            "success",
+        )
+
+        conn.commit()
+        conn.close()
+
+        flash("Additional document stage marked as cleared.", "success")
+        return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
+
+    if not request_title or not request_message or not documents_raw:
+        conn.close()
+        flash("Request title, message, and document labels are required.", "warning")
+        return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
+
+    document_labels = [item.strip() for item in documents_raw.split("\n") if item.strip()]
 
     cursor.execute(
         """
@@ -304,7 +369,7 @@ def submit_planning_office_review(application_id):
 
     if decision not in ["Approved", "Rejected"]:
         flash("Invalid Planning Office decision.", "error")
-        return redirect(url_for("admin_planning.planning_office_approval", application_id=application_id))
+        return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
     saved_letter_path = None
     if approval_letter and approval_letter.filename:
@@ -315,7 +380,7 @@ def submit_planning_office_review(application_id):
         )
         if not saved_letter_path:
             flash("Invalid approval letter file. Upload PDF, DOC, or DOCX.", "error")
-            return redirect(url_for("admin_planning.planning_office_approval", application_id=application_id))
+            return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -331,7 +396,7 @@ def submit_planning_office_review(application_id):
             """
             UPDATE planning_applications
             SET workflow_stage = 'Deputy Director Review',
-                current_step = '3',
+                current_step = '4',
                 planning_office_decision = ?,
                 planning_office_comment = ?,
                 planning_office_letter_path = ?,
@@ -358,7 +423,7 @@ def submit_planning_office_review(application_id):
             """
             UPDATE planning_applications
             SET workflow_stage = 'Deputy Director Review',
-                current_step = '3',
+                current_step = '4',
                 planning_office_decision = ?,
                 planning_office_comment = ?,
                 first_officer_decision = ?,
@@ -401,7 +466,7 @@ def submit_planning_office_review(application_id):
     conn.close()
 
     flash("Planning Office review submitted successfully.", "success")
-    return redirect(url_for("admin_planning.planning_office_approval", application_id=application_id))
+    return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/first-officer-decision", methods=["POST"])
@@ -434,7 +499,7 @@ def first_officer_decision(application_id):
         """
         UPDATE planning_applications
         SET workflow_stage = 'Deputy Director Review',
-            current_step = '3',
+            current_step = '4',
             planning_office_decision = ?,
             planning_office_comment = ?,
             first_officer_decision = ?,
@@ -480,27 +545,6 @@ def first_officer_decision(application_id):
     return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
-@admin_planning_bp.route("/admin/planning-applications/<int:application_id>/deputy-director", endpoint="deputy_director_review_page")
-def deputy_director_review_page(application_id):
-    admin_user, redirect_response = admin_required()
-    if redirect_response:
-        return redirect_response
-
-    data = fetch_full_application_bundle(application_id)
-    if not data:
-        flash("Application not found.", "error")
-        return redirect(url_for("admin_planning.admin_planning_applications"))
-
-    return render_template(
-        "deputy_director_review.html",
-        user=admin_user,
-        application=data["application"],
-        attachments=data["attachments"],
-        workflow_history=data["workflow_history"],
-        active_page="planning_applications",
-    )
-
-
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/deputy-director/submit", methods=["POST"], endpoint="deputy_director_decision")
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/deputy-director-decision", methods=["POST"])
 def deputy_director_decision(application_id):
@@ -513,7 +557,7 @@ def deputy_director_decision(application_id):
 
     if decision not in ["Approved", "Rejected"]:
         flash("Invalid Deputy Director decision.", "error")
-        return redirect(url_for("admin_planning.deputy_director_review_page", application_id=application_id))
+        return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -528,7 +572,7 @@ def deputy_director_decision(application_id):
         """
         UPDATE planning_applications
         SET workflow_stage = 'District Project Committee Review',
-            current_step = '4',
+            current_step = '5',
             deputy_director_decision = ?,
             deputy_director_comment = ?,
             deputy_director_by = ?,
@@ -567,27 +611,7 @@ def deputy_director_decision(application_id):
     conn.close()
 
     flash("Deputy Director decision saved.", "success")
-    return redirect(url_for("admin_planning.deputy_director_review_page", application_id=application_id))
-
-
-@admin_planning_bp.route("/admin/planning-applications/<int:application_id>/district-project-committee", endpoint="district_project_committee_review")
-def district_project_committee_review(application_id):
-    admin_user, redirect_response = admin_required()
-    if redirect_response:
-        return redirect_response
-
-    data = fetch_full_application_bundle(application_id)
-    if not data:
-        flash("Application not found.", "error")
-        return redirect(url_for("admin_planning.admin_planning_applications"))
-
-    return render_template(
-        "district_project_committee_review.html",
-        user=admin_user,
-        application=data["application"],
-        workflow_history=data["workflow_history"],
-        active_page="planning_applications",
-    )
+    return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/committee-decision", methods=["POST"], endpoint="committee_decision")
@@ -601,7 +625,7 @@ def committee_decision(application_id):
 
     if decision not in ["Approved", "Rejected"]:
         flash("Invalid committee decision.", "error")
-        return redirect(url_for("admin_planning.district_project_committee_review", application_id=application_id))
+        return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -630,7 +654,7 @@ def committee_decision(application_id):
         """
         UPDATE planning_applications
         SET workflow_stage = ?,
-            current_step = '5',
+            current_step = '6',
             committee_decision = ?,
             committee_comment = ?,
             committee_by = ?,
@@ -678,7 +702,7 @@ def committee_decision(application_id):
     conn.close()
 
     flash(f"Application {final_status.lower()} successfully.", "success")
-    return redirect(url_for("admin_planning.district_project_committee_review", application_id=application_id))
+    return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/approve", methods=["POST"])
@@ -715,5 +739,4 @@ def download_planning_decision_pdf(application_id):
         flash("Decision PDF not found.", "error")
         return redirect(url_for("admin_planning.admin_planning_applications"))
 
-    from flask import send_file
     return send_file(row["decision_pdf_path"], as_attachment=True)
