@@ -44,9 +44,16 @@
                                     <h3>Notifications</h3>
                                     <p>Progress updates, admin messages, and document requests.</p>
                                 </div>
-                                <button type="button" id="markAllReadBtn" class="notification-action-btn">
-                                    Mark all as read
-                                </button>
+
+                                <div class="notification-header-actions">
+                                    <a href="{{ url_for('user.all_notifications') }}" class="notification-see-all-btn">
+                                        See all
+                                    </a>
+
+                                    <button type="button" id="markAllReadBtn" class="notification-action-btn">
+                                        Mark all as read
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="notification-panel-body" id="notificationList">

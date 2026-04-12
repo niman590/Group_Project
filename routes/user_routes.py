@@ -485,6 +485,48 @@ def user_dashboard():
     )
 
 
+@user_bp.route("/all-notifications")
+def all_notifications():
+    user, redirect_response = user_required()
+    if redirect_response:
+        return redirect_response
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM user_notifications
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+        """,
+        (user["user_id"],),
+    )
+    notifications = cursor.fetchall()
+
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS unread_count
+        FROM user_notifications
+        WHERE user_id = ? AND is_read = 0
+        """,
+        (user["user_id"],),
+    )
+    unread_row = cursor.fetchone()
+    unread_notifications = unread_row["unread_count"] if unread_row else 0
+
+    conn.close()
+
+    return render_template(
+        "all_notifications.html",
+        user=user,
+        notifications=notifications,
+        unread_notifications=unread_notifications,
+        active_page="notifications",
+    )
+
+
 @user_bp.route("/planning-approval/<int:application_id>")
 def planning_approval(application_id):
     user, redirect_response = user_required()
