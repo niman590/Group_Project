@@ -299,9 +299,10 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
     story = []
 
     issue_date = datetime.now().strftime("%d %B %Y")
+    issue_year = datetime.now().strftime("%Y")
     permit_no = f"BA/{application_id}"
     online_ref = f"BA1/23/NWEMC/{application_id}/{datetime.now().strftime('%Y/%m/%d/%H%M')}"
-    my_no = f"NE/16/04/BA/{application_id}/{datetime.now().strftime('%Y')}"
+    my_no = f"NE/16/04/BA/{application_id}/{issue_year}"
 
     story.append(Paragraph("MINISTRY OF URBAN DEVELOPMENT, CONSTRUCTION AND HOUSING", authority_style))
     story.append(Paragraph("Civic Plan Authority", title_style))
@@ -432,33 +433,76 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
         )
 
     else:
-        story.append(Paragraph("DEVELOPMENT PERMIT DECISION", subtitle_style))
+        story.append(Paragraph("DEVELOPMENT PERMIT", subtitle_style))
         story.append(
             Paragraph(
-                "(Issued under the Civic Plan Administrative Review Process)",
+                "(Under Section 8J of Part II-A of U.D.A. Law No. 41 of 1978)",
                 subnote_style,
             )
         )
-        story.append(Spacer(1, 6))
 
-        reject_text = f"""
-        This is to inform you that the planning application bearing Application ID
-        <b>{application_id}</b>, submitted by <b>{applicant_name or 'the applicant'}</b>,
-        has been <b>rejected</b> upon completion of the review process.
+        rejection_intro = f"""
+        This is with reference to the planning / building application bearing Application ID
+        <b>{application_id}</b> submitted by <b>{applicant_name or 'the applicant'}</b>.
+        Upon review by the relevant officers and consideration by the District Planning Committee,
+        the application has been <b>rejected</b>.
         """
-        story.append(Paragraph(reject_text, normal_style))
-        story.append(Spacer(1, 8))
-
-        reason_text = f"""
-        Reason(s) / observations recorded for this decision:
-        <b>{comment or 'No reason was entered by the reviewing authority.'}</b>
-        """
-        story.append(Paragraph(reason_text, normal_style))
+        story.append(Paragraph(rejection_intro, normal_style))
         story.append(Spacer(1, 8))
 
         story.append(
             Paragraph(
-                "The applicant may address the above observations and resubmit, if eligible, in accordance with the applicable planning requirements.",
+                "This rejection is hereby communicated to you subject to the observations stated below:",
+                bold_style,
+            )
+        )
+        story.append(Spacer(1, 4))
+
+        rejection_points = [
+            "The proposed development does not comply with the applicable planning / building regulations and therefore cannot be recommended for approval in its present form.",
+            f"Reason(s) / committee observations: {comment or 'Required side space, parking layout, or other planning requirements were not satisfied.'}",
+            "Any revised proposal shall strictly conform to the applicable Urban Development Authority regulations, local authority requirements, and all other statutory provisions.",
+            "If the applicant wishes to proceed further, a fresh or revised submission together with corrected drawings and supporting documents may be submitted for reconsideration, where permissible.",
+        ]
+
+        for idx, item in enumerate(rejection_points, start=1):
+            row = Table(
+                [[Paragraph(f"{idx}", left_style), Paragraph(item, normal_style)]],
+                colWidths=[8 * mm, 150 * mm],
+            )
+            row.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                        ("TOPPADDING", (0, 0), (-1, -1), 1),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                    ]
+                )
+            )
+            story.append(row)
+            story.append(Spacer(1, 2))
+
+        story.append(Spacer(1, 8))
+        story.append(Paragraph("Important Notes", special_heading_style))
+        story.append(Spacer(1, 2))
+
+        rejection_notes = [
+            "This letter does not authorize any development, construction, alteration, or site activity based on the rejected submission.",
+            "Any future application should address all deficiencies and observations before resubmission.",
+            "For clarification, the applicant may contact the relevant planning office / authority before making a revised submission.",
+            "This decision is issued based on the documents and particulars made available with the application at the time of review.",
+        ]
+
+        for item in rejection_notes:
+            story.append(Paragraph(f"&#10003;&nbsp;&nbsp;{item}", normal_style))
+            story.append(Spacer(1, 3))
+
+        story.append(Spacer(1, 12))
+        story.append(
+            Paragraph(
+                "If any further clarification is required, please communicate with the relevant authority quoting the above reference numbers.",
                 normal_style,
             )
         )
