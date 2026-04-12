@@ -192,10 +192,10 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
     doc = SimpleDocTemplate(
         absolute_path,
         pagesize=A4,
-        rightMargin=22 * mm,
-        leftMargin=22 * mm,
-        topMargin=18 * mm,
-        bottomMargin=18 * mm,
+        rightMargin=18 * mm,
+        leftMargin=18 * mm,
+        topMargin=14 * mm,
+        bottomMargin=16 * mm,
     )
 
     styles = getSampleStyleSheet()
@@ -207,27 +207,49 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
         fontSize=15,
         leading=18,
         alignment=TA_CENTER,
-        spaceAfter=6,
-        textColor=colors.HexColor("#9b1c1c"),
+        spaceAfter=4,
+        textColor=colors.HexColor("#1c2f9b"),
     )
 
-    sub_title_style = ParagraphStyle(
-        "sub_title_style",
+    authority_style = ParagraphStyle(
+        "authority_style",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=10.5,
-        leading=13,
+        fontSize=9.5,
+        leading=12,
         alignment=TA_CENTER,
-        textColor=colors.HexColor("#444444"),
+        spaceAfter=2,
+        textColor=colors.HexColor("#666666"),
+    )
+
+    subtitle_style = ParagraphStyle(
+        "subtitle_style",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=12,
+        leading=16,
+        alignment=TA_CENTER,
+        spaceAfter=2,
+        textColor=colors.black,
+    )
+
+    subnote_style = ParagraphStyle(
+        "subnote_style",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=9,
+        leading=12,
+        alignment=TA_CENTER,
         spaceAfter=8,
+        textColor=colors.black,
     )
 
     normal_style = ParagraphStyle(
         "normal_style",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=10.5,
-        leading=16,
+        fontSize=10,
+        leading=15,
         alignment=TA_JUSTIFY,
         textColor=colors.black,
     )
@@ -236,8 +258,8 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
         "left_style",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=10.5,
-        leading=15,
+        fontSize=10,
+        leading=14,
         alignment=TA_LEFT,
         textColor=colors.black,
     )
@@ -246,8 +268,8 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
         "bold_style",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=10.5,
-        leading=15,
+        fontSize=10,
+        leading=14,
         alignment=TA_LEFT,
         textColor=colors.black,
     )
@@ -256,32 +278,32 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
         "small_style",
         parent=styles["Normal"],
         fontName="Helvetica",
-        fontSize=9,
-        leading=13,
+        fontSize=8.7,
+        leading=11,
         alignment=TA_LEFT,
         textColor=colors.black,
     )
 
-    permit_heading_style = ParagraphStyle(
-        "permit_heading_style",
+    special_heading_style = ParagraphStyle(
+        "special_heading_style",
         parent=styles["Normal"],
         fontName="Helvetica-Bold",
-        fontSize=12,
-        leading=16,
-        alignment=TA_CENTER,
+        fontSize=11,
+        leading=14,
+        alignment=TA_LEFT,
+        spaceBefore=10,
+        spaceAfter=5,
         textColor=colors.black,
-        spaceAfter=2,
-        spaceBefore=6,
     )
 
     story = []
 
     issue_date = datetime.now().strftime("%d %B %Y")
-    permit_no = f"FD/{application_id}/{datetime.now().strftime('%Y')}"
-    online_ref = f"PA/{application_id}/{datetime.now().strftime('%Y%m%d%H%M')}"
-    my_no = f"CP/ADMIN/{application_id}/{datetime.now().strftime('%Y')}"
+    permit_no = f"BA/{application_id}"
+    online_ref = f"BA1/23/NWEMC/{application_id}/{datetime.now().strftime('%Y/%m/%d/%H%M')}"
+    my_no = f"NE/16/04/BA/{application_id}/{datetime.now().strftime('%Y')}"
 
-    story.append(Paragraph("MINISTRY OF URBAN DEVELOPMENT, CONSTRUCTION AND HOUSING", sub_title_style))
+    story.append(Paragraph("MINISTRY OF URBAN DEVELOPMENT, CONSTRUCTION AND HOUSING", authority_style))
     story.append(Paragraph("Civic Plan Authority", title_style))
     story.append(Spacer(1, 4))
 
@@ -300,7 +322,7 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
                 Paragraph("", left_style),
             ],
         ],
-        colWidths=[95 * mm, 65 * mm],
+        colWidths=[105 * mm, 55 * mm],
     )
     header_table.setStyle(
         TableStyle(
@@ -308,104 +330,148 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
                 ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("LEFTPADDING", (0, 0), (-1, -1), 0),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 0),
-                ("TOPPADDING", (0, 0), (-1, -1), 2),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                ("TOPPADDING", (0, 0), (-1, -1), 1),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
             ]
         )
     )
     story.append(header_table)
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 10))
 
     story.append(Paragraph("Director,", left_style))
     story.append(Paragraph(applicant_name or "Applicant", left_style))
     story.append(Paragraph("Applicant / Authorized Party", left_style))
-    story.append(Spacer(1, 16))
+    story.append(Spacer(1, 12))
 
     if decision == "Approved":
-        story.append(Paragraph("FINAL DECISION APPROVAL", permit_heading_style))
+        story.append(Paragraph("DEVELOPMENT PERMIT", subtitle_style))
         story.append(
             Paragraph(
-                "(Issued under the Civic Plan Administrative Review Process)",
-                small_style,
+                "(Under Section 8J of Part II-A of U.D.A. Law No. 41 of 1978)",
+                subnote_style,
             )
         )
-        story.append(Spacer(1, 10))
 
-        approval_text = f"""
-        This is to inform you that the planning application bearing Application ID
-        <b>{application_id}</b>, submitted by <b>{applicant_name}</b>, has been
-        <b>approved</b> after completion of the required administrative workflow,
-        including officer review, deputy director review, and final committee decision.
+        description_text = f"""
+        Development approval relating to Application ID <b>{application_id}</b> submitted by
+        <b>{applicant_name or 'the applicant'}</b> is hereby granted based on the submitted plans,
+        supporting records, and the administrative review carried out by the authority.
         """
-        story.append(Paragraph(approval_text, normal_style))
-        story.append(Spacer(1, 10))
+        story.append(Paragraph(description_text, normal_style))
+        story.append(Spacer(1, 8))
 
-        note_text = f"""
-        Accordingly, the proposed development/plan connected to this application is hereby
-        granted final decision approval, subject to the conditions and instructions stated below.
-        This document shall be treated as the official system-generated final approval letter
-        for record and administrative reference purposes.
-        """
-        story.append(Paragraph(note_text, normal_style))
-        story.append(Spacer(1, 12))
-
-        story.append(Paragraph("<b>Conditions of Approval</b>", bold_style))
+        story.append(
+            Paragraph(
+                "This approval is granted to you subject to the conditions stipulated below:",
+                bold_style,
+            )
+        )
         story.append(Spacer(1, 4))
 
-        conditions = [
-            "This approval is issued based on the records, plans, and documents submitted with the application.",
-            "Any material deviation from the approved submission may require a fresh review or additional approval.",
-            "This approval does not remove the applicant's responsibility to comply with all applicable planning, building, environmental, and local authority requirements.",
-            "The applicant shall keep this approval document available for administrative verification whenever required.",
-            f"Special instructions / comments: {comment or 'No additional instructions were provided.'}",
+        approval_conditions = [
+            "This Permit is valid for a period of <b>One Year</b> from date hereof and thereafter renewal must be obtained. Building operation must be confined to the approved Building Plan without any alterations or deviation there from.",
+            "Approval is granted on the assumption that all information provided by you are correct and accurate. If at any time, it is found that any information furnished by you in the building application or otherwise is incorrect, the Authority reserves the right to cancel the Permit.",
+            "This permit is only an approval of the plan and specifications submitted by you. It does not confer any claim to ownership of the land and the building standing on these premises.",
+            "This Permit will not prejudice the right of the adjoining owners. No part of the building should project into or over the adjoining premises, Street Lines, Building Lines, or any other Reservations and if any complaint received this authority has the sole power to cancel the permit.",
+            "This approval is granted on condition that no permanent structure is constructed within the Site Line and Building Lines, which will be set out and pointed to you by the Technical Officer of the relevant Local Authority / Council on request. You shall ensure that the Street Line / Building Lines are demarcated on ground before the commencement of any building work.",
+            "No debris, building material, sand, metal, bricks, etc. of any kind should be kept on any pavement or road.",
+            "Rain Water should be harvested and utilized for uses other than drinking purpose as per Gazette Notification No. 1597/8 dated 17/04/2009.",
+            "The excavation and all building construction operations should be undertaken in such a way so as not to cause any damage to adjoining buildings, premises, neighborhood and any utility services. If any damages caused during construction, the Owner / Developer shall be responsible to rectify same at their own expense.",
+            "The Owner / Developer should take necessary precautions not to cause any nuisance to neighbors due to the noise created by the operation of machinery, pollution and smoke.",
+            "Relevant parking should be provided as per Urban Development Authority Regulations.",
+            "This approval is granted subject to the conditions that use of the building or any part of the building or premises is confined to the approved use only and prior approval should be obtained for any change in the use or uses to avoid action being taken as per Urban Development Authority Law.",
+            "This Permit is granted subject to Provisions of Planning & Building Regulations of Urban Development Authority.",
+            "Required certificates from the relevant qualified persons / authorities shall be submitted at the appropriate stage to confirm that the development has been carried out under supervision and in compliance with the approved plan in the stage of Certificate of Conformity.",
+            "The following documents shall be furnished along with the Application for Certificate of Conformity: (i) the certificate of Chartered Structural Engineer certifying the structural stability of the building and construction were carried out under his / her direct supervision, and (ii) the certificate of Chartered Civil Engineer certifying that the construction work has been done according to the approved building plan and all the conditions stipulated in this permit and construction.",
         ]
 
-        for idx, item in enumerate(conditions, start=1):
-            story.append(Paragraph(f"<b>{idx}.</b> {item}", normal_style))
-            story.append(Spacer(1, 4))
+        for idx, item in enumerate(approval_conditions, start=1):
+            row = Table(
+                [[Paragraph(f"{idx}", left_style), Paragraph(item, normal_style)]],
+                colWidths=[8 * mm, 150 * mm],
+            )
+            row.setStyle(
+                TableStyle(
+                    [
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                        ("TOPPADDING", (0, 0), (-1, -1), 1),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                    ]
+                )
+            )
+            story.append(row)
+            story.append(Spacer(1, 2))
+
+        story.append(Spacer(1, 8))
+        story.append(Paragraph("Special Conditions", special_heading_style))
+        story.append(Spacer(1, 2))
+
+        special_conditions = [
+            "Adherence to the conditions given in the Land Suitability Certificate / geotechnical / NBRO recommendation applicable to the site and development.",
+            "Adherence to the conditions given in letters / approvals issued by the Department of Archaeology or any other competent authority, where applicable.",
+            "Adherence to the conditions given in the relevant Urban Development Authority observation / recommendation letters issued for this development.",
+            "The Authority will not be responsible for any objection raised by the public or private parties regarding the proposed development.",
+            "All construction shall be carried out under the supervision of the relevant competent authorities and professionals as required by law.",
+            "The development shall comply with the guidelines and conditions given in professional reports submitted for the site within the construction stage of the proposed development.",
+            "The structure of any existing building shall not be damaged due to new construction, alterations, or renovations carried out by the developer / owner.",
+            f"Additional project specific condition(s): {comment or 'No additional special conditions were provided by the reviewing authority.'}",
+        ]
+
+        for item in special_conditions:
+            story.append(Paragraph(f"&#10003;&nbsp;&nbsp;{item}", normal_style))
+            story.append(Spacer(1, 3))
+
+        story.append(Spacer(1, 12))
+        story.append(
+            Paragraph(
+                "This Development Permit is issued by the Director. All communications in respect of this permit should be addressed to the undersigned.",
+                normal_style,
+            )
+        )
 
     else:
-        story.append(Paragraph("FINAL DECISION REJECTION", permit_heading_style))
+        story.append(Paragraph("DEVELOPMENT PERMIT DECISION", subtitle_style))
         story.append(
             Paragraph(
                 "(Issued under the Civic Plan Administrative Review Process)",
-                small_style,
+                subnote_style,
             )
         )
-        story.append(Spacer(1, 10))
+        story.append(Spacer(1, 6))
 
         reject_text = f"""
         This is to inform you that the planning application bearing Application ID
-        <b>{application_id}</b>, submitted by <b>{applicant_name}</b>, has been
-        <b>rejected</b> upon completion of the final decision review process.
+        <b>{application_id}</b>, submitted by <b>{applicant_name or 'the applicant'}</b>,
+        has been <b>rejected</b> upon completion of the review process.
         """
         story.append(Paragraph(reject_text, normal_style))
-        story.append(Spacer(1, 10))
+        story.append(Spacer(1, 8))
 
         reason_text = f"""
         Reason(s) / observations recorded for this decision:
         <b>{comment or 'No reason was entered by the reviewing authority.'}</b>
         """
         story.append(Paragraph(reason_text, normal_style))
-        story.append(Spacer(1, 10))
+        story.append(Spacer(1, 8))
 
-        next_step_text = """
-        The applicant may review the observations, correct any deficiencies if applicable,
-        and proceed according to the guidance provided by the relevant authority or resubmit
-        when eligible.
-        """
-        story.append(Paragraph(next_step_text, normal_style))
-        story.append(Spacer(1, 12))
+        story.append(
+            Paragraph(
+                "The applicant may address the above observations and resubmit, if eligible, in accordance with the applicable planning requirements.",
+                normal_style,
+            )
+        )
 
-    story.append(Spacer(1, 16))
+    story.append(Spacer(1, 18))
     story.append(Paragraph("Thank You", left_style))
-    story.append(Paragraph("Yours faithfully,", left_style))
+    story.append(Paragraph("Yours Faithfully", left_style))
     story.append(Spacer(1, 26))
 
     story.append(Paragraph("....................................................", left_style))
-    story.append(Paragraph("Authorized Officer", bold_style))
-    story.append(Paragraph("Civic Plan Administration", left_style))
-    story.append(Paragraph(f"Issued Date: {issue_date}", left_style))
+    story.append(Paragraph("Name & Designation of the Officer issuing the Development Permit.", bold_style))
+    story.append(Paragraph("Name : Authorized Officer", left_style))
+    story.append(Paragraph("Designation : Director / Authorized Officer", left_style))
     story.append(Spacer(1, 8))
 
     story.append(
@@ -419,17 +485,17 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
         canvas_obj.saveState()
         width, height = A4
 
-        canvas_obj.setStrokeColor(colors.HexColor("#c62828"))
+        canvas_obj.setStrokeColor(colors.HexColor("#1c2f9b"))
         canvas_obj.setLineWidth(1)
-        canvas_obj.line(20 * mm, height - 12 * mm, width - 20 * mm, height - 12 * mm)
+        canvas_obj.line(18 * mm, height - 10 * mm, width - 18 * mm, height - 10 * mm)
 
         canvas_obj.setStrokeColor(colors.HexColor("#d0d7e2"))
         canvas_obj.setLineWidth(0.6)
-        canvas_obj.line(20 * mm, 12 * mm, width - 20 * mm, 12 * mm)
+        canvas_obj.line(18 * mm, 11 * mm, width - 18 * mm, 11 * mm)
 
-        canvas_obj.setFont("Helvetica", 9)
+        canvas_obj.setFont("Helvetica", 8.5)
         canvas_obj.setFillColor(colors.grey)
-        canvas_obj.drawCentredString(width / 2, 7 * mm, str(doc_obj.page))
+        canvas_obj.drawCentredString(width / 2, 6.5 * mm, str(doc_obj.page))
 
         canvas_obj.restoreState()
 
