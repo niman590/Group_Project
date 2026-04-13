@@ -1,4 +1,14 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for, send_file
+import os
+from datetime import datetime
+
+from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for, send_file
+
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import mm
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from database.db_connection import get_connection
 from routes.admin_routes import (
@@ -14,6 +24,180 @@ from routes.admin_routes import (
 )
 
 admin_planning_bp = Blueprint("admin_planning", __name__)
+
+STAGE_LETTER_FOLDER = "static/uploads/planning_stage_letters"
+os.makedirs(STAGE_LETTER_FOLDER, exist_ok=True)
+
+
+def _build_absolute_path(relative_path):
+    return os.path.join(current_app.root_path, relative_path)
+
+
+def _safe_comment(comment):
+    return (comment or "").strip() or "No additional comments were provided."
+
+
+def _generate_stage_decision_letter(application_id, applicant_name, stage_name, decision, comment):
+    safe_stage = stage_name.lower().replace(" ", "_").replace("/", "_")
+    safe_decision = decision.lower().strip()
+    filename = f"{safe_stage}_decision_{application_id}_{safe_decision}.pdf"
+    relative_path = os.path.join(STAGE_LETTER_FOLDER, filename)
+    absolute_path = _build_absolute_path(relative_path)
+
+    os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
+
+    doc = SimpleDocTemplate(
+        absolute_path,
+        pagesize=A4,
+        rightMargin=18 * mm,
+        leftMargin=18 * mm,
+        topMargin=18 * mm,
+        bottomMargin=18 * mm,
+    )
+
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        "title_style",
+        parent=styles["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=15,
+        leading=18,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor("#1c2f9b"),
+        spaceAfter=6,
+    )
+
+    sub_title_style = ParagraphStyle(
+        "sub_title_style",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=11,
+        leading=14,
+        alignment=TA_CENTER,
+        textColor=colors.black,
+        spaceAfter=8,
+    )
+
+    normal_style = ParagraphStyle(
+        "normal_style",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=15,
+        alignment=TA_LEFT,
+        textColor=colors.black,
+    )
+
+    bold_style = ParagraphStyle(
+        "bold_style",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10,
+        leading=14,
+        alignment=TA_LEFT,
+        textColor=colors.black,
+    )
+
+    small_style = ParagraphStyle(
+        "small_style",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=8.8,
+        leading=11,
+        alignment=TA_LEFT,
+        textColor=colors.HexColor("#5f6b7a"),
+    )
+
+    issue_date = datetime.now().strftime("%d %B %Y")
+    ref_no = f"PA/{application_id}/{datetime.now().strftime('%Y%m%d%H%M')}"
+
+    story = []
+
+    story.append(Paragraph("CIVIC PLAN AUTHORITY", title_style))
+    story.append(Paragraph(stage_name, sub_title_style))
+    story.append(Spacer(1, 6))
+
+    header_table = Table(
+        [
+            [Paragraph(f"<b>Reference No:</b> {ref_no}", normal_style), Paragraph(f"<b>Date:</b> {issue_date}", normal_style)],
+            [Paragraph(f"<b>Application ID:</b> {application_id}", normal_style), Paragraph(f"<b>Decision:</b> {decision}", normal_style)],
+        ],
+        colWidths=[90 * mm, 80 * mm],
+    )
+    header_table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    story.append(header_table)
+    story.append(Spacer(1, 10))
+
+    story.append(Paragraph("To,", bold_style))
+    story.append(Paragraph(applicant_name or "Applicant", normal_style))
+    story.append(Spacer(1, 10))
+
+    body_text = (
+        f"This letter confirms that the <b>{stage_name}</b> for planning application "
+        f"<b>{application_id}</b> has been <b>{decision}</b>."
+    )
+    story.append(Paragraph(body_text, normal_style))
+    story.append(Spacer(1, 10))
+
+    story.append(Paragraph("<b>Comments / Remarks:</b>", bold_style))
+    story.append(Spacer(1, 4))
+    story.append(Paragraph(_safe_comment(comment), normal_style))
+    story.append(Spacer(1, 18))
+
+    story.append(Paragraph("This is a system-generated administrative confirmation letter.", normal_style))
+    story.append(Spacer(1, 20))
+
+    story.append(Paragraph("Yours faithfully,", normal_style))
+    story.append(Spacer(1, 24))
+    story.append(Paragraph("....................................................", normal_style))
+    story.append(Paragraph("Authorized Officer", bold_style))
+    story.append(Spacer(1, 8))
+    story.append(Paragraph("This document is valid without a physical signature.", small_style))
+
+    def draw_page(canvas_obj, doc_obj):
+        canvas_obj.saveState()
+        width, height = A4
+
+        canvas_obj.setStrokeColor(colors.HexColor("#1c2f9b"))
+        canvas_obj.setLineWidth(1)
+        canvas_obj.line(18 * mm, height - 12 * mm, width - 18 * mm, height - 12 * mm)
+
+        canvas_obj.setStrokeColor(colors.HexColor("#d0d7e2"))
+        canvas_obj.setLineWidth(0.6)
+        canvas_obj.line(18 * mm, 11 * mm, width - 18 * mm, 11 * mm)
+
+        canvas_obj.setFont("Helvetica", 8.5)
+        canvas_obj.setFillColor(colors.grey)
+        canvas_obj.drawCentredString(width / 2, 6.5 * mm, str(doc_obj.page))
+
+        canvas_obj.restoreState()
+
+    doc.build(story, onFirstPage=draw_page, onLaterPages=draw_page)
+    return relative_path
+
+
+def _get_application_and_user(cursor, application_id):
+    cursor.execute(
+        """
+        SELECT pa.application_id, pa.user_id, u.first_name, u.last_name
+        FROM planning_applications pa
+        JOIN users u ON pa.user_id = u.user_id
+        WHERE pa.application_id = ?
+        """,
+        (application_id,),
+    )
+    return cursor.fetchone()
 
 
 @admin_planning_bp.route("/admin/planning-applications")
@@ -371,78 +555,63 @@ def submit_planning_office_review(application_id):
         flash("Invalid Planning Office decision.", "error")
         return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
-    saved_letter_path = None
-    if approval_letter and approval_letter.filename:
-        saved_letter_path = save_uploaded_file(
-            approval_letter,
-            "uploads/planning_office_letters",
-            ALLOWED_DOC_EXTENSIONS,
-        )
-        if not saved_letter_path:
-            flash("Invalid approval letter file. Upload PDF, DOC, or DOCX.", "error")
-            return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
-
     conn = get_connection()
     cursor = conn.cursor()
 
-    user_id = get_application_user_id(cursor, application_id)
-    if not user_id:
+    app = _get_application_and_user(cursor, application_id)
+    if not app:
         conn.close()
         flash("Application not found.", "error")
         return redirect(url_for("admin_planning.admin_planning_applications"))
 
-    if saved_letter_path:
-        cursor.execute(
-            """
-            UPDATE planning_applications
-            SET workflow_stage = 'Deputy Director Review',
-                current_step = '4',
-                planning_office_decision = ?,
-                planning_office_comment = ?,
-                planning_office_letter_path = ?,
-                first_officer_decision = ?,
-                first_officer_comment = ?,
-                first_officer_by = ?,
-                first_officer_at = CURRENT_TIMESTAMP,
-                status = 'Under Review',
-                updated_at = CURRENT_TIMESTAMP
-            WHERE application_id = ?
-            """,
-            (
-                decision,
-                po_comment,
-                saved_letter_path,
-                decision,
-                po_comment,
-                admin_user["user_id"],
-                application_id,
-            ),
+    applicant_name = f"{app['first_name']} {app['last_name']}"
+    generated_letter_path = _generate_stage_decision_letter(
+        application_id,
+        applicant_name,
+        "First Officer / Planning Office Decision",
+        decision,
+        po_comment,
+    )
+
+    saved_letter_path = generated_letter_path
+    if approval_letter and approval_letter.filename:
+        uploaded_path = save_uploaded_file(
+            approval_letter,
+            "uploads/planning_office_letters",
+            ALLOWED_DOC_EXTENSIONS,
         )
-    else:
-        cursor.execute(
-            """
-            UPDATE planning_applications
-            SET workflow_stage = 'Deputy Director Review',
-                current_step = '4',
-                planning_office_decision = ?,
-                planning_office_comment = ?,
-                first_officer_decision = ?,
-                first_officer_comment = ?,
-                first_officer_by = ?,
-                first_officer_at = CURRENT_TIMESTAMP,
-                status = 'Under Review',
-                updated_at = CURRENT_TIMESTAMP
-            WHERE application_id = ?
-            """,
-            (
-                decision,
-                po_comment,
-                decision,
-                po_comment,
-                admin_user["user_id"],
-                application_id,
-            ),
-        )
+        if not uploaded_path:
+            conn.close()
+            flash("Invalid approval letter file. Upload PDF, DOC, or DOCX.", "error")
+            return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
+        saved_letter_path = uploaded_path
+
+    cursor.execute(
+        """
+        UPDATE planning_applications
+        SET workflow_stage = 'Deputy Director Review',
+            current_step = '4',
+            planning_office_decision = ?,
+            planning_office_comment = ?,
+            planning_office_letter_path = ?,
+            first_officer_decision = ?,
+            first_officer_comment = ?,
+            first_officer_by = ?,
+            first_officer_at = CURRENT_TIMESTAMP,
+            status = 'Under Review',
+            updated_at = CURRENT_TIMESTAMP
+        WHERE application_id = ?
+        """,
+        (
+            decision,
+            po_comment,
+            saved_letter_path,
+            decision,
+            po_comment,
+            admin_user["user_id"],
+            application_id,
+        ),
+    )
 
     add_workflow_history(
         cursor,
@@ -455,7 +624,7 @@ def submit_planning_office_review(application_id):
 
     create_user_notification(
         cursor,
-        user_id,
+        app["user_id"],
         application_id,
         "First officer review completed",
         f"The first officer has marked your application as {decision}. It will continue to Deputy Director review.",
@@ -489,11 +658,20 @@ def first_officer_decision(application_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    user_id = get_application_user_id(cursor, application_id)
-    if not user_id:
+    app = _get_application_and_user(cursor, application_id)
+    if not app:
         conn.close()
         flash("Application not found.", "error")
         return redirect(url_for("admin_planning.admin_planning_applications"))
+
+    applicant_name = f"{app['first_name']} {app['last_name']}"
+    generated_letter_path = _generate_stage_decision_letter(
+        application_id,
+        applicant_name,
+        "First Officer / Planning Office Decision",
+        decision,
+        admin_comment,
+    )
 
     cursor.execute(
         """
@@ -502,6 +680,7 @@ def first_officer_decision(application_id):
             current_step = '4',
             planning_office_decision = ?,
             planning_office_comment = ?,
+            planning_office_letter_path = ?,
             first_officer_decision = ?,
             first_officer_comment = ?,
             first_officer_by = ?,
@@ -513,6 +692,7 @@ def first_officer_decision(application_id):
         (
             decision,
             admin_comment,
+            generated_letter_path,
             decision,
             admin_comment,
             admin_user["user_id"],
@@ -531,7 +711,7 @@ def first_officer_decision(application_id):
 
     create_user_notification(
         cursor,
-        user_id,
+        app["user_id"],
         application_id,
         "First officer review completed",
         f"The first officer has marked your application as {decision}. It will continue to Deputy Director review.",
@@ -541,7 +721,7 @@ def first_officer_decision(application_id):
     conn.commit()
     conn.close()
 
-    flash("First officer decision saved.", "success")
+    flash("First officer decision saved and letter generated.", "success")
     return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
@@ -562,11 +742,20 @@ def deputy_director_decision(application_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    user_id = get_application_user_id(cursor, application_id)
-    if not user_id:
+    app = _get_application_and_user(cursor, application_id)
+    if not app:
         conn.close()
         flash("Application not found.", "error")
         return redirect(url_for("admin_planning.admin_planning_applications"))
+
+    applicant_name = f"{app['first_name']} {app['last_name']}"
+    _generate_stage_decision_letter(
+        application_id,
+        applicant_name,
+        "Deputy Director Decision",
+        decision,
+        admin_comment,
+    )
 
     cursor.execute(
         """
@@ -600,7 +789,7 @@ def deputy_director_decision(application_id):
 
     create_user_notification(
         cursor,
-        user_id,
+        app["user_id"],
         application_id,
         "Deputy Director review completed",
         f"The Deputy Director has marked your application as {decision}. It will continue to District Project Committee review.",
@@ -610,7 +799,7 @@ def deputy_director_decision(application_id):
     conn.commit()
     conn.close()
 
-    flash("Deputy Director decision saved.", "success")
+    flash("Deputy Director decision saved and letter generated.", "success")
     return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
@@ -630,17 +819,7 @@ def committee_decision(application_id):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT pa.application_id, pa.user_id, u.first_name, u.last_name
-        FROM planning_applications pa
-        JOIN users u ON pa.user_id = u.user_id
-        WHERE pa.application_id = ?
-        """,
-        (application_id,),
-    )
-    app = cursor.fetchone()
-
+    app = _get_application_and_user(cursor, application_id)
     if not app:
         conn.close()
         flash("Application not found.", "error")
@@ -739,4 +918,90 @@ def download_planning_decision_pdf(application_id):
         flash("Decision PDF not found.", "error")
         return redirect(url_for("admin_planning.admin_planning_applications"))
 
-    return send_file(row["decision_pdf_path"], as_attachment=True)
+    absolute_path = _build_absolute_path(row["decision_pdf_path"])
+    if not os.path.exists(absolute_path):
+        flash("Decision PDF file not found on server.", "error")
+        return redirect(url_for("admin_planning.admin_planning_applications"))
+
+    return send_file(absolute_path, as_attachment=True)
+
+
+@admin_planning_bp.route("/admin/planning-applications/<int:application_id>/first-officer-letter")
+def download_first_officer_letter(application_id):
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT planning_office_letter_path
+        FROM planning_applications
+        WHERE application_id = ?
+        """,
+        (application_id,),
+    )
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row or not row["planning_office_letter_path"]:
+        flash("First Officer / Planning Office letter not found.", "error")
+        return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
+
+    absolute_path = _build_absolute_path(row["planning_office_letter_path"])
+    if not os.path.exists(absolute_path):
+        flash("First Officer / Planning Office letter file not found on server.", "error")
+        return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
+
+    return send_file(absolute_path, as_attachment=True)
+
+
+@admin_planning_bp.route("/admin/planning-applications/<int:application_id>/deputy-director-letter")
+def download_deputy_director_letter(application_id):
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT pa.application_id, pa.deputy_director_decision, pa.deputy_director_comment,
+               u.first_name, u.last_name
+        FROM planning_applications pa
+        JOIN users u ON pa.user_id = u.user_id
+        WHERE pa.application_id = ?
+        """,
+        (application_id,),
+    )
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row or row["deputy_director_decision"] not in ["Approved", "Rejected"]:
+        flash("Deputy Director letter not found.", "error")
+        return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
+
+    relative_path = os.path.join(
+        STAGE_LETTER_FOLDER,
+        f"deputy_director_decision_{application_id}_{row['deputy_director_decision'].lower()}.pdf",
+    )
+    absolute_path = _build_absolute_path(relative_path)
+
+    if not os.path.exists(absolute_path):
+        applicant_name = f"{row['first_name']} {row['last_name']}"
+        _generate_stage_decision_letter(
+            application_id,
+            applicant_name,
+            "Deputy Director Decision",
+            row["deputy_director_decision"],
+            row["deputy_director_comment"],
+        )
+
+    if not os.path.exists(absolute_path):
+        flash("Deputy Director letter file not found on server.", "error")
+        return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
+
+    return send_file(absolute_path, as_attachment=True)

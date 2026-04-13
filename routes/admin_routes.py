@@ -29,9 +29,11 @@ admin_bp = Blueprint("admin", __name__)
 
 PDF_FOLDER = "static/uploads/planning_decisions"
 PLANNING_OFFICE_FOLDER = "static/uploads/planning_office_letters"
+PLANNING_STAGE_FOLDER = "static/uploads/planning_stage_letters"
 
 os.makedirs(PDF_FOLDER, exist_ok=True)
 os.makedirs(PLANNING_OFFICE_FOLDER, exist_ok=True)
+os.makedirs(PLANNING_STAGE_FOLDER, exist_ok=True)
 
 WORKFLOW_STAGES = [
     "Submitted",
@@ -110,10 +112,12 @@ def ensure_planning_schema():
         "first_officer_comment": "TEXT",
         "first_officer_by": "INTEGER",
         "first_officer_at": "TEXT",
+        "first_officer_letter_path": "TEXT",
         "deputy_director_decision": "TEXT",
         "deputy_director_comment": "TEXT",
         "deputy_director_by": "INTEGER",
         "deputy_director_at": "TEXT",
+        "deputy_director_letter_path": "TEXT",
         "committee_decision": "TEXT",
         "committee_comment": "TEXT",
         "committee_by": "INTEGER",
@@ -182,12 +186,199 @@ def save_uploaded_file(file_obj, subfolder, allowed_set=None):
     return f"static/{subfolder}/{stored_name}"
 
 
+def _build_planning_pdf_path(relative_path):
+    absolute_path = os.path.join(current_app.root_path, relative_path)
+    os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
+    return absolute_path
+
+
+def _safe_stage_comment(comment, default_text):
+    cleaned = (comment or "").strip()
+    return cleaned if cleaned else default_text
+
+
+def generate_stage_decision_pdf(application_id, applicant_name, stage_name, decision, comment):
+    safe_stage = (
+        stage_name.lower()
+        .replace(" ", "_")
+        .replace("/", "_")
+        .replace("__", "_")
+    )
+    filename = f"{safe_stage}_{application_id}_{decision.lower()}.pdf"
+    relative_path = os.path.join(PLANNING_STAGE_FOLDER, filename)
+    absolute_path = _build_planning_pdf_path(relative_path)
+
+    doc = SimpleDocTemplate(
+        absolute_path,
+        pagesize=A4,
+        rightMargin=18 * mm,
+        leftMargin=18 * mm,
+        topMargin=18 * mm,
+        bottomMargin=18 * mm,
+    )
+
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        "stage_title_style",
+        parent=styles["Title"],
+        fontName="Helvetica-Bold",
+        fontSize=15,
+        leading=18,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor("#1c2f9b"),
+        spaceAfter=6,
+    )
+
+    sub_title_style = ParagraphStyle(
+        "stage_sub_title_style",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=11,
+        leading=14,
+        alignment=TA_CENTER,
+        textColor=colors.black,
+        spaceAfter=8,
+    )
+
+    normal_style = ParagraphStyle(
+        "stage_normal_style",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        leading=15,
+        alignment=TA_LEFT,
+        textColor=colors.black,
+    )
+
+    bold_style = ParagraphStyle(
+        "stage_bold_style",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10,
+        leading=14,
+        alignment=TA_LEFT,
+        textColor=colors.black,
+    )
+
+    small_style = ParagraphStyle(
+        "stage_small_style",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=8.8,
+        leading=11,
+        alignment=TA_LEFT,
+        textColor=colors.HexColor("#5f6b7a"),
+    )
+
+    issue_date = datetime.now().strftime("%d %B %Y")
+    ref_no = f"PA/{application_id}/{datetime.now().strftime('%Y%m%d%H%M')}"
+
+    story = []
+
+    story.append(Paragraph("CIVIC PLAN AUTHORITY", title_style))
+    story.append(Paragraph(stage_name, sub_title_style))
+    story.append(Spacer(1, 6))
+
+    header_table = Table(
+        [
+            [
+                Paragraph(f"<b>Reference No:</b> {ref_no}", normal_style),
+                Paragraph(f"<b>Date:</b> {issue_date}", normal_style),
+            ],
+            [
+                Paragraph(f"<b>Application ID:</b> {application_id}", normal_style),
+                Paragraph(f"<b>Decision:</b> {decision}", normal_style),
+            ],
+        ],
+        colWidths=[90 * mm, 80 * mm],
+    )
+    header_table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    story.append(header_table)
+    story.append(Spacer(1, 10))
+
+    story.append(Paragraph("To,", bold_style))
+    story.append(Paragraph(applicant_name or "Applicant", normal_style))
+    story.append(Spacer(1, 10))
+
+    story.append(
+        Paragraph(
+            f"This letter confirms that the <b>{stage_name}</b> for planning application "
+            f"<b>{application_id}</b> has been <b>{decision}</b>.",
+            normal_style,
+        )
+    )
+    story.append(Spacer(1, 10))
+
+    story.append(Paragraph("<b>Comments / Remarks:</b>", bold_style))
+    story.append(Spacer(1, 4))
+    story.append(
+        Paragraph(
+            _safe_stage_comment(
+                comment,
+                "No additional comments were provided.",
+            ),
+            normal_style,
+        )
+    )
+    story.append(Spacer(1, 18))
+
+    story.append(
+        Paragraph(
+            "This is a system-generated administrative confirmation letter.",
+            normal_style,
+        )
+    )
+    story.append(Spacer(1, 20))
+
+    story.append(Paragraph("Yours faithfully,", normal_style))
+    story.append(Spacer(1, 24))
+    story.append(Paragraph("....................................................", normal_style))
+    story.append(Paragraph("Authorized Officer", bold_style))
+    story.append(Spacer(1, 8))
+    story.append(
+        Paragraph(
+            "This document is valid without a physical signature.",
+            small_style,
+        )
+    )
+
+    def draw_page(canvas_obj, doc_obj):
+        canvas_obj.saveState()
+        width, height = A4
+
+        canvas_obj.setStrokeColor(colors.HexColor("#1c2f9b"))
+        canvas_obj.setLineWidth(1)
+        canvas_obj.line(18 * mm, height - 12 * mm, width - 18 * mm, height - 12 * mm)
+
+        canvas_obj.setStrokeColor(colors.HexColor("#d0d7e2"))
+        canvas_obj.setLineWidth(0.6)
+        canvas_obj.line(18 * mm, 11 * mm, width - 18 * mm, 11 * mm)
+
+        canvas_obj.setFont("Helvetica", 8.5)
+        canvas_obj.setFillColor(colors.grey)
+        canvas_obj.drawCentredString(width / 2, 6.5 * mm, str(doc_obj.page))
+
+        canvas_obj.restoreState()
+
+    doc.build(story, onFirstPage=draw_page, onLaterPages=draw_page)
+    return relative_path
+
+
 def generate_decision_pdf(application_id, applicant_name, decision, comment):
     filename = f"planning_decision_{application_id}_{decision.lower()}.pdf"
     relative_path = os.path.join(PDF_FOLDER, filename)
-    absolute_path = os.path.join(current_app.root_path, relative_path)
-
-    os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
+    absolute_path = _build_planning_pdf_path(relative_path)
 
     doc = SimpleDocTemplate(
         absolute_path,

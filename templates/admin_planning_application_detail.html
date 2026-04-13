@@ -486,6 +486,30 @@
                                         </button>
                                     </div>
                                 </form>
+
+                                {% if application['planning_office_letter_path'] or application['first_officer_letter_path'] %}
+                                    <div class="card mt-18">
+                                        <div class="card-header">
+                                            <h2 class="card-title">First Officer / Planning Office Letter</h2>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="docs-list">
+                                                <a class="doc-card" href="{{ url_for('admin_planning.download_first_officer_letter', application_id=application['application_id']) }}">
+                                                    <div class="doc-left">
+                                                        <div class="doc-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                                                        <div>
+                                                            <div class="doc-title">Generated First Officer / Planning Office Letter</div>
+                                                            <div class="doc-sub">
+                                                                Decision: {{ application['first_officer_decision'] or application['planning_office_decision'] or '-' }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="doc-badge">Open</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
                             {% else %}
                                 <div class="locked-message">
                                     <i class="fa-solid fa-lock"></i>
@@ -529,6 +553,28 @@
                                         </button>
                                     </div>
                                 </form>
+
+                                {% if application['deputy_director_decision'] in ['Approved', 'Rejected'] %}
+                                    <div class="card mt-18">
+                                        <div class="card-header">
+                                            <h2 class="card-title">Deputy Director Letter</h2>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="docs-list">
+                                                <a class="doc-card" href="{{ url_for('admin_planning.download_deputy_director_letter', application_id=application['application_id']) }}">
+                                                    <div class="doc-left">
+                                                        <div class="doc-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                                                        <div>
+                                                            <div class="doc-title">Generated Deputy Director Letter</div>
+                                                            <div class="doc-sub">Decision: {{ application['deputy_director_decision'] or '-' }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="doc-badge">Open</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
                             {% else %}
                                 <div class="locked-message">
                                     <i class="fa-solid fa-lock"></i>
@@ -572,6 +618,28 @@
                                         </button>
                                     </div>
                                 </form>
+
+                                {% if application['decision_pdf_path'] %}
+                                    <div class="card mt-18">
+                                        <div class="card-header">
+                                            <h2 class="card-title">Final Committee Decision PDF</h2>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="docs-list">
+                                                <a class="doc-card" href="{{ url_for('admin_planning.download_planning_decision_pdf', application_id=application['application_id']) }}">
+                                                    <div class="doc-left">
+                                                        <div class="doc-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                                                        <div>
+                                                            <div class="doc-title">Generated Final Decision PDF</div>
+                                                            <div class="doc-sub">Decision: {{ application['committee_decision'] or application['status'] or '-' }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="doc-badge">Open</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
                             {% else %}
                                 <div class="locked-message">
                                     <i class="fa-solid fa-lock"></i>

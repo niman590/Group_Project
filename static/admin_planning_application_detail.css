@@ -37,7 +37,12 @@ body {
     overflow-x: hidden;
 }
 
-button, input, select, textarea { font: inherit; }
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
 
 .dashboard-shell {
     display: flex;
@@ -123,7 +128,8 @@ button, input, select, textarea { font: inherit; }
 .value,
 .small-note,
 .flow-step-note,
-.submission-view-header p {
+.submission-view-header p,
+.doc-sub {
     color: var(--muted);
     line-height: 1.6;
 }
@@ -318,6 +324,14 @@ button, input, select, textarea { font: inherit; }
 .mt-12 { margin-top: 12px; }
 .mt-18 { margin-top: 18px; }
 
+.form-actions,
+.submission-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
 .submission-actions {
     justify-content: space-between;
     margin-top: 18px;
@@ -415,7 +429,8 @@ button, input, select, textarea { font: inherit; }
 
 .list-title,
 .history-title,
-.request-title {
+.request-title,
+.doc-title {
     font-weight: 800;
     color: var(--heading);
     margin-bottom: 6px;
@@ -722,6 +737,49 @@ textarea:focus {
     font-style: italic;
 }
 
+/* added support blocks for generated admin letters */
+.docs-list .doc-card .doc-title {
+    margin-bottom: 4px;
+    font-size: 0.97rem;
+}
+
+.docs-list .doc-card .doc-sub {
+    font-size: 13px;
+}
+
+.admin-stage-card .card {
+    margin-top: 18px;
+}
+
+.admin-stage-card .card .card-body {
+    padding-top: 16px;
+}
+
+.admin-stage-card .docs-list {
+    margin-top: 2px;
+}
+
+.admin-stage-card .doc-card {
+    background: linear-gradient(180deg, #fbfdff 0%, #f5f9ff 100%);
+}
+
+.admin-stage-card .doc-card:hover {
+    background: #eef5ff;
+}
+
+.admin-stage-card .doc-icon.fa,
+.admin-stage-card .doc-icon i.fa-file-pdf,
+.admin-stage-card .doc-icon i.fa-solid {
+    color: #c0392b;
+}
+
+.history-item div,
+.request-item div,
+.list-item div {
+    line-height: 1.55;
+}
+
+/* responsive */
 @media (max-width: 1280px) {
     .topbar,
     .workflow-strip-locked {
@@ -735,10 +793,15 @@ textarea:focus {
     .topbar-right {
         justify-content: flex-start;
     }
+
+    .workflow-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 1100px) {
-    .dual-stage-grid {
+    .dual-stage-grid,
+    .info-grid {
         grid-template-columns: 1fr;
     }
 }
@@ -753,8 +816,14 @@ textarea:focus {
         padding: 18px;
     }
 
-    .info-grid {
-        grid-template-columns: 1fr;
+    .submission-view-card,
+    .admin-stage-card,
+    .topbar {
+        padding: 18px;
+    }
+
+    .workflow-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .step-jump-grid {
@@ -762,21 +831,45 @@ textarea:focus {
     }
 }
 
-@media (max-width: 700px) {
-    .admin-stage-top,
-    .submission-view-header {
-        flex-direction: column;
+@media (max-width: 640px) {
+    .main-content {
+        padding: 14px;
     }
 
-    .workflow-strip-locked {
+    .topbar h1 {
+        font-size: 1.55rem;
+    }
+
+    .submission-view-header,
+    .admin-stage-top,
+    .card-header,
+    .doc-card,
+    .doc-left,
+    .submission-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .workflow-strip {
         grid-template-columns: 1fr;
     }
 
-    .submission-actions {
-        flex-direction: column;
+    .step-jump-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .submission-actions .btn {
+    .stage-status,
+    .chip,
+    .status-badge {
+        white-space: normal;
+    }
+
+    .btn,
+    .jump-btn {
         width: 100%;
+    }
+
+    .doc-badge {
+        align-self: flex-start;
     }
 }
