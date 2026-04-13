@@ -40,7 +40,7 @@ def _safe_comment(comment):
 def _generate_stage_decision_letter(application_id, applicant_name, stage_name, decision, comment):
     safe_stage = stage_name.lower().replace(" ", "_").replace("/", "_")
     safe_decision = decision.lower().strip()
-    filename = f"{safe_stage}_decision_{application_id}_{safe_decision}.pdf"
+    filename = f"{safe_stage}_{application_id}_{safe_decision}.pdf"
     relative_path = os.path.join(STAGE_LETTER_FOLDER, filename)
     absolute_path = _build_absolute_path(relative_path)
 
