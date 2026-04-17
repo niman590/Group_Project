@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const chatbotButton = document.getElementById("chatbotButton");
     const chatbotBox = document.getElementById("chatbotBox");
     const chatbotCloseBtn = document.getElementById("chatbotCloseBtn");
+    const chatInput = document.getElementById("chatInput");
+    const chatSendBtn = document.getElementById("chatSendBtn");
+    const chatMessages = document.getElementById("chatMessages");
 
     const revealItems = document.querySelectorAll(".reveal-up");
 
@@ -72,6 +75,67 @@ document.addEventListener("DOMContentLoaded", function () {
             sidebar.classList.add("sidebar-collapsed");
         } else {
             sidebar.classList.remove("sidebar-collapsed");
+        }
+    }
+
+    function appendMessage(text, className) {
+        if (!chatMessages) return;
+
+        const msg = document.createElement("div");
+        msg.className = className;
+        msg.textContent = text;
+        chatMessages.appendChild(msg);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function setChatSendState(isSending) {
+        if (!chatSendBtn) return;
+
+        chatSendBtn.disabled = isSending;
+        chatSendBtn.textContent = isSending ? "Sending..." : "Send";
+
+        if (chatInput) {
+            chatInput.disabled = isSending;
+        }
+    }
+
+    async function sendChatMessage() {
+        if (!chatInput || !chatMessages) return;
+
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        appendMessage(message, "user-msg");
+        chatInput.value = "";
+        setChatSendState(true);
+
+        try {
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ message: message })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                appendMessage(data.reply || "No response from assistant.", "bot-msg");
+
+                if (data.action === "open_page" && data.target) {
+                    setTimeout(() => {
+                        window.location.href = data.target;
+                    }, 800);
+                }
+            } else {
+                appendMessage(data.reply || "Something went wrong while sending your message.", "bot-msg");
+            }
+        } catch (error) {
+            appendMessage("Unable to connect to the assistant right now. Please try again.", "bot-msg");
+        } finally {
+            setChatSendState(false);
+            chatInput.focus();
         }
     }
 
@@ -134,7 +198,9 @@ document.addEventListener("DOMContentLoaded", function () {
                             }
                         }
                     }
-                } catch (error) {}
+                } catch (error) {
+                    console.error("Failed to mark notification as read:", error);
+                }
             }
 
             if (applicationId) {
@@ -171,6 +237,7 @@ document.addEventListener("DOMContentLoaded", function () {
             } catch (error) {
                 this.disabled = false;
                 this.textContent = "Mark all as read";
+                console.error("Failed to mark all notifications as read:", error);
             }
         });
     }
@@ -184,6 +251,19 @@ document.addEventListener("DOMContentLoaded", function () {
     if (chatbotCloseBtn && chatbotBox) {
         chatbotCloseBtn.addEventListener("click", function () {
             chatbotBox.classList.remove("chat-open");
+        });
+    }
+
+    if (chatSendBtn) {
+        chatSendBtn.addEventListener("click", sendChatMessage);
+    }
+
+    if (chatInput) {
+        chatInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendChatMessage();
+            }
         });
     }
 
