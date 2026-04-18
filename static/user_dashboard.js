@@ -1,163 +1,395 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const sidebar = document.getElementById("userSidebar");
-    const sidebarToggle = document.getElementById("sidebarToggle");
-    const mobileSidebarToggle = document.getElementById("mobileSidebarToggle");
-    const sidebarOverlay = document.getElementById("sidebarOverlay");
-    const navLinks = document.querySelectorAll("#userSidebar .nav-link");
-    const mobileBreakpoint = 980;
+    const chatbotButton = document.getElementById("chatbotButton");
+    const chatbotBox = document.getElementById("chatbotBox");
+    const chatInput = document.getElementById("chatInput");
+    const chatMessages = document.getElementById("chatMessages");
+    const chatSendBtn = document.getElementById("chatSendBtn");
+    const chatbotCloseBtn = document.getElementById("chatbotCloseBtn");
+    const revealItems = document.querySelectorAll(".reveal-up");
+    const statNumbers = document.querySelectorAll(".stat-card h3, .value-number");
+    const topbar = document.querySelector(".topbar");
 
     const notificationToggle = document.getElementById("notificationToggle");
     const notificationPanel = document.getElementById("notificationPanel");
-    const notificationItems = document.querySelectorAll(".notification-item");
     const markAllReadBtn = document.getElementById("markAllReadBtn");
     const notificationCount = document.getElementById("notificationCount");
 
-    const chatbotButton = document.getElementById("chatbotButton");
-    const chatbotBox = document.getElementById("chatbotBox");
-    const chatbotCloseBtn = document.getElementById("chatbotCloseBtn");
-    const chatInput = document.getElementById("chatInput");
-    const chatSendBtn = document.getElementById("chatSendBtn");
-    const chatMessages = document.getElementById("chatMessages");
+    let isDragging = false;
+    let hasMoved = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
 
-    const revealItems = document.querySelectorAll(".reveal-up");
+    function clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function positionChatBox() {
+        if (!chatbotButton || !chatbotBox) return;
+
+        const buttonRect = chatbotButton.getBoundingClientRect();
+        const boxWidth = chatbotBox.offsetWidth || 360;
+        const boxHeight = chatbotBox.offsetHeight || 500;
+        const gap = 12;
+
+        let left = buttonRect.right - boxWidth;
+        let top = buttonRect.top - boxHeight - gap;
+
+        left = clamp(left, 12, window.innerWidth - boxWidth - 12);
+
+        if (top < 12) {
+            top = buttonRect.bottom + gap;
+        }
+
+        top = clamp(top, 12, window.innerHeight - boxHeight - 12);
+
+        chatbotBox.style.left = `${left}px`;
+        chatbotBox.style.top = `${top}px`;
+        chatbotBox.style.right = "auto";
+        chatbotBox.style.bottom = "auto";
+    }
+
+    function toggleChat(forceState) {
+        if (!chatbotBox || !chatInput) return;
+
+        const shouldOpen = typeof forceState === "boolean"
+            ? forceState
+            : !chatbotBox.classList.contains("chat-open");
+
+        if (!shouldOpen) {
+            chatbotBox.classList.remove("chat-open");
+            setTimeout(() => {
+                if (!chatbotBox.classList.contains("chat-open")) {
+                    chatbotBox.style.display = "none";
+                }
+            }, 220);
+            return;
+        }
+
+        chatbotBox.style.display = "flex";
+        requestAnimationFrame(() => {
+            chatbotBox.classList.add("chat-open");
+            positionChatBox();
+            chatInput.focus();
+        });
+    }
+
+    function startDrag(clientX, clientY) {
+        if (!chatbotButton) return;
+
+        const rect = chatbotButton.getBoundingClientRect();
+        isDragging = true;
+        hasMoved = false;
+        dragOffsetX = clientX - rect.left;
+        dragOffsetY = clientY - rect.top;
+        chatbotButton.classList.add("dragging");
+    }
+
+    function moveButton(clientX, clientY) {
+        if (!isDragging || !chatbotButton) return;
+
+        const maxLeft = window.innerWidth - chatbotButton.offsetWidth - 12;
+        const maxTop = window.innerHeight - chatbotButton.offsetHeight - 12;
+        const nextLeft = clamp(clientX - dragOffsetX, 12, maxLeft);
+        const nextTop = clamp(clientY - dragOffsetY, 12, maxTop);
+
+        chatbotButton.style.left = `${nextLeft}px`;
+        chatbotButton.style.top = `${nextTop}px`;
+        chatbotButton.style.right = "auto";
+        chatbotButton.style.bottom = "auto";
+
+        hasMoved = true;
+
+        if (chatbotBox && chatbotBox.classList.contains("chat-open")) {
+            positionChatBox();
+        }
+    }
+
+    function endDrag() {
+        if (!isDragging || !chatbotButton) return;
+        chatbotButton.classList.remove("dragging");
+        isDragging = false;
+    }
+
+    function saveDashboardScroll() {
+        sessionStorage.setItem("dashboardScrollY", String(window.scrollY));
+    }
+
+    function restoreDashboardScroll() {
+        const savedY = sessionStorage.getItem("dashboardScrollY");
+        if (savedY !== null) {
+            window.scrollTo(0, parseInt(savedY, 10) || 0);
+        }
+    }
+
+    function shouldRefreshOnReturn() {
+        if (chatbotBox && chatbotBox.classList.contains("chat-open")) return false;
+        if (document.activeElement === chatInput) return false;
+        return true;
+    }
+
+    function refreshDashboardOnReturn() {
+        if (!shouldRefreshOnReturn()) return;
+
+        const alreadyRefreshed = sessionStorage.getItem("dashboardReturnRefreshDone");
+        if (alreadyRefreshed === "1") return;
+
+        sessionStorage.setItem("dashboardReturnRefreshDone", "1");
+        saveDashboardScroll();
+        window.location.reload();
+    }
 
     function revealOnScroll() {
         revealItems.forEach((item, index) => {
             const rect = item.getBoundingClientRect();
             if (rect.top < window.innerHeight - 70) {
-                item.style.transitionDelay = `${Math.min(index * 50, 250)}ms`;
+                item.style.transitionDelay = `${Math.min(index * 50, 280)}ms`;
                 item.classList.add("revealed");
             }
         });
     }
 
-    function isMobileView() {
-        return window.innerWidth <= mobileBreakpoint;
-    }
+    function animateCount(el) {
+        if (!el || el.dataset.counted === "1") return;
 
-    function openMobileSidebar() {
-        if (!sidebar || !isMobileView()) return;
-        sidebar.classList.add("sidebar-open");
-        if (sidebarOverlay) {
-            sidebarOverlay.classList.add("active");
-        }
-        document.body.style.overflow = "hidden";
-    }
+        const rawText = (el.textContent || "").trim();
+        const number = parseFloat(rawText.replace(/[^0-9.]/g, ""));
 
-    function closeMobileSidebar() {
-        if (!sidebar) return;
-        sidebar.classList.remove("sidebar-open");
-        if (sidebarOverlay) {
-            sidebarOverlay.classList.remove("active");
-        }
-        document.body.style.overflow = "";
-    }
-
-    function toggleDesktopSidebar() {
-        if (!sidebar || isMobileView()) return;
-        sidebar.classList.toggle("sidebar-collapsed");
-
-        const isCollapsed = sidebar.classList.contains("sidebar-collapsed");
-        localStorage.setItem("userSidebarCollapsed", isCollapsed ? "true" : "false");
-    }
-
-    function applySavedSidebarState() {
-        if (!sidebar) return;
-
-        if (isMobileView()) {
-            sidebar.classList.remove("sidebar-collapsed");
-            closeMobileSidebar();
+        if (Number.isNaN(number)) {
+            el.dataset.counted = "1";
             return;
         }
 
-        const savedState = localStorage.getItem("userSidebarCollapsed");
-        if (savedState === "true") {
-            sidebar.classList.add("sidebar-collapsed");
+        el.dataset.counted = "1";
+
+        const duration = 900;
+        const start = performance.now();
+
+        function frame(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(number * eased);
+
+            if (rawText.startsWith("LKR")) {
+                el.textContent = `LKR ${current.toLocaleString()}`;
+            } else {
+                el.textContent = current.toLocaleString();
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(frame);
+            } else {
+                el.textContent = rawText;
+            }
+        }
+
+        requestAnimationFrame(frame);
+    }
+
+    function runCounterAnimations() {
+        statNumbers.forEach((el) => {
+            const rect = el.getBoundingClientRect();
+            if (rect.top < window.innerHeight - 40) {
+                animateCount(el);
+            }
+        });
+    }
+
+    function handleTopbarScroll() {
+        if (!topbar) return;
+        if (window.scrollY > 14) {
+            topbar.classList.add("topbar-scrolled");
         } else {
-            sidebar.classList.remove("sidebar-collapsed");
+            topbar.classList.remove("topbar-scrolled");
         }
     }
 
-    function appendMessage(text, className) {
+    function appendMessage(className, html) {
         if (!chatMessages) return;
 
-        const msg = document.createElement("div");
-        msg.className = className;
-        msg.textContent = text;
-        chatMessages.appendChild(msg);
+        const wrapper = document.createElement("div");
+        wrapper.className = className;
+        wrapper.innerHTML = html;
+        chatMessages.appendChild(wrapper);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function setChatSendState(isSending) {
-        if (!chatSendBtn) return;
+    function renderDataPayload(payload) {
+        if (!payload || !payload.kind) return "";
 
-        chatSendBtn.disabled = isSending;
-        chatSendBtn.textContent = isSending ? "Sending..." : "Send";
-
-        if (chatInput) {
-            chatInput.disabled = isSending;
+        if (payload.kind === "application_summary" && payload.summary) {
+            const s = payload.summary;
+            return `
+                <div style="margin-top:8px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;">
+                    <div><strong>Total Applications:</strong> ${escapeHtml(s.total_applications)}</div>
+                    <div><strong>Approved:</strong> ${escapeHtml(s.approved_cases)}</div>
+                    <div><strong>Pending Review:</strong> ${escapeHtml(s.pending_reviews)}</div>
+                    <div><strong>Drafts:</strong> ${escapeHtml(s.draft_applications)}</div>
+                </div>
+            `;
         }
+
+        if (payload.kind === "alerts_summary" && payload.summary) {
+            return `
+                <div style="margin-top:8px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;">
+                    <div><strong>Alerts Count:</strong> ${escapeHtml(payload.summary.alerts_count)}</div>
+                </div>
+            `;
+        }
+
+        if (payload.kind === "property_summary" && payload.summary) {
+            return `
+                <div style="margin-top:8px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;">
+                    <div><strong>Property Records Linked:</strong> ${escapeHtml(payload.summary.property_records_count)}</div>
+                </div>
+            `;
+        }
+
+        if (payload.kind === "valuation_summary" && payload.summary && payload.summary.latest_valuation) {
+            const v = payload.summary.latest_valuation;
+            return `
+                <div style="margin-top:8px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;">
+                    <div><strong>Property:</strong> ${escapeHtml(v.property_label)}</div>
+                    <div><strong>Estimated Current Value:</strong> LKR ${Number(v.current_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                </div>
+            `;
+        }
+
+        if (payload.kind === "transaction_history" && payload.record) {
+            const record = payload.record;
+            const historyHtml = (record.history || []).map((item) => `
+                <div style="margin-top:8px; padding-top:8px; border-top:1px solid #f0f0f0;">
+                    <div><strong>Owner:</strong> ${escapeHtml(item.owner_name)}</div>
+                    <div><strong>Transaction:</strong> ${escapeHtml(item.transaction_type)}</div>
+                    <div><strong>Date:</strong> ${escapeHtml(item.transfer_date)}</div>
+                    <div><strong>Order:</strong> ${escapeHtml(item.ownership_order)}</div>
+                </div>
+            `).join("");
+
+            return `
+                <div style="margin-top:8px; padding:10px; border:1px solid #e5e7eb; border-radius:10px;">
+                    <div><strong>Deed Number:</strong> ${escapeHtml(record.deed_number)}</div>
+                    <div><strong>Property Address:</strong> ${escapeHtml(record.property_address || "N/A")}</div>
+                    <div><strong>Location:</strong> ${escapeHtml(record.location || "N/A")}</div>
+                    <div><strong>Current Owner:</strong> ${escapeHtml(record.current_owner_name || "N/A")}</div>
+                    ${historyHtml}
+                </div>
+            `;
+        }
+
+        return "";
     }
 
-    async function sendChatMessage() {
+    function renderBotResponse(data) {
+        const reply = escapeHtml(data?.reply || "Sorry, I could not understand that.");
+        let extraHtml = "";
+
+        if (data?.payload) {
+            extraHtml += renderDataPayload(data.payload);
+        }
+
+        if (data?.action === "open_page" && data?.target) {
+            extraHtml += `
+                <div style="margin-top:10px;">
+                    <a href="${encodeURI(data.target)}"
+                       style="display:inline-block; padding:8px 12px; border-radius:8px; background:#123f88; color:#fff; text-decoration:none;">
+                        Open page
+                    </a>
+                </div>
+            `;
+        }
+
+        appendMessage("bot-msg", `<div>${reply}</div>${extraHtml}`);
+    }
+
+    async function sendMessage() {
         if (!chatInput || !chatMessages) return;
 
-        const message = chatInput.value.trim();
-        if (!message) return;
+        const text = chatInput.value.trim();
+        if (!text) return;
 
-        appendMessage(message, "user-msg");
+        appendMessage("user-msg", escapeHtml(text));
         chatInput.value = "";
-        setChatSendState(true);
 
         try {
-            const response = await fetch("/chat", {
+            const res = await fetch("/chat", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ message: message })
+                body: JSON.stringify({ message: text })
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                appendMessage(data.reply || "No response from assistant.", "bot-msg");
-
-                if (data.action === "open_page" && data.target) {
-                    setTimeout(() => {
-                        window.location.href = data.target;
-                    }, 800);
-                }
-            } else {
-                appendMessage(data.reply || "Something went wrong while sending your message.", "bot-msg");
-            }
+            const data = await res.json();
+            renderBotResponse(data);
         } catch (error) {
-            appendMessage("Unable to connect to the assistant right now. Please try again.", "bot-msg");
-        } finally {
-            setChatSendState(false);
-            chatInput.focus();
+            appendMessage("bot-msg", "Sorry, something went wrong. Please try again.");
         }
     }
 
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener("click", toggleDesktopSidebar);
+    async function markNotificationRead(notificationId) {
+        try {
+            const response = await fetch(`/notifications/${notificationId}/read`, {
+                method: "POST",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+            return response.ok;
+        } catch (error) {
+            console.error("Failed to mark notification as read", error);
+            return false;
+        }
     }
 
-    if (mobileSidebarToggle) {
-        mobileSidebarToggle.addEventListener("click", openMobileSidebar);
+    async function markAllNotificationsRead() {
+        try {
+            const response = await fetch("/notifications/read-all", {
+                method: "POST",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            });
+            return response.ok;
+        } catch (error) {
+            console.error("Failed to mark all notifications as read", error);
+            return false;
+        }
     }
 
-    if (sidebarOverlay) {
-        sidebarOverlay.addEventListener("click", closeMobileSidebar);
+    function updateUnreadCount(deltaMode = "clearOne") {
+        if (!notificationCount) return;
+
+        const current = parseInt(notificationCount.textContent || "0", 10) || 0;
+        let next = current;
+
+        if (deltaMode === "clearOne") {
+            next = Math.max(0, current - 1);
+        } else if (deltaMode === "clearAll") {
+            next = 0;
+        }
+
+        if (next <= 0) {
+            notificationCount.remove();
+        } else {
+            notificationCount.textContent = next;
+        }
     }
 
-    navLinks.forEach((link) => {
-        link.addEventListener("click", function () {
-            if (isMobileView()) {
-                closeMobileSidebar();
-            }
-        });
-    });
+    function openNotificationsFromQuery() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("open_notifications") === "1" && notificationPanel) {
+            notificationPanel.classList.remove("hidden");
+        }
+    }
 
     if (notificationToggle && notificationPanel) {
         notificationToggle.addEventListener("click", function (e) {
@@ -166,125 +398,142 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         document.addEventListener("click", function (e) {
-            const clickedInsidePanel = notificationPanel.contains(e.target);
-            const clickedToggle = notificationToggle.contains(e.target);
-
-            if (!clickedInsidePanel && !clickedToggle) {
+            if (!notificationPanel.contains(e.target) && !notificationToggle.contains(e.target)) {
                 notificationPanel.classList.add("hidden");
             }
         });
-    }
 
-    notificationItems.forEach((item) => {
-        item.addEventListener("click", async function () {
-            const notificationId = this.dataset.id;
-            const applicationId = this.dataset.applicationId;
+        document.querySelectorAll(".notification-item").forEach((item) => {
+            item.addEventListener("click", async function () {
+                const notificationId = item.dataset.id;
+                const applicationId = item.dataset.applicationId;
+                const wasUnread = item.classList.contains("unread");
 
-            if (notificationId && this.classList.contains("unread")) {
-                try {
-                    const response = await fetch(`/notifications/${notificationId}/read`, {
-                        method: "POST"
-                    });
-
-                    if (response.ok) {
-                        this.classList.remove("unread");
-
-                        const unreadItems = document.querySelectorAll(".notification-item.unread").length;
-                        if (notificationCount) {
-                            if (unreadItems > 0) {
-                                notificationCount.textContent = unreadItems;
-                            } else {
-                                notificationCount.remove();
-                            }
-                        }
+                if (notificationId) {
+                    const ok = await markNotificationRead(notificationId);
+                    if (ok && wasUnread) {
+                        item.classList.remove("unread");
+                        updateUnreadCount("clearOne");
                     }
-                } catch (error) {
-                    console.error("Failed to mark notification as read:", error);
                 }
-            }
 
-            if (applicationId) {
-                window.location.href = `/planning-approval/${applicationId}`;
-            }
+                if (applicationId) {
+                    window.location.href = `/planning-approval/${applicationId}`;
+                }
+            });
         });
-    });
 
-    if (markAllReadBtn) {
-        markAllReadBtn.addEventListener("click", async function (e) {
-            e.stopPropagation();
-            this.disabled = true;
-            this.textContent = "Marking...";
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener("click", async function (e) {
+                e.stopPropagation();
+                const ok = await markAllNotificationsRead();
+                if (!ok) return;
 
-            try {
-                const response = await fetch("/notifications/read-all", {
-                    method: "POST"
+                document.querySelectorAll(".notification-item.unread").forEach((item) => {
+                    item.classList.remove("unread");
                 });
 
-                if (response.ok) {
-                    document.querySelectorAll(".notification-item.unread").forEach((item) => {
-                        item.classList.remove("unread");
-                    });
+                updateUnreadCount("clearAll");
+            });
+        }
+    }
 
-                    if (notificationCount) {
-                        notificationCount.remove();
-                    }
-
-                    this.textContent = "All marked";
-                } else {
-                    this.disabled = false;
-                    this.textContent = "Mark all as read";
-                }
-            } catch (error) {
-                this.disabled = false;
-                this.textContent = "Mark all as read";
-                console.error("Failed to mark all notifications as read:", error);
+    if (chatbotButton) {
+        chatbotButton.addEventListener("click", function (e) {
+            if (hasMoved) {
+                e.preventDefault();
+                e.stopPropagation();
+                hasMoved = false;
+                return;
             }
+            toggleChat();
         });
+
+        chatbotButton.addEventListener("mousedown", function (e) {
+            startDrag(e.clientX, e.clientY);
+        });
+
+        chatbotButton.addEventListener("touchstart", function (e) {
+            const touch = e.touches[0];
+            startDrag(touch.clientX, touch.clientY);
+        }, { passive: true });
     }
 
-    if (chatbotButton && chatbotBox) {
-        chatbotButton.addEventListener("click", function () {
-            chatbotBox.classList.toggle("chat-open");
-        });
-    }
-
-    if (chatbotCloseBtn && chatbotBox) {
+    if (chatbotCloseBtn) {
         chatbotCloseBtn.addEventListener("click", function () {
-            chatbotBox.classList.remove("chat-open");
+            toggleChat(false);
         });
     }
 
     if (chatSendBtn) {
-        chatSendBtn.addEventListener("click", sendChatMessage);
+        chatSendBtn.addEventListener("click", sendMessage);
     }
 
     if (chatInput) {
-        chatInput.addEventListener("keydown", function (event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                sendChatMessage();
+        chatInput.addEventListener("keypress", function (e) {
+            if (e.key === "Enter") {
+                sendMessage();
             }
         });
     }
 
-    document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-            closeMobileSidebar();
-            if (notificationPanel) {
-                notificationPanel.classList.add("hidden");
-            }
-            if (chatbotBox) {
-                chatbotBox.classList.remove("chat-open");
-            }
-        }
+    document.addEventListener("mousemove", function (e) {
+        moveButton(e.clientX, e.clientY);
+    });
+
+    document.addEventListener("mouseup", function () {
+        endDrag();
+    });
+
+    document.addEventListener("touchmove", function (e) {
+        if (!isDragging) return;
+        const touch = e.touches[0];
+        moveButton(touch.clientX, touch.clientY);
+        e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener("touchend", function () {
+        endDrag();
     });
 
     window.addEventListener("resize", function () {
-        applySavedSidebarState();
+        if (chatbotBox && chatbotBox.classList.contains("chat-open")) {
+            positionChatBox();
+        }
     });
 
-    window.addEventListener("scroll", revealOnScroll);
+    window.addEventListener("beforeunload", function () {
+        saveDashboardScroll();
+        sessionStorage.removeItem("dashboardReturnRefreshDone");
+    });
 
-    applySavedSidebarState();
+    window.addEventListener("pageshow", function (event) {
+        restoreDashboardScroll();
+
+        if (event.persisted) {
+            refreshDashboardOnReturn();
+        }
+    });
+
+    document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) {
+            refreshDashboardOnReturn();
+        }
+    });
+
+    window.addEventListener("scroll", function () {
+        revealOnScroll();
+        runCounterAnimations();
+        handleTopbarScroll();
+    });
+
+    restoreDashboardScroll();
+    sessionStorage.removeItem("dashboardReturnRefreshDone");
     revealOnScroll();
+    runCounterAnimations();
+    handleTopbarScroll();
+    openNotificationsFromQuery();
+
+    window.toggleChat = toggleChat;
+    window.sendMessage = sendMessage;
 });
