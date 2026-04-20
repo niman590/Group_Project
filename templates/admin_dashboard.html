@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -288,6 +289,78 @@
                     </div>
                 </div>
             </section>
+
+            <section class="land-valuation-section">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Land Valuation Intelligence</span>
+                        <h2>Land Valuation Trend Forecast</h2>
+                        <p>Track historical land valuation movement by area and compare it with a forecasted trend for upcoming periods.</p>
+                    </div>
+                </div>
+
+                <div class="valuation-panel">
+                    <div class="valuation-toolbar">
+                        <div class="valuation-filter-group">
+                            <label for="valuationGranularity">View</label>
+                            <select id="valuationGranularity" class="valuation-select">
+                                <option value="monthly" selected>Monthly</option>
+                                <option value="weekly">Weekly</option>
+                            </select>
+                        </div>
+
+                        <div class="valuation-filter-group valuation-area-group">
+                            <label for="valuationArea">Geographic Area</label>
+                            <select id="valuationArea" class="valuation-select">
+                                <option value="all">All Areas</option>
+                                {% for area in land_valuation_areas %}
+                                <option value="{{ area }}">{{ area }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="valuation-metrics-grid">
+                        <div class="valuation-metric-card">
+                            <span class="metric-label">Latest Average Valuation</span>
+                            <strong id="latestValuationMetric">LKR 0.00</strong>
+                            <p>Most recent recorded average for the selected area.</p>
+                        </div>
+
+                        <div class="valuation-metric-card">
+                            <span class="metric-label">Recent Change</span>
+                            <strong id="latestChangeMetric">0%</strong>
+                            <p>Change compared with the previous selected period.</p>
+                        </div>
+
+                        <div class="valuation-metric-card">
+                            <span class="metric-label">Forecast Direction</span>
+                            <strong id="forecastSlopeMetric">Stable</strong>
+                            <p>Trend direction estimated from historical valuation records.</p>
+                        </div>
+                    </div>
+
+                    <div class="valuation-chart-card">
+                        <div class="valuation-chart-head">
+                            <div>
+                                <h3>Historical vs Forecasted Land Value</h3>
+                                <p id="valuationChartDescription">Loading valuation insights...</p>
+                            </div>
+                            <div class="valuation-legend">
+                                <span><i class="legend-dot historical"></i>Historical</span>
+                                <span><i class="legend-dot forecast"></i>Forecast</span>
+                            </div>
+                        </div>
+
+                        <div class="valuation-chart-wrap">
+                            <canvas id="landValuationTrendChart"></canvas>
+                        </div>
+                        <div id="landValuationEmptyState" class="chart-fallback valuation-empty-state" style="display:none;">
+                            No land valuation records are available for the selected filter yet.
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -315,6 +388,166 @@
                 clearBtn.addEventListener("click", function () {
                     sessionStorage.setItem("exactDashboardScrollY", String(window.scrollY));
                 });
+            }
+
+            const initialValuationData = {{ land_valuation_chart | tojson }};
+            const granularitySelect = document.getElementById("valuationGranularity");
+            const areaSelect = document.getElementById("valuationArea");
+            const latestValuationMetric = document.getElementById("latestValuationMetric");
+            const latestChangeMetric = document.getElementById("latestChangeMetric");
+            const forecastSlopeMetric = document.getElementById("forecastSlopeMetric");
+            const chartDescription = document.getElementById("valuationChartDescription");
+            const emptyState = document.getElementById("landValuationEmptyState");
+            const chartCanvas = document.getElementById("landValuationTrendChart");
+
+            let landValuationChart = null;
+
+            function formatCurrency(value) {
+                const numericValue = Number(value || 0);
+                return `LKR ${numericValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
+
+            function formatPercent(value) {
+                if (value === null || value === undefined || Number.isNaN(Number(value))) {
+                    return "No comparison";
+                }
+                const numericValue = Number(value);
+                const prefix = numericValue > 0 ? "+" : "";
+                return `${prefix}${numericValue.toFixed(2)}%`;
+            }
+
+            function resolveTrendLabel(value) {
+                const numericValue = Number(value || 0);
+                if (numericValue > 0) return "Upward";
+                if (numericValue < 0) return "Downward";
+                return "Stable";
+            }
+
+            function renderLandValuationChart(payload) {
+                const hasData = payload && payload.has_data && Array.isArray(payload.labels) && payload.labels.length;
+
+                if (!hasData) {
+                    chartCanvas.style.display = "none";
+                    emptyState.style.display = "flex";
+                    latestValuationMetric.textContent = "LKR 0.00";
+                    latestChangeMetric.textContent = "No comparison";
+                    forecastSlopeMetric.textContent = "Stable";
+                    chartDescription.textContent = "No valuation history found for the selected area and time view.";
+                    if (landValuationChart) {
+                        landValuationChart.destroy();
+                        landValuationChart = null;
+                    }
+                    return;
+                }
+
+                chartCanvas.style.display = "block";
+                emptyState.style.display = "none";
+
+                latestValuationMetric.textContent = formatCurrency(payload.latest_value);
+                latestChangeMetric.textContent = formatPercent(payload.latest_change_percent);
+                forecastSlopeMetric.textContent = resolveTrendLabel(payload.forecast_slope);
+
+                const areaLabel = payload.selected_area && payload.selected_area !== "all" ? payload.selected_area : "all recorded areas";
+                chartDescription.textContent = `Showing ${payload.granularity} land valuation movement for ${areaLabel}, including forecasted ${payload.forecast_period_label}.`;
+
+                const ctx = chartCanvas.getContext("2d");
+                if (landValuationChart) {
+                    landValuationChart.destroy();
+                }
+
+                landValuationChart = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: payload.labels,
+                        datasets: [
+                            {
+                                label: "Historical",
+                                data: payload.historical_values,
+                                borderColor: "#2563eb",
+                                backgroundColor: "rgba(37, 99, 235, 0.14)",
+                                borderWidth: 3,
+                                tension: 0.35,
+                                fill: false,
+                                pointRadius: 4,
+                                pointHoverRadius: 5,
+                                spanGaps: false
+                            },
+                            {
+                                label: "Forecast",
+                                data: payload.forecast_values,
+                                borderColor: "#f59e0b",
+                                backgroundColor: "rgba(245, 158, 11, 0.12)",
+                                borderDash: [7, 6],
+                                borderWidth: 3,
+                                tension: 0.35,
+                                fill: false,
+                                pointRadius: 4,
+                                pointHoverRadius: 5,
+                                spanGaps: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: "index",
+                            intersect: false
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.raw;
+                                        if (value === null || value === undefined) {
+                                            return `${context.dataset.label}: No data`;
+                                        }
+                                        return `${context.dataset.label}: ${formatCurrency(value)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return `LKR ${Number(value).toLocaleString()}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            async function loadLandValuationChart() {
+                const params = new URLSearchParams({
+                    granularity: granularitySelect.value,
+                    area: areaSelect.value
+                });
+
+                chartDescription.textContent = "Updating valuation insights...";
+
+                try {
+                    const response = await fetch(`{{ url_for('admin.admin_land_valuation_trends') }}?${params.toString()}`);
+                    const payload = await response.json();
+                    renderLandValuationChart(payload);
+                } catch (error) {
+                    chartCanvas.style.display = "none";
+                    emptyState.style.display = "flex";
+                    emptyState.textContent = "Unable to load land valuation trend data right now.";
+                    chartDescription.textContent = "There was a problem loading the valuation chart.";
+                }
+            }
+
+            if (granularitySelect && areaSelect && chartCanvas) {
+                renderLandValuationChart(initialValuationData);
+                granularitySelect.addEventListener("change", loadLandValuationChart);
+                areaSelect.addEventListener("change", loadLandValuationChart);
             }
         });
     </script>

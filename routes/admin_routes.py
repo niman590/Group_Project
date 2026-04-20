@@ -10,6 +10,7 @@ from flask import (
     redirect,
     render_template,
     request,
+    jsonify,
     send_file,
     session,
     url_for,
@@ -920,6 +921,173 @@ def get_application_status_chart(cursor, start_date="", end_date=""):
     return build_chart_image(labels, values, "Planning Application Status", kind="pie")
 
 
+def get_land_valuation_area_options(cursor):
+    rows = safe_fetchall(
+        cursor,
+        """
+        SELECT DISTINCT TRIM(COALESCE(property_address, '')) AS area_name
+        FROM property
+        WHERE TRIM(COALESCE(property_address, '')) <> ''
+        ORDER BY area_name ASC
+        """,
+    )
+    return [row["area_name"] for row in rows]
+
+
+def _format_land_valuation_label(period_start, granularity):
+    try:
+        period_date = datetime.strptime(period_start, "%Y-%m-%d")
+        if granularity == "weekly":
+            return f"Week of {period_date.strftime('%b %d')}"
+        return period_date.strftime("%b %Y")
+    except Exception:
+        return str(period_start)
+
+
+def get_land_valuation_trend_rows(cursor, granularity="monthly", area="all"):
+    date_column = "date(COALESCE(vp.prediction_date, p.created_at))"
+
+    if granularity == "weekly":
+        period_expression = (
+            f"date({date_column}, '-' || ((CAST(strftime('%w', {date_column}) AS INTEGER) + 6) % 7) || ' days')"
+        )
+    else:
+        period_expression = f"date(strftime('%Y-%m-01', {date_column}))"
+
+    query = f"""
+        SELECT
+            {period_expression} AS period_start,
+            AVG(vp.predicted_value) AS average_value,
+            COUNT(*) AS record_count
+        FROM value_prediction vp
+        JOIN property p ON p.property_id = vp.property_id
+        WHERE 1=1
+    """
+
+    params = []
+    if area and area != "all":
+        query += " AND TRIM(COALESCE(p.property_address, '')) = ?"
+        params.append(area)
+
+    query += f"""
+        GROUP BY {period_expression}
+        ORDER BY period_start ASC
+    """
+
+    rows = safe_fetchall(cursor, query, tuple(params))
+
+    formatted_rows = []
+    for row in rows:
+        period_start = row["period_start"]
+        average_value = float(row["average_value"] or 0)
+        formatted_rows.append({
+            "period_start": period_start,
+            "label": _format_land_valuation_label(period_start, granularity),
+            "average_value": round(average_value, 2),
+            "record_count": int(row["record_count"] or 0),
+        })
+
+    return formatted_rows
+
+
+def _add_periods(period_start, granularity, steps):
+    base_date = datetime.strptime(period_start, "%Y-%m-%d")
+    if granularity == "weekly":
+        return (base_date + timedelta(days=(7 * steps))).strftime("%Y-%m-%d")
+
+    month_index = (base_date.month - 1) + steps
+    year = base_date.year + (month_index // 12)
+    month = (month_index % 12) + 1
+    return f"{year:04d}-{month:02d}-01"
+
+
+def build_land_valuation_forecast(trend_rows, granularity="monthly"):
+    if not trend_rows:
+        return {
+            "forecast_labels": [],
+            "forecast_values": [],
+            "slope": 0,
+            "latest_value": None,
+            "latest_change_percent": None,
+        }
+
+    actual_values = [row["average_value"] for row in trend_rows]
+    n = len(actual_values)
+
+    if n == 1:
+        slope = 0
+        intercept = actual_values[0]
+    else:
+        x_values = list(range(n))
+        x_mean = sum(x_values) / n
+        y_mean = sum(actual_values) / n
+
+        numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(x_values, actual_values))
+        denominator = sum((x - x_mean) ** 2 for x in x_values)
+        slope = (numerator / denominator) if denominator else 0
+        intercept = y_mean - (slope * x_mean)
+
+    forecast_steps = 4 if granularity == "weekly" else 3
+    last_period = trend_rows[-1]["period_start"]
+    forecast_labels = []
+    forecast_values = []
+
+    for step in range(1, forecast_steps + 1):
+        future_period = _add_periods(last_period, granularity, step)
+        forecast_labels.append(_format_land_valuation_label(future_period, granularity))
+        projected_value = max(0, intercept + (slope * (n - 1 + step)))
+        forecast_values.append(round(projected_value, 2))
+
+    latest_value = actual_values[-1]
+    latest_change_percent = None
+    if len(actual_values) >= 2 and actual_values[-2] not in (0, None):
+        latest_change_percent = round(((actual_values[-1] - actual_values[-2]) / actual_values[-2]) * 100, 2)
+
+    return {
+        "forecast_labels": forecast_labels,
+        "forecast_values": forecast_values,
+        "slope": round(slope, 2),
+        "latest_value": round(latest_value, 2) if latest_value is not None else None,
+        "latest_change_percent": latest_change_percent,
+    }
+
+
+def get_land_valuation_chart_payload(cursor, granularity="monthly", area="all"):
+    trend_rows = get_land_valuation_trend_rows(cursor, granularity, area)
+    forecast_bundle = build_land_valuation_forecast(trend_rows, granularity)
+    available_areas = get_land_valuation_area_options(cursor)
+
+    labels = [row["label"] for row in trend_rows] + forecast_bundle["forecast_labels"]
+    historical_series = [row["average_value"] for row in trend_rows]
+    forecast_series = []
+
+    if trend_rows:
+        forecast_series = [None] * max(len(historical_series) - 1, 0)
+        forecast_series.append(historical_series[-1])
+        forecast_series.extend(forecast_bundle["forecast_values"])
+
+    payload = {
+        "granularity": granularity,
+        "selected_area": area,
+        "available_areas": available_areas,
+        "labels": labels,
+        "historical_values": historical_series + ([None] * len(forecast_bundle["forecast_values"])),
+        "forecast_values": forecast_series,
+        "historical_points": trend_rows,
+        "forecast_points": [
+            {"label": label, "average_value": value}
+            for label, value in zip(forecast_bundle["forecast_labels"], forecast_bundle["forecast_values"])
+        ],
+        "latest_value": forecast_bundle["latest_value"],
+        "latest_change_percent": forecast_bundle["latest_change_percent"],
+        "forecast_slope": forecast_bundle["slope"],
+        "has_data": bool(trend_rows),
+        "forecast_period_label": "weeks" if granularity == "weekly" else "months",
+    }
+
+    return payload
+
+
 def get_security_overview(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
 
@@ -1375,6 +1543,8 @@ def admin_dashboard():
 
     user_chart = get_user_registration_chart(cursor, start_date, end_date)
     planning_chart = get_application_status_chart(cursor, start_date, end_date)
+    land_valuation_areas = get_land_valuation_area_options(cursor)
+    land_valuation_chart = get_land_valuation_chart_payload(cursor, "monthly", "all")
     security_total = safe_fetchone_value(
         cursor,
         "SELECT COUNT(*) AS total FROM suspicious_events",
@@ -1403,6 +1573,8 @@ def admin_dashboard():
         pending_applications=pending_applications,
         user_chart=user_chart,
         planning_chart=planning_chart,
+        land_valuation_areas=land_valuation_areas,
+        land_valuation_chart=land_valuation_chart,
         security_total=security_total,
         security_new=security_new,
         security_high=security_high,
@@ -1411,6 +1583,28 @@ def admin_dashboard():
         selected_range=selected_range,
         active_page="dashboard",
     )
+
+
+@admin_bp.route("/admin/dashboard/land-valuation-trends")
+def admin_land_valuation_trends():
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    granularity = request.args.get("granularity", "monthly").strip().lower()
+    if granularity not in {"weekly", "monthly"}:
+        granularity = "monthly"
+
+    selected_area = request.args.get("area", "all").strip()
+    if not selected_area:
+        selected_area = "all"
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    payload = get_land_valuation_chart_payload(cursor, granularity, selected_area)
+    conn.close()
+
+    return jsonify(payload)
 
 
 @admin_bp.route("/admin/users")
