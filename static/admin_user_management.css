@@ -694,10 +694,6 @@ a.btn {
     transform: translateY(0);
 }
 
-/* ------------------------------ */
-/* Manual Admin Creation Section  */
-/* ------------------------------ */
-
 .admin-create-panel {
     margin-bottom: 18px;
     border: 1px solid var(--border);
@@ -805,7 +801,6 @@ a.btn {
     flex-wrap: wrap;
 }
 
-/* optional helper if you later add field groups */
 .admin-form-note {
     margin-top: 10px;
     padding: 10px 12px;
@@ -815,6 +810,135 @@ a.btn {
     border: 1px solid #d8e5fb;
     font-size: 0.84rem;
     font-weight: 500;
+}
+
+.custom-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(7, 18, 38, 0.48);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.22s ease, visibility 0.22s ease;
+    z-index: 9999;
+}
+
+.custom-modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.custom-modal-card {
+    width: 100%;
+    max-width: 460px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    box-shadow: 0 24px 60px rgba(8, 27, 58, 0.22);
+    overflow: hidden;
+    transform: translateY(12px) scale(0.98);
+    transition: transform 0.22s ease;
+}
+
+.custom-modal-overlay.open .custom-modal-card {
+    transform: translateY(0) scale(1);
+}
+
+.custom-modal-header {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 22px 22px 14px;
+    border-bottom: 1px solid var(--border-soft);
+    background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+}
+
+.custom-modal-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--primary) 0%, #1d56a9 100%);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    box-shadow: 0 10px 24px rgba(18, 63, 130, 0.22);
+}
+
+.custom-modal-header h3 {
+    margin: 0 0 4px;
+    color: var(--primary);
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.custom-modal-header p {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.custom-modal-body {
+    padding: 18px 22px 10px;
+}
+
+.custom-modal-label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--primary);
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.custom-modal-input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 13px 14px;
+    font-size: 0.96rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    background: #ffffff;
+    color: var(--text);
+}
+
+.custom-modal-input:focus {
+    border-color: #b7cae7;
+    box-shadow: 0 0 0 4px rgba(18, 63, 130, 0.08);
+    background: #ffffff;
+}
+
+.custom-modal-hint {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-soft);
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+.custom-modal-error {
+    min-height: 20px;
+    margin-top: 8px;
+    color: #c83737;
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.custom-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 10px 22px 22px;
+    flex-wrap: wrap;
 }
 
 @keyframes fadeSlideDown {
@@ -927,5 +1051,21 @@ a.btn {
 
     .admin-create-form-wrap {
         padding: 16px;
+    }
+
+    .custom-modal-card {
+        max-width: 100%;
+        border-radius: 18px;
+    }
+
+    .custom-modal-header,
+    .custom-modal-body,
+    .custom-modal-actions {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .custom-modal-actions .btn {
+        width: 100%;
     }
 }

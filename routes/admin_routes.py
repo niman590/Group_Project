@@ -1695,6 +1695,7 @@ def create_admin_user():
     phone_number = request.form.get("phone_number", "").strip()
     address = request.form.get("address", "").strip()
     city = request.form.get("city", "").strip()
+    date_of_birth = request.form.get("date_of_birth", "").strip()
     nic = request.form.get("nic", "").strip().upper()
     employee_id = normalize_employee_id(request.form.get("employee_id"))
     password = request.form.get("password", "").strip()
@@ -1771,7 +1772,7 @@ def create_admin_user():
             phone_number,
             email,
             password_hash,
-            "",
+            date_of_birth if date_of_birth else None,
             address,
             city,
             nic,

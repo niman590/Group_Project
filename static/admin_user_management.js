@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const flashMessages = document.querySelectorAll("[data-flash]");
     const flashCloseButtons = document.querySelectorAll("[data-flash-close]");
     const deleteForms = document.querySelectorAll(".delete-user-form");
+    const makeAdminForms = document.querySelectorAll(".make-admin-form");
     const searchForm = document.getElementById("userSearchForm");
     const searchInput = document.getElementById("userSearchInput");
     const clearSearchInputBtn = document.getElementById("clearSearchInput");
@@ -18,8 +19,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const cancelAddAdminBtn = document.getElementById("cancelAddAdminBtn");
     const addAdminFormWrap = document.getElementById("addAdminFormWrap");
 
+    const employeeIdModal = document.getElementById("employeeIdModal");
+    const employeeIdModalText = document.getElementById("employeeIdModalText");
+    const employeeIdModalInput = document.getElementById("employeeIdModalInput");
+    const employeeIdModalError = document.getElementById("employeeIdModalError");
+    const employeeIdModalCancel = document.getElementById("employeeIdModalCancel");
+    const employeeIdModalConfirm = document.getElementById("employeeIdModalConfirm");
+
     const DEFAULT_VISIBLE_ROWS = 5;
     let showAllRows = false;
+    let pendingMakeAdminForm = null;
 
     function hideElementWithAnimation(element, duration = 250) {
         if (!element) return;
@@ -167,6 +176,48 @@ document.addEventListener("DOMContentLoaded", function () {
         toggleAddAdminBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i><span>Add Admin</span>';
     }
 
+    function openEmployeeIdModal(userName, form) {
+        if (!employeeIdModal || !employeeIdModalInput) return;
+
+        pendingMakeAdminForm = form;
+        employeeIdModalText.textContent = `Enter an employee ID for ${userName}.`;
+        employeeIdModalInput.value = "";
+        employeeIdModalError.textContent = "";
+        employeeIdModal.classList.add("open");
+
+        setTimeout(() => {
+            employeeIdModalInput.focus();
+        }, 50);
+    }
+
+    function closeEmployeeIdModal() {
+        if (!employeeIdModal) return;
+
+        employeeIdModal.classList.remove("open");
+        employeeIdModalError.textContent = "";
+        employeeIdModalInput.value = "";
+        pendingMakeAdminForm = null;
+    }
+
+    function validateEmployeeIdModalValue() {
+        const value = employeeIdModalInput.value.trim().toUpperCase();
+        const pattern = /^[A-Z0-9\-_\/]{3,30}$/i;
+
+        if (!value) {
+            employeeIdModalError.textContent = "Employee ID is required.";
+            return null;
+        }
+
+        if (!pattern.test(value)) {
+            employeeIdModalError.textContent =
+                "Employee ID must be 3 to 30 characters and can only contain letters, numbers, hyphens, underscores, or slashes.";
+            return null;
+        }
+
+        employeeIdModalError.textContent = "";
+        return value;
+    }
+
     flashMessages.forEach((flash) => {
         setTimeout(() => {
             if (flash.parentNode) {
@@ -191,6 +242,61 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+
+    makeAdminForms.forEach((form) => {
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            const userName = this.dataset.userName || "this user";
+            openEmployeeIdModal(userName, this);
+        });
+    });
+
+    if (employeeIdModalCancel) {
+        employeeIdModalCancel.addEventListener("click", function () {
+            closeEmployeeIdModal();
+        });
+    }
+
+    if (employeeIdModalConfirm) {
+        employeeIdModalConfirm.addEventListener("click", function () {
+            if (!pendingMakeAdminForm) return;
+
+            const cleanedEmployeeId = validateEmployeeIdModalValue();
+            if (!cleanedEmployeeId) return;
+
+            const hiddenInput = pendingMakeAdminForm.querySelector(".employee-id-hidden-input");
+            if (hiddenInput) {
+                hiddenInput.value = cleanedEmployeeId;
+            }
+
+            pendingMakeAdminForm.submit();
+        });
+    }
+
+    if (employeeIdModalInput) {
+        employeeIdModalInput.addEventListener("input", function () {
+            if (employeeIdModalError.textContent) {
+                validateEmployeeIdModalValue();
+            }
+        });
+
+        employeeIdModalInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                if (employeeIdModalConfirm) {
+                    employeeIdModalConfirm.click();
+                }
+            }
+        });
+    }
+
+    if (employeeIdModal) {
+        employeeIdModal.addEventListener("click", function (event) {
+            if (event.target === employeeIdModal) {
+                closeEmployeeIdModal();
+            }
+        });
+    }
 
     actionButtons.forEach((button) => {
         button.addEventListener("click", function () {
@@ -265,7 +371,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const isSlashPressed = event.key === "/";
         const isEscapePressed = event.key === "Escape";
         const activeTag = document.activeElement ? document.activeElement.tagName : "";
-        const isTypingInInput = ["INPUT", "TEXTAREA"].includes(activeTag);
+        const isTypingInInput = ["INPUT", "TEXTAREA", "SELECT"].includes(activeTag);
 
         if (isSlashPressed && !isTypingInInput && searchInput) {
             event.preventDefault();
@@ -281,6 +387,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (isEscapePressed && addAdminFormWrap && addAdminFormWrap.classList.contains("open")) {
             closeAdminForm();
+        }
+
+        if (isEscapePressed && employeeIdModal && employeeIdModal.classList.contains("open")) {
+            closeEmployeeIdModal();
         }
     });
 
