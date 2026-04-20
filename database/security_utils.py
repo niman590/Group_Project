@@ -1,0 +1,195 @@
+from flask import request, session
+from database.db_connection import get_connection
+
+
+def log_suspicious_event(
+    user_id=None,
+    rule_name="UNKNOWN_RULE",
+    severity="low",
+    event_type="generic",
+    route=None,
+    ip_address=None,
+    user_agent=None,
+    event_count=1,
+    time_window_minutes=None,
+    description=None,
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        INSERT INTO suspicious_events (
+            user_id,
+            rule_name,
+            severity,
+            event_type,
+            route,
+            ip_address,
+            user_agent,
+            event_count,
+            time_window_minutes,
+            description
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            user_id,
+            rule_name,
+            severity,
+            event_type,
+            route,
+            ip_address,
+            user_agent,
+            event_count,
+            time_window_minutes,
+            description,
+        ),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def get_request_metadata():
+    user_id = session.get("user_id")
+    ip_address = request.headers.get("X-Forwarded-For", request.remote_addr)
+    user_agent = request.headers.get("User-Agent")
+    route = request.path
+
+    return {
+        "user_id": user_id,
+        "ip_address": ip_address,
+        "user_agent": user_agent,
+        "route": route,
+    }
+
+def count_recent_events(rule_name, minutes=10, user_id=None, ip_address=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    conditions = ["rule_name = ?", "created_at >= datetime('now', ?)"]
+    params = [rule_name, f"-{minutes} minutes"]
+
+    if user_id is not None:
+        conditions.append("user_id = ?")
+        params.append(user_id)
+    elif ip_address:
+        conditions.append("ip_address = ?")
+        params.append(ip_address)
+
+    query = f"""
+        SELECT COUNT(*) AS total
+        FROM suspicious_events
+        WHERE {' AND '.join(conditions)}
+    """
+
+    cursor.execute(query, tuple(params))
+    row = cursor.fetchone()
+    conn.close()
+
+    return row["total"] if row else 0
+
+def track_failed_login(identifier_label="unknown"):
+    meta = get_request_metadata()
+
+    log_suspicious_event(
+        user_id=None,
+        rule_name="FAILED_LOGIN_EVENT",
+        severity="low",
+        event_type="auth",
+        route=meta["route"],
+        ip_address=meta["ip_address"],
+        user_agent=meta["user_agent"],
+        description=f"Failed login attempt for identifier: {identifier_label}",
+    )
+
+    recent_count = count_recent_events(
+        rule_name="FAILED_LOGIN_EVENT",
+        minutes=10,
+        ip_address=meta["ip_address"],
+    )
+
+    if recent_count >= 5:
+        log_suspicious_event(
+            user_id=None,
+            rule_name="MULTIPLE_FAILED_LOGINS",
+            severity="high",
+            event_type="auth",
+            route=meta["route"],
+            ip_address=meta["ip_address"],
+            user_agent=meta["user_agent"],
+            event_count=recent_count,
+            time_window_minutes=10,
+            description="Multiple failed login attempts detected from the same IP address.",
+        )
+
+
+def track_unauthorized_access():
+    meta = get_request_metadata()
+
+    log_suspicious_event(
+        user_id=meta["user_id"],
+        rule_name="UNAUTHORIZED_ACCESS_EVENT",
+        severity="low",
+        event_type="authorization",
+        route=meta["route"],
+        ip_address=meta["ip_address"],
+        user_agent=meta["user_agent"],
+        description="Unauthorized access attempt to a protected route.",
+    )
+
+    recent_count = count_recent_events(
+        rule_name="UNAUTHORIZED_ACCESS_EVENT",
+        minutes=10,
+        ip_address=meta["ip_address"],
+    )
+
+    if recent_count >= 5:
+        log_suspicious_event(
+            user_id=meta["user_id"],
+            rule_name="REPEATED_UNAUTHORIZED_ACCESS",
+            severity="high",
+            event_type="authorization",
+            route=meta["route"],
+            ip_address=meta["ip_address"],
+            user_agent=meta["user_agent"],
+            event_count=recent_count,
+            time_window_minutes=10,
+            description="Repeated unauthorized access attempts detected.",
+        )
+
+
+def track_api_request_burst(limit=10, minutes=1):
+    meta = get_request_metadata()
+
+    log_suspicious_event(
+        user_id=meta["user_id"],
+        rule_name="API_REQUEST_EVENT",
+        severity="low",
+        event_type="api",
+        route=meta["route"],
+        ip_address=meta["ip_address"],
+        user_agent=meta["user_agent"],
+        description="API request recorded for burst monitoring.",
+    )
+
+    recent_count = count_recent_events(
+        rule_name="API_REQUEST_EVENT",
+        minutes=minutes,
+        ip_address=meta["ip_address"],
+    )
+
+    if recent_count >= limit:
+        log_suspicious_event(
+            user_id=meta["user_id"],
+            rule_name="API_REQUEST_BURST",
+            severity="medium",
+            event_type="api",
+            route=meta["route"],
+            ip_address=meta["ip_address"],
+            user_agent=meta["user_agent"],
+            event_count=recent_count,
+            time_window_minutes=minutes,
+            description="High number of API requests detected in a short time window.",
+        )
