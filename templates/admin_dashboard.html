@@ -93,7 +93,52 @@
                     </div>
                 </div>
             </section>
+            <section class="stats-section">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Security</span>
+                        <h2>Suspicious Behavior Summary</h2>
+                        <p>Quick overview of suspicious events and security alerts.</p>
+                    </div>
 
+                    <a href="{{ url_for('admin.admin_suspicious_behavior') }}" class="btn primary">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Open Security Page</span>
+                    </a>
+                </div>
+
+        <div class="stats-grid application-stats-grid">
+            <div class="stat-card app-stat-card total">
+                <div class="stat-top-line"></div>
+                <div class="stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="stat-content">
+                    <span class="stat-label">Total Security Events</span>
+                    <h3>{{ security_total }}</h3>
+                    <p>All suspicious events currently stored in the system.</p>
+                </div>
+            </div>
+
+            <div class="stat-card app-stat-card pending">
+                <div class="stat-top-line"></div>
+                <div class="stat-icon"><i class="fa-solid fa-bell"></i></div>
+                <div class="stat-content">
+                    <span class="stat-label">New Alerts</span>
+                    <h3>{{ security_new }}</h3>
+                    <p>Events that still require admin review.</p>
+                </div>
+            </div>
+
+            <div class="stat-card app-stat-card rejected">
+                <div class="stat-top-line"></div>
+                <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="stat-content">
+                    <span class="stat-label">High Severity Alerts</span>
+                    <h3>{{ security_high }}</h3>
+                    <p>High-priority events that may need immediate action.</p>
+                </div>
+            </div>
+        </div>
+    </section>
             <section class="filter-section">
                 <div class="section-head">
                     <div>

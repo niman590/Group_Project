@@ -39,6 +39,13 @@
                 <span class="nav-text">Reports</span>
             </a>
 
+            <a href="{{ url_for('admin.admin_suspicious_behavior') }}"
+                class="nav-link {% if active_page == 'suspicious_behavior' or request.endpoint == 'admin.admin_suspicious_behavior' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-shield-halved"></i></span>
+                <span class="nav-text">Suspicious Behavior</span>
+            </a>
+
+
             <a href="{{ url_for('admin.admin_users') }}"
                 class="nav-link {% if active_page == 'user_management' or request.endpoint == 'admin.admin_users' %}active{% endif %}">
                 <span class="nav-icon"><i class="fas fa-users"></i></span>

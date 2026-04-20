@@ -16,7 +16,7 @@ from flask import (
 )
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4  
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
@@ -920,6 +920,206 @@ def get_application_status_chart(cursor, start_date="", end_date=""):
     return build_chart_image(labels, values, "Planning Application Status", kind="pie")
 
 
+def get_security_overview(cursor, start_date="", end_date=""):
+    date_clause, params = build_date_clause("created_at", start_date, end_date)
+
+    total_events = safe_fetchone_value(
+        cursor,
+        f"""
+        SELECT COUNT(*) AS total
+        FROM suspicious_events
+        WHERE 1=1 {date_clause}
+        """,
+        "total",
+        params=tuple(params),
+    )
+
+    new_events = safe_fetchone_value(
+        cursor,
+        f"""
+        SELECT COUNT(*) AS total
+        FROM suspicious_events
+        WHERE status = 'new' {date_clause}
+        """,
+        "total",
+        params=tuple(params),
+    )
+
+    reviewed_events = safe_fetchone_value(
+        cursor,
+        f"""
+        SELECT COUNT(*) AS total
+        FROM suspicious_events
+        WHERE status = 'reviewed' {date_clause}
+        """,
+        "total",
+        params=tuple(params),
+    )
+
+    resolved_events = safe_fetchone_value(
+        cursor,
+        f"""
+        SELECT COUNT(*) AS total
+        FROM suspicious_events
+        WHERE status = 'resolved' {date_clause}
+        """,
+        "total",
+        params=tuple(params),
+    )
+
+    high_events = safe_fetchone_value(
+        cursor,
+        f"""
+        SELECT COUNT(*) AS total
+        FROM suspicious_events
+        WHERE severity = 'high' {date_clause}
+        """,
+        "total",
+        params=tuple(params),
+    )
+
+    medium_events = safe_fetchone_value(
+        cursor,
+        f"""
+        SELECT COUNT(*) AS total
+        FROM suspicious_events
+        WHERE severity = 'medium' {date_clause}
+        """,
+        "total",
+        params=tuple(params),
+    )
+
+    low_events = safe_fetchone_value(
+        cursor,
+        f"""
+        SELECT COUNT(*) AS total
+        FROM suspicious_events
+        WHERE severity = 'low' {date_clause}
+        """,
+        "total",
+        params=tuple(params),
+    )
+
+    return {
+        "total_events": total_events,
+        "new_events": new_events,
+        "reviewed_events": reviewed_events,
+        "resolved_events": resolved_events,
+        "high_events": high_events,
+        "medium_events": medium_events,
+        "low_events": low_events,
+    }
+
+
+def get_suspicious_events(cursor, severity="", status="", rule_name="", start_date="", end_date=""):
+    conditions = []
+    params = []
+
+    if severity:
+        conditions.append("se.severity = ?")
+        params.append(severity)
+
+    if status:
+        conditions.append("se.status = ?")
+        params.append(status)
+
+    if rule_name:
+        conditions.append("se.rule_name LIKE ?")
+        params.append(f"%{rule_name}%")
+
+    date_clause, date_params = build_date_clause("se.created_at", start_date, end_date)
+
+    where_parts = []
+    if conditions:
+        where_parts.extend(conditions)
+
+    where_sql = ""
+    if where_parts:
+        where_sql = "WHERE " + " AND ".join(where_parts)
+        if date_clause:
+            where_sql += date_clause
+    else:
+        if date_clause:
+            where_sql = "WHERE 1=1 " + date_clause
+
+    params.extend(date_params)
+
+    cursor.execute(
+        f"""
+        SELECT
+            se.*,
+            u.first_name,
+            u.last_name,
+            reviewer.first_name AS reviewer_first_name,
+            reviewer.last_name AS reviewer_last_name
+        FROM suspicious_events se
+        LEFT JOIN users u
+            ON se.user_id = u.user_id
+        LEFT JOIN users reviewer
+            ON se.reviewed_by = reviewer.user_id
+        {where_sql}
+        ORDER BY se.created_at DESC, se.event_id DESC
+        LIMIT 300
+        """,
+        tuple(params),
+    )
+    return cursor.fetchall()
+
+
+def get_top_security_rules(cursor, start_date="", end_date=""):
+    date_clause, params = build_date_clause("created_at", start_date, end_date)
+
+    return safe_fetchall(
+        cursor,
+        f"""
+        SELECT rule_name, COUNT(*) AS total
+        FROM suspicious_events
+        WHERE 1=1 {date_clause}
+        GROUP BY rule_name
+        ORDER BY total DESC, rule_name ASC
+        LIMIT 8
+        """,
+        tuple(params),
+    )
+
+
+@admin_bp.route("/admin/suspicious-behavior")
+def admin_suspicious_behavior():
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    severity = request.args.get("severity", "").strip()
+    status = request.args.get("status", "").strip()
+    rule_name = request.args.get("rule_name", "").strip()
+    start_date = normalize_date_input(request.args.get("start_date", "").strip())
+    end_date = normalize_date_input(request.args.get("end_date", "").strip())
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    overview = get_security_overview(cursor, start_date, end_date)
+    events = get_suspicious_events(cursor, severity, status, rule_name, start_date, end_date)
+    top_rules = get_top_security_rules(cursor, start_date, end_date)
+
+    conn.close()
+
+    return render_template(
+        "Security/admin_suspicious_behavior.html",
+        user=admin_user,
+        overview=overview,
+        events=events,
+        top_rules=top_rules,
+        severity=severity,
+        status=status,
+        rule_name=rule_name,
+        start_date=start_date,
+        end_date=end_date,
+        active_page="suspicious_behavior",
+    )
+
+
+
 def create_user_notification(cursor, user_id, application_id, title, message, notification_type="info"):
     cursor.execute(
         """
@@ -1175,7 +1375,23 @@ def admin_dashboard():
 
     user_chart = get_user_registration_chart(cursor, start_date, end_date)
     planning_chart = get_application_status_chart(cursor, start_date, end_date)
+    security_total = safe_fetchone_value(
+        cursor,
+        "SELECT COUNT(*) AS total FROM suspicious_events",
+        "total",
+    )
 
+    security_new = safe_fetchone_value(
+        cursor,
+        "SELECT COUNT(*) AS total FROM suspicious_events WHERE status = 'new'",
+        "total",
+    )
+
+    security_high = safe_fetchone_value(
+    cursor,
+    "SELECT COUNT(*) AS total FROM suspicious_events WHERE severity = 'high'",
+    "total",
+)
     conn.close()
 
     return render_template(
@@ -1187,6 +1403,9 @@ def admin_dashboard():
         pending_applications=pending_applications,
         user_chart=user_chart,
         planning_chart=planning_chart,
+        security_total=security_total,
+        security_new=security_new,
+        security_high=security_high,
         start_date=start_date,
         end_date=end_date,
         selected_range=selected_range,

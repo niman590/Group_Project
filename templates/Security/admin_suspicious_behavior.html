@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civic Plan - Suspicious Behavior</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_suspicious_behavior.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+    <div class="dashboard-shell">
+
+        {% include 'partials/admin_sidebar.html' %}
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-copy">
+                    <span class="page-label">Security Monitoring</span>
+                    <h1>Suspicious Behavior</h1>
+                    <p>Review suspicious events, abnormal activity, and security alerts.</p>
+                </div>
+
+                <a href="{{ url_for('user.account') }}" class="admin-chip clickable-admin-chip" title="Go to My Account">
+                    <div class="avatar">{{ user['first_name'][0] | upper }}</div>
+                    <div>
+                        <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
+                        <span>User ID: USER-{{ user['user_id'] }}</span>
+                    </div>
+                </a>
+            </header>
+
+            <section class="stats-section">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Overview</span>
+                        <h2>Security Summary</h2>
+                        <p>Quick overview of suspicious events in the system.</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid application-stats-grid">
+                    <div class="stat-card app-stat-card total">
+                        <div class="stat-top-line"></div>
+                        <div class="stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Events</span>
+                            <h3>{{ overview.total_events }}</h3>
+                            <p>All suspicious events in the selected range.</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card app-stat-card pending">
+                        <div class="stat-top-line"></div>
+                        <div class="stat-icon"><i class="fa-solid fa-bell"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">New Alerts</span>
+                            <h3>{{ overview.new_events }}</h3>
+                            <p>Events waiting for review.</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card app-stat-card rejected">
+                        <div class="stat-top-line"></div>
+                        <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">High Severity</span>
+                            <h3>{{ overview.high_events }}</h3>
+                            <p>Events that may need immediate attention.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="stats-section">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Events</span>
+                        <h2>Suspicious Event List</h2>
+                        <p>Recent suspicious activity detected by the system.</p>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="security-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Rule</th>
+                                <th>Severity</th>
+                                <th>Type</th>
+                                <th>IP</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in events %}
+                            <tr>
+                                <td>{{ event['created_at'] or '-' }}</td>
+                                <td>{{ event['rule_name'] }}</td>
+                                <td>{{ event['severity'] }}</td>
+                                <td>{{ event['event_type'] or '-' }}</td>
+                                <td>{{ event['ip_address'] or '-' }}</td>
+                                <td>{{ event['status'] }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6">No suspicious events found.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

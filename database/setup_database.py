@@ -448,6 +448,28 @@ def create_tables(cursor):
     );
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS suspicious_events (
+        event_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        rule_name TEXT NOT NULL,
+        severity TEXT NOT NULL DEFAULT 'low',
+        event_type TEXT,
+        route TEXT,
+        ip_address TEXT,
+        user_agent TEXT,
+        event_count INTEGER DEFAULT 1,
+        time_window_minutes INTEGER,
+        status TEXT NOT NULL DEFAULT 'new',
+        description TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        reviewed_at TEXT,
+        reviewed_by INTEGER,
+        FOREIGN KEY (user_id) REFERENCES users(user_id),
+        FOREIGN KEY (reviewed_by) REFERENCES users(user_id)
+    );
+    """)
+
 
 def create_indexes(cursor):
     cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique ON users(email)")
@@ -479,7 +501,12 @@ def create_indexes(cursor):
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_workflow_history_application_id ON planning_application_workflow_history(application_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_notifications_user_id ON user_notifications(user_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_notifications_is_read ON user_notifications(is_read)")
-
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_user_id ON suspicious_events(user_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_rule_name ON suspicious_events(rule_name)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_severity ON suspicious_events(severity)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_status ON suspicious_events(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_created_at ON suspicious_events(created_at)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_ip_address ON suspicious_events(ip_address)")
 
 def create_default_admin(cursor):
     cursor.execute("UPDATE users SET is_active = 1 WHERE is_active IS NULL")
