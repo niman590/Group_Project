@@ -14,6 +14,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const copyUserIdElements = document.querySelectorAll(".copy-user-id");
     const toggleUsersViewBtn = document.getElementById("toggleUsersViewBtn");
 
+    const toggleAddAdminBtn = document.getElementById("toggleAddAdminBtn");
+    const cancelAddAdminBtn = document.getElementById("cancelAddAdminBtn");
+    const addAdminFormWrap = document.getElementById("addAdminFormWrap");
+
     const DEFAULT_VISIBLE_ROWS = 5;
     let showAllRows = false;
 
@@ -115,11 +119,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const name = row.dataset.name || "";
             const nic = row.dataset.nic || "";
             const email = row.dataset.email || "";
+            const employeeId = row.dataset.employeeId || "";
             const role = row.dataset.role || "";
             const status = row.dataset.status || "";
             const userId = row.dataset.userId || "";
 
-            const combinedText = `${name} ${nic} ${email} ${role} ${status} ${userId}`;
+            const combinedText = `${name} ${nic} ${email} ${employeeId} ${role} ${status} ${userId}`;
 
             if (normalizedQuery === "" || combinedText.includes(normalizedQuery)) {
                 matchedRows.push(row);
@@ -148,6 +153,18 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (serverSearchInfo && normalizedQuery === "") {
             serverSearchInfo.style.display = "";
         }
+    }
+
+    function openAdminForm() {
+        if (!addAdminFormWrap || !toggleAddAdminBtn) return;
+        addAdminFormWrap.classList.add("open");
+        toggleAddAdminBtn.innerHTML = '<i class="fa-solid fa-chevron-up"></i><span>Hide Form</span>';
+    }
+
+    function closeAdminForm() {
+        if (!addAdminFormWrap || !toggleAddAdminBtn) return;
+        addAdminFormWrap.classList.remove("open");
+        toggleAddAdminBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i><span>Add Admin</span>';
     }
 
     flashMessages.forEach((flash) => {
@@ -214,6 +231,24 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    if (toggleAddAdminBtn) {
+        toggleAddAdminBtn.addEventListener("click", function () {
+            if (!addAdminFormWrap) return;
+
+            if (addAdminFormWrap.classList.contains("open")) {
+                closeAdminForm();
+            } else {
+                openAdminForm();
+            }
+        });
+    }
+
+    if (cancelAddAdminBtn) {
+        cancelAddAdminBtn.addEventListener("click", function () {
+            closeAdminForm();
+        });
+    }
+
     copyEmailElements.forEach((element) => {
         element.addEventListener("click", function () {
             copyText(this.textContent.trim(), "Email copied");
@@ -242,6 +277,10 @@ document.addEventListener("DOMContentLoaded", function () {
             showAllRows = false;
             filterRows("");
             searchInput.blur();
+        }
+
+        if (isEscapePressed && addAdminFormWrap && addAdminFormWrap.classList.contains("open")) {
+            closeAdminForm();
         }
     });
 

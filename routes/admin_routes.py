@@ -1,5 +1,6 @@
 import base64
 import os
+import re
 from datetime import datetime, timedelta
 from io import BytesIO
 
@@ -17,11 +18,12 @@ from flask import (
 )
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY, TA_LEFT
-from reportlab.lib.pagesizes import A4  
+from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
 from database.db_connection import get_connection
@@ -88,6 +90,28 @@ def is_protected_system_admin(user):
         and user["email"] == "admin@civicplan.local"
         and user["nic"] == "ADMIN000000V"
     )
+
+
+def normalize_employee_id(value):
+    return (value or "").strip().upper()
+
+
+def is_valid_employee_id(employee_id):
+    return bool(re.fullmatch(r"^[A-Za-z0-9\-_\/]{3,30}$", employee_id or ""))
+
+
+def is_valid_nic(nic):
+    return bool(re.fullmatch(r"^(?:\d{9}[VvXx]|\d{12})$", nic or ""))
+
+
+def is_valid_phone(phone_number):
+    if not phone_number:
+        return True
+    return bool(re.fullmatch(r"^\d{10}$", phone_number))
+
+
+def is_strong_password(password):
+    return bool(re.fullmatch(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$", password or ""))
 
 
 def ensure_planning_schema():
@@ -1287,7 +1311,6 @@ def admin_suspicious_behavior():
     )
 
 
-
 def create_user_notification(cursor, user_id, application_id, title, message, notification_type="info"):
     cursor.execute(
         """
@@ -1558,10 +1581,10 @@ def admin_dashboard():
     )
 
     security_high = safe_fetchone_value(
-    cursor,
-    "SELECT COUNT(*) AS total FROM suspicious_events WHERE severity = 'high'",
-    "total",
-)
+        cursor,
+        "SELECT COUNT(*) AS total FROM suspicious_events WHERE severity = 'high'",
+        "total",
+    )
     conn.close()
 
     return render_template(
@@ -1635,10 +1658,11 @@ def admin_users():
                 OR last_name LIKE ?
                 OR nic LIKE ?
                 OR email LIKE ?
+                OR employee_id LIKE ?
             )
             ORDER BY user_id ASC
             """,
-            (like_term, like_term, like_term, like_term, like_term),
+            (like_term, like_term, like_term, like_term, like_term, like_term),
         )
     else:
         cursor.execute("SELECT * FROM users ORDER BY user_id ASC")
@@ -1657,6 +1681,109 @@ def admin_users():
         inactive_users=inactive_users,
         active_page="user_management",
     )
+
+
+@admin_bp.route("/admin/users/create-admin", methods=["POST"])
+def create_admin_user():
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    first_name = request.form.get("first_name", "").strip()
+    last_name = request.form.get("last_name", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    phone_number = request.form.get("phone_number", "").strip()
+    address = request.form.get("address", "").strip()
+    city = request.form.get("city", "").strip()
+    nic = request.form.get("nic", "").strip().upper()
+    employee_id = normalize_employee_id(request.form.get("employee_id"))
+    password = request.form.get("password", "").strip()
+    confirm_password = request.form.get("confirm_password", "").strip()
+
+    if not first_name or not last_name or not email or not nic or not employee_id or not password or not confirm_password:
+        flash("Please fill all required admin fields.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    if not is_valid_nic(nic):
+        flash("NIC must be either 9 digits followed by V/X or 12 digits.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    if not is_valid_employee_id(employee_id):
+        flash("Employee ID must be 3 to 30 characters and use only letters, numbers, hyphens, underscores, or slashes.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    if not is_valid_phone(phone_number):
+        flash("Phone number must contain exactly 10 digits.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    if not is_strong_password(password):
+        flash("Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    if password != confirm_password:
+        flash("Passwords do not match.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT user_id FROM users WHERE nic = ?", (nic,))
+    if cursor.fetchone():
+        conn.close()
+        flash("NIC is already registered.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    cursor.execute("SELECT user_id FROM users WHERE LOWER(email) = LOWER(?)", (email,))
+    if cursor.fetchone():
+        conn.close()
+        flash("Email is already registered.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    cursor.execute("SELECT user_id FROM users WHERE employee_id = ?", (employee_id,))
+    if cursor.fetchone():
+        conn.close()
+        flash("Employee ID is already in use.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    password_hash = generate_password_hash(password)
+
+    cursor.execute(
+        """
+        INSERT INTO users (
+            first_name,
+            last_name,
+            phone_number,
+            email,
+            password_hash,
+            date_of_birth,
+            address,
+            city,
+            nic,
+            employee_id,
+            is_admin,
+            is_active
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1)
+        """,
+        (
+            first_name,
+            last_name,
+            phone_number,
+            email,
+            password_hash,
+            "",
+            address,
+            city,
+            nic,
+            employee_id,
+        ),
+    )
+
+    conn.commit()
+    conn.close()
+
+    flash("Admin account created successfully.", "success")
+    return redirect(url_for("admin.admin_users"))
 
 
 @admin_bp.route("/admin/users/<int:user_id>/toggle-status", methods=["POST"])
@@ -1874,6 +2001,8 @@ def make_admin(user_id):
     if redirect_response:
         return redirect_response
 
+    employee_id = normalize_employee_id(request.form.get("employee_id"))
+
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -1890,7 +2019,42 @@ def make_admin(user_id):
         flash("System Admin account is already protected.", "error")
         return redirect(url_for("admin.admin_users"))
 
-    cursor.execute("UPDATE users SET is_admin = 1 WHERE user_id = ?", (user_id,))
+    if target_user["is_admin"]:
+        conn.close()
+        flash("This user is already an admin.", "info")
+        return redirect(url_for("admin.admin_users"))
+
+    if not employee_id:
+        conn.close()
+        flash("Employee ID is required to promote a user to admin.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    if not is_valid_employee_id(employee_id):
+        conn.close()
+        flash("Employee ID must be 3 to 30 characters and use only letters, numbers, hyphens, underscores, or slashes.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    cursor.execute(
+        "SELECT user_id FROM users WHERE employee_id = ? AND user_id != ?",
+        (employee_id, user_id),
+    )
+    existing_employee = cursor.fetchone()
+
+    if existing_employee:
+        conn.close()
+        flash("Employee ID is already assigned to another account.", "error")
+        return redirect(url_for("admin.admin_users"))
+
+    cursor.execute(
+        """
+        UPDATE users
+        SET is_admin = 1,
+            employee_id = ?
+        WHERE user_id = ?
+        """,
+        (employee_id, user_id),
+    )
+
     conn.commit()
     conn.close()
 
@@ -1924,7 +2088,21 @@ def remove_admin(user_id):
         flash("System Admin admin rights cannot be removed.", "error")
         return redirect(url_for("admin.admin_users"))
 
-    cursor.execute("UPDATE users SET is_admin = 0 WHERE user_id = ?", (user_id,))
+    if not target_user["is_admin"]:
+        conn.close()
+        flash("This user is not an admin.", "warning")
+        return redirect(url_for("admin.admin_users"))
+
+    cursor.execute(
+        """
+        UPDATE users
+        SET is_admin = 0,
+            employee_id = NULL
+        WHERE user_id = ?
+        """,
+        (user_id,),
+    )
+
     conn.commit()
     conn.close()
 
