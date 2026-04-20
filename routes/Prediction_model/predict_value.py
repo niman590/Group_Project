@@ -52,8 +52,8 @@ def predict_land_value(
     if distance_to_city < 0:
         return {"error": "Distance cannot be negative."}
 
-    if access_road_size not in [10, 12, 15, 20, 25]:
-        return {"error": "Access road size must be one of 10, 12, 15, 20, 25."}
+    if access_road_size < 10:
+        return {"error": "Access road size must be at least 10 feet."}
 
     if electricity not in [0, 1] or water not in [0, 1] or flood_risk not in [0, 1]:
         return {"error": "Electricity, water, and flood_risk must be 0 or 1."}
