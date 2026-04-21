@@ -1,3 +1,4 @@
+from database.security_utils import track_failed_login
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.routing import BuildError
@@ -218,6 +219,7 @@ def login_post():
     conn.close()
 
     if not user:
+        track_failed_login(identifier_label=identifier)
         flash("Invalid credentials.", "error")
         return redirect(url_for("auth.login"))
 
@@ -226,6 +228,7 @@ def login_post():
         return redirect(url_for("auth.login"))
 
     if not check_password_hash(user["password_hash"], password):
+        track_failed_login(identifier_label=identifier)
         return handle_failed_login_attempt(user)
 
     reset_failed_login_attempts(user["user_id"])

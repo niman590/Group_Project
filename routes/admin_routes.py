@@ -27,6 +27,7 @@ from werkzeug.security import generate_password_hash
 from werkzeug.utils import secure_filename
 
 from database.db_connection import get_connection
+from database.security_utils import track_unauthorized_access, track_api_request_burst
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -74,10 +75,12 @@ def get_current_user():
 def admin_required():
     user = get_current_user()
     if not user:
+        track_unauthorized_access()
         flash("Please sign in first.", "error")
         return None, redirect(url_for("auth.login"))
 
     if not user["is_admin"]:
+        track_unauthorized_access()
         flash("Admin access only.", "error")
         return None, redirect(url_for("main.dashboard"))
 
@@ -1280,6 +1283,9 @@ def admin_suspicious_behavior():
     admin_user, redirect_response = admin_required()
     if redirect_response:
         return redirect_response
+    
+    if request.path.startswith("/api"):
+        track_api_request_burst(limit=20, minutes=1)
 
     severity = request.args.get("severity", "").strip()
     status = request.args.get("status", "").strip()
@@ -1309,6 +1315,59 @@ def admin_suspicious_behavior():
         end_date=end_date,
         active_page="suspicious_behavior",
     )
+
+@admin_bp.route("/admin/suspicious-behavior/<int:event_id>/mark-reviewed", methods=["POST"])
+def mark_suspicious_event_reviewed(event_id):
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE suspicious_events
+        SET status = 'reviewed',
+            reviewed_at = CURRENT_TIMESTAMP,
+            reviewed_by = ?
+        WHERE event_id = ?
+        """,
+        (admin_user["user_id"], event_id),
+    )
+
+    conn.commit()
+    conn.close()
+
+    flash("Security event marked as reviewed.", "success")
+    return redirect(url_for("admin.admin_suspicious_behavior"))
+
+
+@admin_bp.route("/admin/suspicious-behavior/<int:event_id>/mark-resolved", methods=["POST"])
+def mark_suspicious_event_resolved(event_id):
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE suspicious_events
+        SET status = 'resolved',
+            reviewed_at = CURRENT_TIMESTAMP,
+            reviewed_by = ?
+        WHERE event_id = ?
+        """,
+        (admin_user["user_id"], event_id),
+    )
+
+    conn.commit()
+    conn.close()
+
+    flash("Security event marked as resolved.", "success")
+    return redirect(url_for("admin.admin_suspicious_behavior"))
 
 
 def create_user_notification(cursor, user_id, application_id, title, message, notification_type="info"):
@@ -1502,6 +1561,9 @@ def admin_dashboard():
     admin_user, redirect_response = admin_required()
     if redirect_response:
         return redirect_response
+    
+    if request.path.startswith("/api"):
+        track_api_request_burst(limit=20, minutes=1)
 
     selected_range = request.args.get("range", "this_month").strip()
     raw_start_date = request.args.get("start_date", "").strip()
@@ -1635,6 +1697,9 @@ def admin_users():
     admin_user, redirect_response = admin_required()
     if redirect_response:
         return redirect_response
+
+    if request.path.startswith("/api"):
+        track_api_request_burst(limit=20, minutes=1)
 
     search_query = request.args.get("search", "").strip()
 

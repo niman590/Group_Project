@@ -2,8 +2,9 @@ import os
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 from database.db_connection import get_connection
+from database.security_utils import track_api_request_burst, log_suspicious_event
 
-transaction_history_bp = Blueprint("transaction_history", __name__)
+transaction_history_bp = Blueprint("transaction_history", __name__) 
 
 UPLOAD_FOLDER = "static/uploads/history_proofs"
 
@@ -16,6 +17,8 @@ def transaction_history_page():
 
 @transaction_history_bp.route("/get-transaction-history", methods=["POST"])
 def get_transaction_history():
+    track_api_request_burst(limit=10, minutes=1)
+
     data = request.get_json()
     deed_number = data.get("deed_number")
 
@@ -31,6 +34,18 @@ def get_transaction_history():
 
     if not land:
         conn.close()
+
+        log_suspicious_event(
+            user_id=session.get("user_id"),
+            rule_name="INVALID_TRANSACTION_LOOKUP",
+            severity="low",
+            event_type="transaction",
+            route=request.path,
+            ip_address=request.headers.get("X-Forwarded-For", request.remote_addr),
+            user_agent=request.headers.get("User-Agent"),
+            description=f"Transaction history lookup attempted with invalid deed number: {deed_number}",
+        )
+
         return jsonify({"error": "No land record found for this deed number."})
 
     land_id = land[0]
@@ -68,6 +83,8 @@ def get_transaction_history():
 
 @transaction_history_bp.route("/request-transaction-history-update", methods=["POST"])
 def request_transaction_history_update():
+    track_api_request_burst(limit=5, minutes=1)
+
     deed_number = request.form.get("deed_number")
     proposed_owner_name = request.form.get("proposed_owner_name")
     proposed_owner_nic = request.form.get("proposed_owner_nic")
@@ -95,8 +112,19 @@ def request_transaction_history_update():
 
     if not land:
         conn.close()
-        return jsonify({"error": "Invalid deed number. No matching land found."})
 
+        log_suspicious_event(
+            user_id=session.get("user_id"),
+            rule_name="INVALID_TRANSACTION_REQUEST",
+            severity="medium",
+            event_type="transaction",
+            route=request.path,
+            ip_address=request.headers.get("X-Forwarded-For", request.remote_addr),
+            user_agent=request.headers.get("User-Agent"),
+            description=f"Transaction history update attempted with invalid deed number: {deed_number}",
+        )
+
+        return jsonify({"error": "Invalid deed number. No matching land found."})
     cursor.execute("""
         INSERT INTO transaction_history_update_request
         (
@@ -126,6 +154,7 @@ def request_transaction_history_update():
 
 @transaction_history_bp.route("/admin/delete-approved-transaction/<int:request_id>", methods=["POST"])
 def delete_approved_transaction(request_id):
+    track_api_request_burst(limit=5, minutes=1)
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -141,7 +170,7 @@ def delete_approved_transaction(request_id):
         flash("Transaction request not found.", "error")
         return redirect(url_for("admin.admin_transaction_history_requests"))
 
-    if request_row[0] != "Approved":
+    if request_row["status"] != "Approved":
         conn.close()
         flash("Only approved transactions can be deleted.", "warning")
         return redirect(url_for("admin.admin_transaction_history_requests"))

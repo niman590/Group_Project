@@ -110,7 +110,13 @@ def track_failed_login(identifier_label="unknown"):
         ip_address=meta["ip_address"],
     )
 
-    if recent_count >= 5:
+    existing_high = count_recent_events(
+    rule_name="MULTIPLE_FAILED_LOGINS",
+    minutes=10,
+    ip_address=meta["ip_address"],
+    )
+
+    if recent_count >= 5 and existing_high == 0:
         log_suspicious_event(
             user_id=None,
             rule_name="MULTIPLE_FAILED_LOGINS",
@@ -145,7 +151,13 @@ def track_unauthorized_access():
         ip_address=meta["ip_address"],
     )
 
-    if recent_count >= 5:
+    existing_high = count_recent_events(
+    rule_name="REPEATED_UNAUTHORIZED_ACCESS",
+    minutes=10,
+    ip_address=meta["ip_address"],
+)
+
+    if recent_count >= 5 and existing_high == 0:
         log_suspicious_event(
             user_id=meta["user_id"],
             rule_name="REPEATED_UNAUTHORIZED_ACCESS",
@@ -163,33 +175,40 @@ def track_unauthorized_access():
 def track_api_request_burst(limit=10, minutes=1):
     meta = get_request_metadata()
 
+    # Always log normal request (low severity)
     log_suspicious_event(
-        user_id=meta["user_id"],
+        user_id=None,
         rule_name="API_REQUEST_EVENT",
         severity="low",
-        event_type="api",
+        event_type="system",
         route=meta["route"],
         ip_address=meta["ip_address"],
         user_agent=meta["user_agent"],
-        description="API request recorded for burst monitoring.",
     )
 
+    # Count how many requests in last 1 minute
     recent_count = count_recent_events(
         rule_name="API_REQUEST_EVENT",
         minutes=minutes,
         ip_address=meta["ip_address"],
     )
 
-    if recent_count >= limit:
+    # Check if burst already triggered recently
+    existing_burst = count_recent_events(
+        rule_name="API_REQUEST_BURST",
+        minutes=minutes,
+        ip_address=meta["ip_address"],
+    )
+
+    # 🚨 Only trigger if threshold reached AND not already triggered
+    if recent_count >= limit and existing_burst == 0:
         log_suspicious_event(
-            user_id=meta["user_id"],
+            user_id=None,
             rule_name="API_REQUEST_BURST",
-            severity="medium",
-            event_type="api",
+            severity="high",
+            event_type="system",
             route=meta["route"],
             ip_address=meta["ip_address"],
             user_agent=meta["user_agent"],
-            event_count=recent_count,
-            time_window_minutes=minutes,
-            description="High number of API requests detected in a short time window.",
+            description=f"{recent_count} requests within {minutes} minute(s)",
         )

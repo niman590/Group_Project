@@ -6,7 +6,7 @@
     <title>Civic Plan - Suspicious Behavior</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='admin_suspicious_behavior.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_suspicious_behavior.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
@@ -31,6 +31,17 @@
                 </a>
             </header>
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-stack auto-dismiss-flash" id="securityFlashStack">
+                    {% for category, message in messages %}
+                    <div class="flash-alert flash-{{ category }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
             <section class="stats-section">
                 <div class="section-head">
                     <div>
@@ -76,6 +87,65 @@
             <section class="stats-section">
                 <div class="section-head">
                     <div>
+                        <span class="section-kicker">Filters</span>
+                        <h2>Filter Suspicious Events</h2>
+                        <p>Filter suspicious events by severity, status, rule name, and date range.</p>
+                    </div>
+                </div>
+
+                <form method="GET" action="{{ url_for('admin.admin_suspicious_behavior') }}" class="security-filter-form">
+                    <div class="filter-grid">
+                        <div class="filter-field">
+                            <label for="severity">Severity</label>
+                            <select id="severity" name="severity">
+                                <option value="">All Severities</option>
+                                <option value="low" {% if severity == 'low' %}selected{% endif %}>Low</option>
+                                <option value="medium" {% if severity == 'medium' %}selected{% endif %}>Medium</option>
+                                <option value="high" {% if severity == 'high' %}selected{% endif %}>High</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-field">
+                            <label for="status">Status</label>
+                            <select id="status" name="status">
+                                <option value="">All Statuses</option>
+                                <option value="new" {% if status == 'new' %}selected{% endif %}>New</option>
+                                <option value="reviewed" {% if status == 'reviewed' %}selected{% endif %}>Reviewed</option>
+                                <option value="resolved" {% if status == 'resolved' %}selected{% endif %}>Resolved</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-field">
+                            <label for="rule_name">Rule Name</label>
+                            <input
+                                type="text"
+                                id="rule_name"
+                                name="rule_name"
+                                value="{{ rule_name }}"
+                                placeholder="Search by rule name">
+                        </div>
+
+                        <div class="filter-field">
+                            <label for="start_date">Start Date</label>
+                            <input type="date" id="start_date" name="start_date" value="{{ start_date }}">
+                        </div>
+
+                        <div class="filter-field">
+                            <label for="end_date">End Date</label>
+                            <input type="date" id="end_date" name="end_date" value="{{ end_date }}">
+                        </div>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button type="submit" class="btn-action btn-review">Apply Filter</button>
+                        <a href="{{ url_for('admin.admin_suspicious_behavior') }}" class="btn-reset-link">Reset</a>
+                    </div>
+                </form>
+            </section>
+
+            <section class="stats-section">
+                <div class="section-head">
+                    <div>
                         <span class="section-kicker">Events</span>
                         <h2>Suspicious Event List</h2>
                         <p>Recent suspicious activity detected by the system.</p>
@@ -92,21 +162,67 @@
                                 <th>Type</th>
                                 <th>IP</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for event in events %}
-                            <tr>
+                            <tr class="{% if event['severity'] | lower == 'high' %}high-row{% endif %}">
                                 <td>{{ event['created_at'] or '-' }}</td>
-                                <td>{{ event['rule_name'] }}</td>
-                                <td>{{ event['severity'] }}</td>
+
+                                <td>
+                                    <div class="rule-cell">
+                                        <strong>{{ event['rule_name'] }}</strong>
+                                        {% if 'description' in event.keys() and event['description'] %}
+                                        <small>{{ event['description'] }}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="severity-badge severity-{{ event['severity'] | lower }}">
+                                        {{ event['severity'] }}
+                                    </span>
+                                </td>
+
                                 <td>{{ event['event_type'] or '-' }}</td>
                                 <td>{{ event['ip_address'] or '-' }}</td>
-                                <td>{{ event['status'] }}</td>
+
+                                <td>
+                                    <span class="status-pill status-{{ event['status'] | lower }}">
+                                        {{ event['status'] }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div class="security-actions">
+                                        {% if event['status'] | lower != 'resolved' %}
+                                        <form method="POST" action="{{ url_for('admin.mark_suspicious_event_reviewed', event_id=event['event_id']) }}">
+                                            <button type="submit" class="btn-action btn-review">
+                                                Review
+                                            </button>
+                                        </form>
+                                        {% endif %}
+
+                                        {% if event['status'] | lower != 'resolved' %}
+                                        <form method="POST" action="{{ url_for('admin.mark_suspicious_event_resolved', event_id=event['event_id']) }}">
+                                            <button
+                                                type="submit"
+                                                class="btn-action btn-resolve"
+                                                onclick="return confirm('Mark this event as resolved?')"
+                                            >
+                                                Resolve
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <span class="resolved-text">No actions</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="6">No suspicious events found.</td>
+                                <td colspan="7" class="empty-cell">No suspicious events found.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -115,5 +231,22 @@
             </section>
         </main>
     </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const flashStack = document.getElementById("securityFlashStack");
+        if (!flashStack) return;
+
+        setTimeout(() => {
+            flashStack.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+            flashStack.style.opacity = "0";
+            flashStack.style.transform = "translateY(-8px)";
+
+            setTimeout(() => {
+                flashStack.remove();
+            }, 400);
+        }, 3000);
+    });
+    </script>
 </body>
 </html>
