@@ -6,6 +6,7 @@ from email.mime.multipart import MIMEMultipart
 from flask import Blueprint, render_template, request, jsonify, session, send_file, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 from database.db_connection import get_connection
+from database.security_utils import track_api_request_burst
 
 submit_documents_bp = Blueprint("submit_documents", __name__)
 
@@ -238,6 +239,8 @@ def save_planning_draft_step():
     if not user_id:
         return jsonify({"success": False, "message": "User not logged in"}), 401
 
+    track_api_request_burst(limit=15, minutes=1)
+
     payload = request.get_json()
     step = payload.get("step")
     data = payload.get("data", {})
@@ -452,6 +455,8 @@ def save_planning_draft_files():
     if not user_id:
         return jsonify({"success": False, "message": "User not logged in"}), 401
 
+    track_api_request_burst(limit=5, minutes=1)
+
     application_id = get_or_create_draft_application(user_id)
 
     conn = get_connection()
@@ -473,6 +478,14 @@ def save_planning_draft_files():
         for file in files:
             if file and file.filename:
                 filename = secure_filename(file.filename)
+
+                if not filename.lower().endswith(".pdf"):
+                    conn.close()
+                    return jsonify({
+                        "success": False,
+                        "message": "Only PDF files are allowed."
+                    }), 400
+
                 save_path = os.path.join(folder, filename)
                 file.save(save_path)
 
@@ -606,6 +619,8 @@ def submit_planning_application():
     user_id = session.get("user_id")
     if not user_id:
         return jsonify({"success": False, "message": "User not logged in"}), 401
+
+    track_api_request_burst(limit=3, minutes=1)
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -753,6 +768,8 @@ def delete_draft_application(application_id):
         flash("Please log in first.", "error")
         return redirect(url_for("auth.login"))
 
+    track_api_request_burst(limit=3, minutes=1)
+
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -787,7 +804,7 @@ def delete_draft_application(application_id):
     cursor.execute("DELETE FROM planning_application_attachments WHERE application_id = ?", (application_id,))
     cursor.execute("DELETE FROM planning_application_requests WHERE application_id = ?", (application_id,))
     cursor.execute("DELETE FROM planning_application_requested_documents WHERE application_id = ?", (application_id,))
-    cursor.execute("DELETE FROM planning_application_workflow_HISTORY WHERE application_id = ?", (application_id,))
+    cursor.execute("DELETE FROM planning_application_workflow_history WHERE application_id = ?", (application_id,))
     cursor.execute("DELETE FROM user_notifications WHERE application_id = ?", (application_id,))
     cursor.execute("DELETE FROM planning_applications WHERE application_id = ?", (application_id,))
 
@@ -805,9 +822,16 @@ def upload_requested_document(requested_doc_id):
         flash("Please log in first.", "error")
         return redirect(url_for("auth.login"))
 
+    track_api_request_burst(limit=5, minutes=1)
+
     uploaded_file = request.files.get("requested_document")
     if not uploaded_file or not uploaded_file.filename:
         flash("Please choose a file to upload.", "warning")
+        return redirect(url_for("submit_documents.my_applications"))
+
+    filename = secure_filename(uploaded_file.filename)
+    if not filename.lower().endswith(".pdf"):
+        flash("Only PDF files are allowed.", "error")
         return redirect(url_for("submit_documents.my_applications"))
 
     conn = get_connection()
@@ -831,7 +855,6 @@ def upload_requested_document(requested_doc_id):
     folder = os.path.join(REQUESTED_DOCS_FOLDER, str(application_id))
     os.makedirs(folder, exist_ok=True)
 
-    filename = secure_filename(uploaded_file.filename)
     save_path = os.path.join(folder, filename)
     uploaded_file.save(save_path)
 
