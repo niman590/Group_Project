@@ -1,8 +1,12 @@
+<<<<<<< HEAD
 from database.security_utils import track_failed_login
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.routing import BuildError
 from database.db_connection import get_connection
+<<<<<<< HEAD
 import re
 
 auth_bp = Blueprint("auth", __name__)
@@ -12,6 +16,11 @@ SYSTEM_ADMIN_EMAIL = "admin@civicplan.local"
 SYSTEM_ADMIN_NIC = "ADMIN000000V"
 SYSTEM_ADMIN_EMPLOYEE_ID = "ADMIN001"
 
+=======
+
+auth_bp = Blueprint("auth", __name__)
+
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
 def get_user_columns():
     conn = get_connection()
@@ -26,6 +35,7 @@ def has_column(column_name):
     return column_name in get_user_columns()
 
 
+<<<<<<< HEAD
 def ensure_failed_login_attempts_column():
     conn = get_connection()
     cursor = conn.cursor()
@@ -41,6 +51,8 @@ def ensure_failed_login_attempts_column():
     conn.close()
 
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 def get_full_name(user):
     first_name = user["first_name"] if "first_name" in user.keys() and user["first_name"] else ""
     last_name = user["last_name"] if "last_name" in user.keys() and user["last_name"] else ""
@@ -59,6 +71,7 @@ def is_active_user(user):
     return True
 
 
+<<<<<<< HEAD
 def is_protected_system_admin(user):
     return (
         user is not None
@@ -71,6 +84,8 @@ def is_protected_system_admin(user):
     )
 
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 def sync_session_user(user):
     session["user_id"] = user["user_id"]
     session["first_name"] = user["first_name"] if "first_name" in user.keys() else ""
@@ -96,6 +111,7 @@ def redirect_after_login(user):
     return redirect(url_for("user.user_dashboard"))
 
 
+<<<<<<< HEAD
 def reset_failed_login_attempts(user_id):
     conn = get_connection()
     cursor = conn.cursor()
@@ -169,6 +185,8 @@ def handle_failed_login_attempt(user):
     return redirect(url_for("auth.login"))
 
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 @auth_bp.route("/login", methods=["GET"])
 def login():
     return render_template("login.html")
@@ -176,13 +194,20 @@ def login():
 
 @auth_bp.route("/login", methods=["POST"])
 def login_post():
+<<<<<<< HEAD
     ensure_failed_login_attempts_column()
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     identifier = request.form.get("nic", "").strip()
     password = request.form.get("password", "").strip()
 
     if not identifier or not password:
+<<<<<<< HEAD
         flash("NIC / Employee ID and password are required.", "error")
+=======
+        flash("NIC or username and password are required.", "error")
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         return redirect(url_for("auth.login"))
 
     conn = get_connection()
@@ -191,6 +216,7 @@ def login_post():
 
     user = None
 
+<<<<<<< HEAD
     # 1. Try protected default system admin using default credentials
     # Allowed identifiers: default NIC, default employee ID, default email
     if "employee_id" in columns:
@@ -274,12 +300,57 @@ def login_post():
                 identifier,
             ),
         )
+=======
+    # 1. Try citizen login by NIC
+    cursor.execute(
+        """
+        SELECT * FROM users
+        WHERE nic = ?
+        LIMIT 1
+        """,
+        (identifier,),
+    )
+    user = cursor.fetchone()
+
+    # 2. If not found, try admin login by full name / email / employee_id (if available)
+    if not user:
+        if "employee_id" in columns:
+            cursor.execute(
+                """
+                SELECT * FROM users
+                WHERE is_admin = 1
+                  AND (
+                        LOWER(TRIM(first_name || ' ' || last_name)) = LOWER(?)
+                        OR LOWER(email) = LOWER(?)
+                        OR LOWER(employee_id) = LOWER(?)
+                  )
+                LIMIT 1
+                """,
+                (identifier, identifier, identifier),
+            )
+        else:
+            cursor.execute(
+                """
+                SELECT * FROM users
+                WHERE is_admin = 1
+                  AND (
+                        LOWER(TRIM(first_name || ' ' || last_name)) = LOWER(?)
+                        OR LOWER(email) = LOWER(?)
+                  )
+                LIMIT 1
+                """,
+                (identifier, identifier),
+            )
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         user = cursor.fetchone()
 
     conn.close()
 
     if not user:
+<<<<<<< HEAD
         track_failed_login(identifier_label=identifier)
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         flash("Invalid credentials.", "error")
         return redirect(url_for("auth.login"))
 
@@ -288,10 +359,16 @@ def login_post():
         return redirect(url_for("auth.login"))
 
     if not check_password_hash(user["password_hash"], password):
+<<<<<<< HEAD
         track_failed_login(identifier_label=identifier)
         return handle_failed_login_attempt(user)
 
     reset_failed_login_attempts(user["user_id"])
+=======
+        flash("Invalid credentials.", "error")
+        return redirect(url_for("auth.login"))
+
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     sync_session_user(user)
     flash("Login successful.", "success")
     return redirect_after_login(user)
@@ -304,8 +381,11 @@ def register():
 
 @auth_bp.route("/register", methods=["POST"])
 def register_post():
+<<<<<<< HEAD
     ensure_failed_login_attempts_column()
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     first_name = request.form.get("first_name", "").strip()
     last_name = request.form.get("last_name", "").strip()
     nic = request.form.get("nic", "").strip()
@@ -321,6 +401,7 @@ def register_post():
         flash("Please fill all required fields.", "error")
         return redirect(url_for("auth.register"))
 
+<<<<<<< HEAD
     nic_pattern = r"^(?:\d{9}[VvXx]|\d{12})$"
     if not re.fullmatch(nic_pattern, nic):
         flash("NIC must be either 9 digits followed by V/X or 12 digits.", "error")
@@ -338,6 +419,8 @@ def register_post():
         )
         return redirect(url_for("auth.register"))
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     if password != confirm_password:
         flash("Passwords do not match.", "error")
         return redirect(url_for("auth.register"))
@@ -362,6 +445,7 @@ def register_post():
 
     password_hash = generate_password_hash(password)
 
+<<<<<<< HEAD
     if "is_active" in columns and "failed_login_attempts" in columns:
         cursor.execute(
             """
@@ -397,6 +481,9 @@ def register_post():
             ),
         )
     elif "is_active" in columns:
+=======
+    if "is_active" in columns:
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         cursor.execute(
             """
             INSERT INTO users (
@@ -471,6 +558,53 @@ def password_reset():
     return render_template("password_reset.html")
 
 
+<<<<<<< HEAD
+=======
+@auth_bp.route("/password_reset", methods=["POST"])
+def password_reset_post():
+    email = request.form.get("email", "").strip()
+    otp = request.form.get("otp", "").strip()
+    new_password = request.form.get("new_password", "").strip()
+    confirm_password = request.form.get("confirm_password", "").strip()
+
+    if not email or not new_password:
+        flash("Email and new password are required.", "error")
+        return redirect(url_for("auth.password_reset"))
+
+    if new_password != confirm_password:
+        flash("Passwords do not match.", "error")
+        return redirect(url_for("auth.password_reset"))
+
+    # OTP not implemented yet; kept here for UI compatibility
+    _ = otp
+
+    password_hash = generate_password_hash(new_password)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE users
+        SET password_hash = ?
+        WHERE email = ?
+        """,
+        (password_hash, email),
+    )
+
+    conn.commit()
+    updated_rows = cursor.rowcount
+    conn.close()
+
+    if updated_rows == 0:
+        flash("No account found with that email.", "error")
+        return redirect(url_for("auth.password_reset"))
+
+    flash("Password reset successful. Please sign in.", "success")
+    return redirect(url_for("auth.login"))
+
+
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 @auth_bp.route("/logout")
 def logout():
     session.clear()

@@ -6,6 +6,7 @@ function formatLKR(value) {
     }).format(value);
 }
 
+<<<<<<< HEAD
 function sanitizePositiveDecimalInput(value) {
     let cleaned = String(value || "");
 
@@ -92,6 +93,12 @@ function getLandValuationPayload() {
     return {
         land_size: parseFloat(document.getElementById("land_size").value),
         access_road_size: parseFloat(document.getElementById("access_road_size").value),
+=======
+function getLandValuationPayload() {
+    return {
+        land_size: parseFloat(document.getElementById("land_size").value),
+        access_road_size: parseInt(document.getElementById("access_road_size").value),
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         location: document.getElementById("location").value,
         distance_to_city: parseFloat(document.getElementById("distance_to_city").value),
         zone_type: document.getElementById("zone_type").value,
@@ -101,6 +108,7 @@ function getLandValuationPayload() {
     };
 }
 
+<<<<<<< HEAD
 function showValuationMessage(message, type) {
     const messageBox = document.getElementById("valuation_message");
     if (!messageBox) return;
@@ -158,11 +166,15 @@ function validatePayload(payload) {
         setFieldError("distance_to_city", true);
     }
 
+=======
+function validatePayload(payload) {
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     if (
         isNaN(payload.land_size) ||
         isNaN(payload.access_road_size) ||
         isNaN(payload.distance_to_city)
     ) {
+<<<<<<< HEAD
         showValuationMessage("Please fill all numeric fields correctly.", "error");
         return false;
     }
@@ -179,11 +191,18 @@ function validatePayload(payload) {
         setFieldError("distance_to_city", true);
     }
 
+=======
+        alert("Please fill all numeric fields correctly.");
+        return false;
+    }
+
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     if (
         payload.land_size < 0 ||
         payload.access_road_size < 0 ||
         payload.distance_to_city < 0
     ) {
+<<<<<<< HEAD
         showValuationMessage("Values cannot be negative.", "error");
         return false;
     }
@@ -233,6 +252,15 @@ function clearButtonLoading(buttonId) {
     }
 }
 
+=======
+        alert("Values cannot be negative.");
+        return false;
+    }
+
+    return true;
+}
+
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 async function predictLandValue() {
     const payload = getLandValuationPayload();
 
@@ -241,7 +269,10 @@ async function predictLandValue() {
     }
 
     try {
+<<<<<<< HEAD
         setButtonLoading("predict_btn", "Estimating...");
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         const response = await fetch("/predict-land-value", {
             method: "POST",
             headers: {
@@ -253,12 +284,20 @@ async function predictLandValue() {
         const result = await response.json();
 
         if (!response.ok) {
+<<<<<<< HEAD
             showValuationMessage(result.error || "Something went wrong while predicting land value.", "error");
+=======
+            alert(result.error || "Something went wrong while predicting land value.");
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
             return;
         }
 
         if (result.error) {
+<<<<<<< HEAD
             showValuationMessage(result.error, "error");
+=======
+            alert(result.error);
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
             return;
         }
 
@@ -266,6 +305,7 @@ async function predictLandValue() {
         document.getElementById("predicted_1_year").innerText = formatLKR(result.predicted_1_year);
         document.getElementById("predicted_5_year").innerText = formatLKR(result.predicted_5_year);
 
+<<<<<<< HEAD
         updateResultSummary(payload);
         document.getElementById("download_pdf_btn").disabled = false;
         showValuationMessage("Land valuation estimated successfully.", "success");
@@ -275,6 +315,13 @@ async function predictLandValue() {
         console.error(error);
     } finally {
         clearButtonLoading("predict_btn");
+=======
+        document.getElementById("download_pdf_btn").disabled = false;
+
+    } catch (error) {
+        alert("Something went wrong while predicting land value.");
+        console.error(error);
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     }
 }
 
@@ -286,7 +333,10 @@ async function downloadLandValuationPDF() {
     }
 
     try {
+<<<<<<< HEAD
         setButtonLoading("download_pdf_btn", "Preparing PDF...");
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         const response = await fetch("/download-land-valuation-pdf", {
             method: "POST",
             headers: {
@@ -311,6 +361,7 @@ async function downloadLandValuationPDF() {
         a.remove();
 
         window.URL.revokeObjectURL(url);
+<<<<<<< HEAD
         showValuationMessage("PDF report downloaded successfully.", "success");
 
     } catch (error) {
@@ -362,3 +413,11 @@ document.addEventListener("DOMContentLoaded", function () {
     window.addEventListener("scroll", revealOnScroll);
     revealOnScroll();
 });
+=======
+
+    } catch (error) {
+        alert(error.message || "Something went wrong while downloading the PDF.");
+        console.error(error);
+    }
+}
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32

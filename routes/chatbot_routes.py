@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 from flask import Blueprint, request, jsonify, session, url_for
 from google import genai
 from dotenv import load_dotenv
 from database.db_connection import get_connection
 import os
 import re
+=======
+from flask import Blueprint, request, jsonify
+from google import genai
+from dotenv import load_dotenv
+import os
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
 load_dotenv()
 
@@ -30,7 +37,10 @@ Rules:
 - Keep answers helpful for Sri Lankan land-management portal users.
 """
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 def get_gemini_client():
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
@@ -38,6 +48,7 @@ def get_gemini_client():
     return genai.Client(api_key=api_key)
 
 
+<<<<<<< HEAD
 def is_logged_in():
     return "user_id" in session
 
@@ -551,6 +562,8 @@ Available website modules:
     return reply_text
 
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 @chatbot_bp.route("/chat", methods=["POST"])
 def chat():
     try:
@@ -560,6 +573,7 @@ def chat():
         if not user_message:
             return jsonify({"reply": "Please enter a message first."}), 400
 
+<<<<<<< HEAD
         navigation_response = handle_navigation_intent(user_message)
         if navigation_response is not None:
             return navigation_response
@@ -583,5 +597,26 @@ def chat():
     except Exception as e:
         return jsonify({
             "type": "answer",
+=======
+        client = get_gemini_client()
+        if client is None:
+            return jsonify({
+                "reply": "Chatbot is not configured yet. Please set GEMINI_API_KEY in your .env file."
+            }), 500
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"{SYSTEM_PROMPT}\n\nUser: {user_message}"
+        )
+
+        reply_text = getattr(response, "text", None)
+        if not reply_text:
+            reply_text = "Sorry, I could not generate a reply right now."
+
+        return jsonify({"reply": reply_text})
+
+    except Exception as e:
+        return jsonify({
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
             "reply": f"Something went wrong while contacting the AI assistant: {str(e)}"
         }), 500

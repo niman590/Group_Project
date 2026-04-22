@@ -34,5 +34,9 @@ def land_record():
 # Permit status details
 @main_bp.route("/services/permit-status")
 def permit_status():
+<<<<<<< HEAD
     return render_template("permit_status.html")
 
+=======
+    return render_template("permit_status.html")
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32

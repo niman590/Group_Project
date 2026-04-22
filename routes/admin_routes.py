@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import base64
 import os
 import re
@@ -52,6 +53,15 @@ WORKFLOW_STAGES = [
 
 ALLOWED_DOC_EXTENSIONS = {"pdf", "doc", "docx"}
 
+=======
+from flask import render_template, request, redirect, url_for, flash, session
+from datetime import datetime
+from database.db_connection import get_connection
+from flask import Blueprint
+
+admin_bp = Blueprint("admin", __name__)
+
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
 def get_current_user():
     if "user_id" not in session:
@@ -59,6 +69,7 @@ def get_current_user():
 
     conn = get_connection()
     cursor = conn.cursor()
+<<<<<<< HEAD
     cursor.execute(
         """
         SELECT *
@@ -67,6 +78,12 @@ def get_current_user():
         """,
         (session["user_id"],),
     )
+=======
+    cursor.execute("""
+        SELECT * FROM users
+        WHERE user_id = ?
+    """, (session["user_id"],))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     user = cursor.fetchone()
     conn.close()
     return user
@@ -75,12 +92,18 @@ def get_current_user():
 def admin_required():
     user = get_current_user()
     if not user:
+<<<<<<< HEAD
         track_unauthorized_access()
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         flash("Please sign in first.", "error")
         return None, redirect(url_for("auth.login"))
 
     if not user["is_admin"]:
+<<<<<<< HEAD
         track_unauthorized_access()
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         flash("Admin access only.", "error")
         return None, redirect(url_for("main.dashboard"))
 
@@ -95,6 +118,7 @@ def is_protected_system_admin(user):
     )
 
 
+<<<<<<< HEAD
 def normalize_employee_id(value):
     return (value or "").strip().upper()
 
@@ -1556,11 +1580,14 @@ def fetch_full_application_bundle(application_id):
     }
 
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 @admin_bp.route("/admin/dashboard")
 def admin_dashboard():
     admin_user, redirect_response = admin_required()
     if redirect_response:
         return redirect_response
+<<<<<<< HEAD
     
     if request.path.startswith("/api"):
         track_api_request_burst(limit=20, minutes=1)
@@ -1700,16 +1727,32 @@ def admin_users():
 
     if request.path.startswith("/api"):
         track_api_request_burst(limit=20, minutes=1)
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     search_query = request.args.get("search", "").strip()
 
     conn = get_connection()
     cursor = conn.cursor()
 
+<<<<<<< HEAD
     total_users = safe_fetchone_value(cursor, "SELECT COUNT(*) AS total_users FROM users", "total_users")
     total_admins = safe_fetchone_value(cursor, "SELECT COUNT(*) AS total_admins FROM users WHERE is_admin = 1", "total_admins")
     active_users = safe_fetchone_value(cursor, "SELECT COUNT(*) AS active_users FROM users WHERE is_active = 1", "active_users")
     inactive_users = safe_fetchone_value(cursor, "SELECT COUNT(*) AS inactive_users FROM users WHERE is_active = 0", "inactive_users")
+=======
+    cursor.execute("SELECT COUNT(*) AS total_users FROM users")
+    total_users = cursor.fetchone()["total_users"]
+
+    cursor.execute("SELECT COUNT(*) AS total_admins FROM users WHERE is_admin = 1")
+    total_admins = cursor.fetchone()["total_admins"]
+
+    cursor.execute("SELECT COUNT(*) AS active_users FROM users WHERE is_active = 1")
+    active_users = cursor.fetchone()["active_users"]
+
+    cursor.execute("SELECT COUNT(*) AS inactive_users FROM users WHERE is_active = 0")
+    inactive_users = cursor.fetchone()["inactive_users"]
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     if search_query:
         like_term = f"%{search_query}%"
@@ -1723,6 +1766,7 @@ def admin_users():
                 OR last_name LIKE ?
                 OR nic LIKE ?
                 OR email LIKE ?
+<<<<<<< HEAD
                 OR employee_id LIKE ?
             )
             ORDER BY user_id ASC
@@ -1731,19 +1775,41 @@ def admin_users():
         )
     else:
         cursor.execute("SELECT * FROM users ORDER BY user_id ASC")
+=======
+            )
+            ORDER BY user_id ASC
+            """,
+            (like_term, like_term, like_term, like_term, like_term),
+        )
+    else:
+        cursor.execute(
+            """
+            SELECT *
+            FROM users
+            ORDER BY user_id ASC
+            """
+        )
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     users = cursor.fetchall()
     conn.close()
 
     return render_template(
+<<<<<<< HEAD
         "admin_user_management.html",
         user=admin_user,
         users=users,
         search_query=search_query,
+=======
+        "admin_dashboard.html",
+        user=admin_user,
+        users=users,
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         total_users=total_users,
         total_admins=total_admins,
         active_users=active_users,
         inactive_users=inactive_users,
+<<<<<<< HEAD
         active_page="user_management",
     )
 
@@ -1858,6 +1924,15 @@ def create_admin_user():
 
     flash("Admin account created successfully.", "success")
     return redirect(url_for("admin.admin_users"))
+=======
+        search_query=search_query,
+    )
+
+
+@admin_bp.route("/admin/users")
+def admin_users():
+    return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
 
 @admin_bp.route("/admin/users/<int:user_id>/toggle-status", methods=["POST"])
@@ -1868,7 +1943,11 @@ def toggle_user_status(user_id):
 
     if admin_user["user_id"] == user_id:
         flash("You cannot deactivate your own admin account.", "error")
+<<<<<<< HEAD
         return redirect(url_for("admin.admin_users"))
+=======
+        return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -1879,11 +1958,16 @@ def toggle_user_status(user_id):
     if not target_user:
         conn.close()
         flash("User not found.", "error")
+<<<<<<< HEAD
         return redirect(url_for("admin.admin_users"))
+=======
+        return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     if is_protected_system_admin(target_user):
         conn.close()
         flash("System Admin account cannot be deactivated or changed.", "error")
+<<<<<<< HEAD
         return redirect(url_for("admin.admin_users"))
 
     new_status = 0 if target_user["is_active"] else 1
@@ -1896,10 +1980,22 @@ def toggle_user_status(user_id):
         """,
         (new_status, user_id),
     )
+=======
+        return redirect(url_for("admin.admin_dashboard"))
+
+    new_status = 0 if target_user["is_active"] else 1
+
+    cursor.execute("""
+        UPDATE users
+        SET is_active = ?
+        WHERE user_id = ?
+    """, (new_status, user_id))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     conn.commit()
     conn.close()
 
+<<<<<<< HEAD
     flash("User account status updated successfully.", "success")
     return redirect(url_for("admin.admin_users"))
 
@@ -1915,18 +2011,38 @@ def admin_transaction_history_requests():
 
     cursor.execute(
         """
+=======
+    if new_status == 1:
+        flash("User account activated successfully.", "success")
+    else:
+        flash("User account deactivated successfully.", "success")
+
+    return redirect(url_for("admin.admin_dashboard"))
+
+@admin_bp.route("/admin/transaction-history-requests")
+def admin_transaction_history_requests():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         SELECT request_id, deed_number, proposed_owner_name, proposed_owner_nic,
                proposed_owner_address, proposed_owner_phone,
                proposed_transfer_date, proposed_transaction_type,
                notes, proof_document_path, status, submitted_at
         FROM transaction_history_update_request
         ORDER BY submitted_at DESC
+<<<<<<< HEAD
         """
     )
+=======
+    """)
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     requests = cursor.fetchall()
 
     conn.close()
 
+<<<<<<< HEAD
     return render_template(
         "admin_transaction_history_requests.html",
         user=admin_user,
@@ -1954,6 +2070,23 @@ def approve_transaction_history_request(request_id):
         """,
         (request_id,),
     )
+=======
+    return render_template("admin_transaction_history_requests.html", requests=requests)
+
+@admin_bp.route("/admin/transaction-history-request/<int:request_id>/approve", methods=["POST"])
+def approve_transaction_history_request(request_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Get request details
+    cursor.execute("""
+        SELECT deed_number, proposed_owner_name, proposed_owner_nic,
+               proposed_owner_address, proposed_owner_phone,
+               proposed_transfer_date, proposed_transaction_type
+        FROM transaction_history_update_request
+        WHERE request_id = ? AND status = 'Pending'
+    """, (request_id,))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     req = cursor.fetchone()
 
     if not req:
@@ -1969,7 +2102,16 @@ def approve_transaction_history_request(request_id):
     proposed_transfer_date = req["proposed_transfer_date"]
     proposed_transaction_type = req["proposed_transaction_type"]
 
+<<<<<<< HEAD
     cursor.execute("SELECT land_id FROM land_record WHERE deed_number = ?", (deed_number,))
+=======
+    # Find matching land
+    cursor.execute("""
+        SELECT land_id
+        FROM land_record
+        WHERE deed_number = ?
+    """, (deed_number,))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     land = cursor.fetchone()
 
     if not land:
@@ -1979,6 +2121,7 @@ def approve_transaction_history_request(request_id):
 
     land_id = land["land_id"]
 
+<<<<<<< HEAD
     cursor.execute(
         """
         SELECT COALESCE(MAX(ownership_order), 0)
@@ -1993,10 +2136,26 @@ def approve_transaction_history_request(request_id):
     cursor.execute(
         """
         INSERT INTO ownership_history (
+=======
+    # Get next ownership order
+    cursor.execute("""
+        SELECT COALESCE(MAX(ownership_order), 0)
+        FROM ownership_history
+        WHERE land_id = ?
+    """, (land_id,))
+    max_order = cursor.fetchone()[0]
+    next_order = max_order + 1
+
+    # Insert into official ownership history
+    cursor.execute("""
+        INSERT INTO ownership_history
+        (
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
             land_id, owner_name, owner_nic, owner_address, owner_phone,
             transfer_date, transaction_type, ownership_order
         )
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+<<<<<<< HEAD
         """,
         (
             land_id,
@@ -2023,14 +2182,43 @@ def approve_transaction_history_request(request_id):
 
     cursor.execute(
         """
+=======
+    """, (
+        land_id,
+        proposed_owner_name,
+        proposed_owner_nic,
+        proposed_owner_address,
+        proposed_owner_phone,
+        proposed_transfer_date,
+        proposed_transaction_type,
+        next_order
+    ))
+
+    # Update current owner in land_record
+    cursor.execute("""
+        UPDATE land_record
+        SET current_owner_name = ?
+        WHERE land_id = ?
+    """, (proposed_owner_name, land_id))
+
+    # Mark request approved
+    admin_user_id = session.get("user_id", None)
+    reviewed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    cursor.execute("""
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         UPDATE transaction_history_update_request
         SET status = 'Approved',
             reviewed_by = ?,
             reviewed_at = ?
         WHERE request_id = ?
+<<<<<<< HEAD
         """,
         (admin_user["user_id"], reviewed_at, request_id),
     )
+=======
+    """, (admin_user_id, reviewed_at, request_id))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     conn.commit()
     conn.close()
@@ -2038,6 +2226,7 @@ def approve_transaction_history_request(request_id):
     flash("Transaction history request approved successfully.", "success")
     return redirect(url_for("admin.admin_transaction_history_requests"))
 
+<<<<<<< HEAD
 
 @admin_bp.route("/admin/transaction-history-request/<int:request_id>/reject", methods=["POST"])
 def reject_transaction_history_request(request_id):
@@ -2052,15 +2241,32 @@ def reject_transaction_history_request(request_id):
 
     cursor.execute(
         """
+=======
+@admin_bp.route("/admin/transaction-history-request/<int:request_id>/reject", methods=["POST"])
+def reject_transaction_history_request(request_id):
+    admin_comment = request.form.get("admin_comment", "")
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    admin_user_id = session.get("user_id", None)
+    reviewed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    cursor.execute("""
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         UPDATE transaction_history_update_request
         SET status = 'Rejected',
             reviewed_by = ?,
             reviewed_at = ?,
             admin_comment = ?
         WHERE request_id = ? AND status = 'Pending'
+<<<<<<< HEAD
         """,
         (admin_user["user_id"], reviewed_at, admin_comment, request_id),
     )
+=======
+    """, (admin_user_id, reviewed_at, admin_comment, request_id))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     conn.commit()
     conn.close()
@@ -2068,15 +2274,21 @@ def reject_transaction_history_request(request_id):
     flash("Transaction history request rejected.", "warning")
     return redirect(url_for("admin.admin_transaction_history_requests"))
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 @admin_bp.route("/admin/users/<int:user_id>/make-admin", methods=["POST"])
 def make_admin(user_id):
     admin_user, redirect_response = admin_required()
     if redirect_response:
         return redirect_response
 
+<<<<<<< HEAD
     employee_id = normalize_employee_id(request.form.get("employee_id"))
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -2086,11 +2298,16 @@ def make_admin(user_id):
     if not target_user:
         conn.close()
         flash("User not found.", "error")
+<<<<<<< HEAD
         return redirect(url_for("admin.admin_users"))
+=======
+        return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     if is_protected_system_admin(target_user):
         conn.close()
         flash("System Admin account is already protected.", "error")
+<<<<<<< HEAD
         return redirect(url_for("admin.admin_users"))
 
     if target_user["is_admin"]:
@@ -2128,12 +2345,25 @@ def make_admin(user_id):
         """,
         (employee_id, user_id),
     )
+=======
+        return redirect(url_for("admin.admin_dashboard"))
+
+    cursor.execute("""
+        UPDATE users
+        SET is_admin = 1
+        WHERE user_id = ?
+    """, (user_id,))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     conn.commit()
     conn.close()
 
     flash("User promoted to admin successfully.", "success")
+<<<<<<< HEAD
     return redirect(url_for("admin.admin_users"))
+=======
+    return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
 
 @admin_bp.route("/admin/users/<int:user_id>/remove-admin", methods=["POST"])
@@ -2144,7 +2374,11 @@ def remove_admin(user_id):
 
     if admin_user["user_id"] == user_id:
         flash("You cannot remove your own admin access.", "error")
+<<<<<<< HEAD
         return redirect(url_for("admin.admin_users"))
+=======
+        return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -2155,11 +2389,16 @@ def remove_admin(user_id):
     if not target_user:
         conn.close()
         flash("User not found.", "error")
+<<<<<<< HEAD
         return redirect(url_for("admin.admin_users"))
+=======
+        return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     if is_protected_system_admin(target_user):
         conn.close()
         flash("System Admin admin rights cannot be removed.", "error")
+<<<<<<< HEAD
         return redirect(url_for("admin.admin_users"))
 
     if not target_user["is_admin"]:
@@ -2176,12 +2415,25 @@ def remove_admin(user_id):
         """,
         (user_id,),
     )
+=======
+        return redirect(url_for("admin.admin_dashboard"))
+
+    cursor.execute("""
+        UPDATE users
+        SET is_admin = 0
+        WHERE user_id = ?
+    """, (user_id,))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     conn.commit()
     conn.close()
 
     flash("Admin access removed successfully.", "success")
+<<<<<<< HEAD
     return redirect(url_for("admin.admin_users"))
+=======
+    return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
 
 @admin_bp.route("/admin/users/<int:user_id>/delete", methods=["POST"])
@@ -2192,7 +2444,11 @@ def delete_user(user_id):
 
     if admin_user["user_id"] == user_id:
         flash("You cannot delete your own admin account.", "error")
+<<<<<<< HEAD
         return redirect(url_for("admin.admin_users"))
+=======
+        return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -2203,12 +2459,20 @@ def delete_user(user_id):
     if not target_user:
         conn.close()
         flash("User not found.", "error")
+<<<<<<< HEAD
         return redirect(url_for("admin.admin_users"))
+=======
+        return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     if is_protected_system_admin(target_user):
         conn.close()
         flash("System Admin account cannot be deleted.", "error")
+<<<<<<< HEAD
         return redirect(url_for("admin.admin_users"))
+=======
+        return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     cursor.execute("SELECT property_id FROM property WHERE owner_id = ?", (user_id,))
     property_ids = [row["property_id"] for row in cursor.fetchall()]
@@ -2216,6 +2480,7 @@ def delete_user(user_id):
     if property_ids:
         placeholders = ",".join("?" for _ in property_ids)
 
+<<<<<<< HEAD
         cursor.execute(f"DELETE FROM transaction_history WHERE property_id IN ({placeholders})", property_ids)
         cursor.execute(f"DELETE FROM value_prediction WHERE property_id IN ({placeholders})", property_ids)
 
@@ -2236,10 +2501,35 @@ def delete_user(user_id):
     except Exception:
         pass
 
+=======
+        cursor.execute(
+            f"DELETE FROM transaction_history WHERE property_id IN ({placeholders})",
+            property_ids
+        )
+        cursor.execute(
+            f"DELETE FROM value_prediction WHERE property_id IN ({placeholders})",
+            property_ids
+        )
+        cursor.execute(
+            f"DELETE FROM document WHERE property_id IN ({placeholders})",
+            property_ids
+        )
+        cursor.execute(
+            f"DELETE FROM property WHERE property_id IN ({placeholders})",
+            property_ids
+        )
+
+    cursor.execute("DELETE FROM plan_case WHERE user_id = ?", (user_id,))
+    cursor.execute("DELETE FROM document WHERE user_id = ?", (user_id,))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     cursor.execute("DELETE FROM users WHERE user_id = ?", (user_id,))
 
     conn.commit()
     conn.close()
 
     flash("User deleted successfully.", "success")
+<<<<<<< HEAD
     return redirect(url_for("admin.admin_users"))
+=======
+    return redirect(url_for("admin.admin_dashboard"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32

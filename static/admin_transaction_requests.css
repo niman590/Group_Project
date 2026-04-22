@@ -246,6 +246,7 @@
 .btn-delete:hover {
     background: #1f2937;
 }
+<<<<<<< HEAD
 .dashboard-shell {
     display: flex;
     min-height: 100vh;
@@ -330,3 +331,5 @@ body {
     padding: 30px;
     box-sizing: border-box;
 }
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32

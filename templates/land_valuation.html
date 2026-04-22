@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Land Valuation</title>
+<<<<<<< HEAD
     <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='land_valuation.css') }}">
@@ -206,6 +207,117 @@
                 </div>
             </div>
         </main>
+=======
+    <link rel="stylesheet" href="{{ url_for('static', filename='land_valuation.css') }}">
+</head>
+<body>
+    <div class="valuation-page">
+        <div class="valuation-container">
+            <div class="page-header">
+                <h1>Land Valuation</h1>
+                <p>Estimate the current value of your land and view 1-year and 5-year future projections.</p>
+            </div>
+
+            <div class="valuation-grid">
+                <div class="form-card">
+                    <h2>Enter Land Details</h2>
+
+                    <div class="form-group">
+                        <label>Land Size (Perches)</label>
+                        <input type="number" id="land_size" min="0" step="0.01" placeholder="e.g. 20.5" oninput="this.value = this.value.replace('-', '')">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Access Road Size (ft)</label>
+                        <input type="number" id="access_road_size" min="0" placeholder="e.g. 15" oninput="this.value = this.value.replace('-', '')">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Location</label>
+                        <select id="location">
+                            <option value="Malabe">Malabe</option>
+                            <option value="Ragama">Ragama</option>
+                            <option value="Rajagiriya">Rajagiriya</option>
+                            <option value="Ja-Ela">Ja-Ela</option>
+                            <option value="Kelaniya">Kelaniya</option>
+                            <option value="Kadana">Kadana</option>
+                            <option value="Kadawatha">Kadawatha</option>
+                            <option value="Kaduwela">Kaduwela</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Distance to Nearest City (km)</label>
+                        <input type="number" id="distance_to_city" min="0" step="0.01" placeholder="e.g. 10.2" oninput="this.value = this.value.replace('-', '')">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Zone Type</label>
+                        <select id="zone_type">
+                            <option value="Residential">Residential</option>
+                            <option value="Commercial">Commercial</option>
+                            <option value="Agricultural">Agricultural</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Electricity</label>
+                            <select id="electricity">
+                                <option value="1">Available</option>
+                                <option value="0">Not Available</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Water</label>
+                            <select id="water">
+                                <option value="1">Available</option>
+                                <option value="0">Not Available</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Flood Risk</label>
+                            <select id="flood_risk">
+                                <option value="0">Low</option>
+                                <option value="1">High</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="predict-btn" onclick="predictLandValue()">Estimate Value</button>
+                    <button class="download-btn" id="download_pdf_btn" onclick="downloadLandValuationPDF()" disabled>
+                        Download PDF Report
+                    </button>
+                </div>
+
+                <div class="result-card">
+                    <h2>Estimated Results</h2>
+
+                    <div class="result-box primary">
+                        <span class="label">Current Estimated Value</span>
+                        <span class="value" id="current_value">--</span>
+                    </div>
+
+                    <div class="result-box">
+                        <span class="label">Predicted Value After 1 Year</span>
+                        <span class="value" id="predicted_1_year">--</span>
+                    </div>
+
+                    <div class="result-box">
+                        <span class="label">Predicted Value After 5 Years</span>
+                        <span class="value" id="predicted_5_year">--</span>
+                    </div>
+
+                    <div class="note-box">
+                        <strong>Note:</strong>
+                        This valuation is an estimated result based on historical data and location-specific growth trends. It does not replace an official government valuation report.
+                    </div>
+                </div>
+            </div>
+        </div>
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     </div>
 
     <script src="{{ url_for('static', filename='land_valuation.js') }}"></script>

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 from flask import Blueprint, request, session, jsonify, url_for
+=======
+from flask import Blueprint, request, session, jsonify
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 from database.db_connection import get_connection
 from werkzeug.security import generate_password_hash
 import random
@@ -10,6 +14,7 @@ from email.mime.multipart import MIMEMultipart
 password_reset_bp = Blueprint("password_reset", __name__)
 
 
+<<<<<<< HEAD
 def _is_logged_in_user():
     return session.get("user_id") is not None or session.get("admin_id") is not None
 
@@ -102,6 +107,20 @@ This is an automated email from Civic Plan Team.
 
     msg.attach(MIMEText(text_body, "plain"))
     msg.attach(MIMEText(html_body, "html"))
+=======
+# ---------------- EMAIL SENDER ----------------
+def send_otp_email(to_email, otp):
+    sender_email = "planapprovalsystem@gmail.com"
+    sender_password = "fikz sauz rsmz zkee"
+
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = to_email
+    msg["Subject"] = "Password Reset OTP"
+
+    body = f"Your OTP is {otp}. It will expire in 5 minutes."
+    msg.attach(MIMEText(body, "plain"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     try:
         server = smtplib.SMTP("smtp.gmail.com", 587)
@@ -115,7 +134,11 @@ This is an automated email from Civic Plan Team.
         return False
 
 
+<<<<<<< HEAD
 # SEND OTP
+=======
+# ---------------- SEND OTP ----------------
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 @password_reset_bp.route("/send-otp", methods=["POST"])
 def send_otp():
     data = request.get_json()
@@ -134,13 +157,18 @@ def send_otp():
     otp = str(random.randint(100000, 999999))
     expiry = datetime.now() + timedelta(minutes=5)
 
+<<<<<<< HEAD
     first_name = user[1]
 
+=======
+    # store in session (NOT DB)
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     session["reset_email"] = email
     session["reset_otp"] = otp
     session["otp_expiry"] = expiry.strftime("%Y-%m-%d %H:%M:%S")
     session["otp_verified"] = False
 
+<<<<<<< HEAD
     email_sent = send_otp_email(email, first_name, otp)
 
     if not email_sent:
@@ -150,6 +178,14 @@ def send_otp():
 
 
 # VERIFY OTP
+=======
+    send_otp_email(email, otp)
+
+    return jsonify({"success": True})
+
+
+# ---------------- VERIFY OTP ----------------
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 @password_reset_bp.route("/verify-otp", methods=["POST"])
 def verify_otp():
     data = request.get_json()
@@ -169,10 +205,17 @@ def verify_otp():
 
     session["otp_verified"] = True
 
+<<<<<<< HEAD
     return jsonify({"success": True, "message": "OTP verified successfully"})
 
 
 # RESET PASSWORD
+=======
+    return jsonify({"success": True})
+
+
+# ---------------- RESET PASSWORD ----------------
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 @password_reset_bp.route("/reset-password", methods=["POST"])
 def reset_password():
     email = session.get("reset_email")
@@ -196,9 +239,19 @@ def reset_password():
     conn.commit()
     conn.close()
 
+<<<<<<< HEAD
+=======
+    # clear session
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     session.pop("reset_email", None)
     session.pop("reset_otp", None)
     session.pop("otp_expiry", None)
     session.pop("otp_verified", None)
 
+<<<<<<< HEAD
     return jsonify({"success": True, "message": "Password reset successfully"})
+=======
+    return jsonify({"success": True})
+
+#thenuk is a hero 
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32

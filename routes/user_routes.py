@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from database.db_connection import get_connection
 from urllib.parse import quote_plus
@@ -6,6 +7,10 @@ from datetime import datetime
 from database.security_utils import track_api_request_burst
 import os
 
+=======
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from database.db_connection import get_connection
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
 user_bp = Blueprint("user", __name__)
 
@@ -42,6 +47,7 @@ def sync_session_user(user):
     session["is_admin"] = user["is_admin"]
 
 
+<<<<<<< HEAD
 def user_required():
     if "user_id" not in session:
         flash("Please sign in first.", "error")
@@ -951,10 +957,27 @@ def mark_all_notifications_read():
     conn.close()
 
     return jsonify({"success": True})
+=======
+@user_bp.route("/user_dashboard")
+def user_dashboard():
+    if "user_id" not in session:
+        flash("Please sign in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    user = get_current_user()
+
+    if not user:
+        session.clear()
+        flash("User not found. Please sign in again.", "error")
+        return redirect(url_for("auth.login"))
+
+    return render_template("user_dashboard.html", user=user)
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
 
 @user_bp.route("/account", methods=["GET", "POST"])
 def account():
+<<<<<<< HEAD
     user, redirect_response = user_required()
     if redirect_response:
         return redirect_response
@@ -962,6 +985,20 @@ def account():
     if request.method == "POST":
         track_api_request_burst(limit=10, minutes=1)
 
+=======
+    if "user_id" not in session:
+        flash("Please sign in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    user = get_current_user()
+
+    if not user:
+        session.clear()
+        flash("User not found. Please sign in again.", "error")
+        return redirect(url_for("auth.login"))
+
+    if request.method == "POST":
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         first_name = request.form.get("first_name", "").strip()
         last_name = request.form.get("last_name", "").strip()
         email = request.form.get("email", "").strip()
@@ -971,7 +1008,11 @@ def account():
 
         if not first_name or not last_name or not email:
             flash("First name, last name, and email are required.", "error")
+<<<<<<< HEAD
             return render_template("account.html", user=user, active_page="account")
+=======
+            return render_template("account.html", user=user)
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
         conn = get_connection()
         cursor = conn.cursor()
@@ -988,7 +1029,11 @@ def account():
         if existing_email:
             conn.close()
             flash("That email address is already being used.", "error")
+<<<<<<< HEAD
             return render_template("account.html", user=user, active_page="account")
+=======
+            return render_template("account.html", user=user)
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
         cursor.execute(
             """
@@ -1029,22 +1074,33 @@ def account():
         flash("Your account details were updated successfully.", "success")
         return redirect(url_for("user.account"))
 
+<<<<<<< HEAD
     return render_template("account.html", user=user, active_page="account")
+=======
+    return render_template("account.html", user=user)
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
 
 @user_bp.route("/account/delete", methods=["POST"])
 def delete_account():
+<<<<<<< HEAD
     user, redirect_response = user_required()
     if redirect_response:
         return redirect_response
 
     track_api_request_burst(limit=2, minutes=1)
+=======
+    if "user_id" not in session:
+        flash("Please sign in first.", "error")
+        return redirect(url_for("auth.login"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
     user_id = session["user_id"]
 
     conn = get_connection()
     cursor = conn.cursor()
 
+<<<<<<< HEAD
     try:
         delete_user_related_records(cursor, user_id)
 
@@ -1064,6 +1120,78 @@ def delete_account():
         flash(f"Account deletion failed: {e}", "error")
         return redirect(url_for("user.account"))
 
+=======
+    cursor.execute(
+        """
+        SELECT property_id
+        FROM property
+        WHERE owner_id = ?
+        """,
+        (user_id,),
+    )
+    property_ids = [row["property_id"] for row in cursor.fetchall()]
+
+    if property_ids:
+        placeholders = ",".join("?" for _ in property_ids)
+
+        cursor.execute(
+            f"""
+            DELETE FROM transaction_history
+            WHERE property_id IN ({placeholders})
+            """,
+            property_ids,
+        )
+
+        cursor.execute(
+            f"""
+            DELETE FROM value_prediction
+            WHERE property_id IN ({placeholders})
+            """,
+            property_ids,
+        )
+
+        cursor.execute(
+            f"""
+            DELETE FROM document
+            WHERE property_id IN ({placeholders})
+            """,
+            property_ids,
+        )
+
+        cursor.execute(
+            f"""
+            DELETE FROM property
+            WHERE property_id IN ({placeholders})
+            """,
+            property_ids,
+        )
+
+    cursor.execute(
+        """
+        DELETE FROM plan_case
+        WHERE user_id = ?
+        """,
+        (user_id,),
+    )
+
+    cursor.execute(
+        """
+        DELETE FROM document
+        WHERE user_id = ?
+        """,
+        (user_id,),
+    )
+
+    cursor.execute(
+        """
+        DELETE FROM users
+        WHERE user_id = ?
+        """,
+        (user_id,),
+    )
+
+    conn.commit()
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     conn.close()
 
     session.clear()

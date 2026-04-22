@@ -2,9 +2,14 @@ import os
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 from database.db_connection import get_connection
+<<<<<<< HEAD
 from database.security_utils import track_api_request_burst, log_suspicious_event
 
 transaction_history_bp = Blueprint("transaction_history", __name__) 
+=======
+
+transaction_history_bp = Blueprint("transaction_history", __name__)
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
 UPLOAD_FOLDER = "static/uploads/history_proofs"
 
@@ -12,13 +17,20 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @transaction_history_bp.route("/transaction-history", methods=["GET"])
 def transaction_history_page():
+<<<<<<< HEAD
     return render_template("transaction_history.html", active_page="transaction_history")
+=======
+    return render_template("transaction_history.html")
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
 
 
 @transaction_history_bp.route("/get-transaction-history", methods=["POST"])
 def get_transaction_history():
+<<<<<<< HEAD
     track_api_request_burst(limit=10, minutes=1)
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     data = request.get_json()
     deed_number = data.get("deed_number")
 
@@ -34,6 +46,7 @@ def get_transaction_history():
 
     if not land:
         conn.close()
+<<<<<<< HEAD
 
         log_suspicious_event(
             user_id=session.get("user_id"),
@@ -46,6 +59,8 @@ def get_transaction_history():
             description=f"Transaction history lookup attempted with invalid deed number: {deed_number}",
         )
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         return jsonify({"error": "No land record found for this deed number."})
 
     land_id = land[0]
@@ -83,8 +98,11 @@ def get_transaction_history():
 
 @transaction_history_bp.route("/request-transaction-history-update", methods=["POST"])
 def request_transaction_history_update():
+<<<<<<< HEAD
     track_api_request_burst(limit=5, minutes=1)
 
+=======
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     deed_number = request.form.get("deed_number")
     proposed_owner_name = request.form.get("proposed_owner_name")
     proposed_owner_nic = request.form.get("proposed_owner_nic")
@@ -112,6 +130,7 @@ def request_transaction_history_update():
 
     if not land:
         conn.close()
+<<<<<<< HEAD
 
         log_suspicious_event(
             user_id=session.get("user_id"),
@@ -125,6 +144,10 @@ def request_transaction_history_update():
         )
 
         return jsonify({"error": "Invalid deed number. No matching land found."})
+=======
+        return jsonify({"error": "Invalid deed number. No matching land found."})
+
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     cursor.execute("""
         INSERT INTO transaction_history_update_request
         (
@@ -151,10 +174,15 @@ def request_transaction_history_update():
 
     return jsonify({"message": "Update request submitted successfully and is pending admin approval."})
 
+<<<<<<< HEAD
 
 @transaction_history_bp.route("/admin/delete-approved-transaction/<int:request_id>", methods=["POST"])
 def delete_approved_transaction(request_id):
     track_api_request_burst(limit=5, minutes=1)
+=======
+@transaction_history_bp.route("/admin/delete-approved-transaction/<int:request_id>", methods=["POST"])
+def delete_approved_transaction(request_id):
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -170,7 +198,11 @@ def delete_approved_transaction(request_id):
         flash("Transaction request not found.", "error")
         return redirect(url_for("admin.admin_transaction_history_requests"))
 
+<<<<<<< HEAD
     if request_row["status"] != "Approved":
+=======
+    if request_row[0] != "Approved":
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
         conn.close()
         flash("Only approved transactions can be deleted.", "warning")
         return redirect(url_for("admin.admin_transaction_history_requests"))
@@ -184,4 +216,8 @@ def delete_approved_transaction(request_id):
     conn.close()
 
     flash("Approved transaction deleted successfully.", "success")
+<<<<<<< HEAD
     return redirect(url_for("admin.admin_transaction_history_requests"))
+=======
+    return redirect(url_for("admin.admin_transaction_history_requests"))
+>>>>>>> 012bc830a1f3df00e2f874b28eb8fdb1a39ffc32
