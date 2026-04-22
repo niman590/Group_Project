@@ -9,6 +9,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const emailInput = document.getElementById("email");
   const firstNameInput = document.getElementById("first_name");
 
+  const deleteAccountModal = document.getElementById("deleteAccountModal");
+  const deleteAccountModalCancel = document.getElementById("deleteAccountModalCancel");
+  const deleteAccountModalConfirm = document.getElementById("deleteAccountModalConfirm");
+
   const isSaveLocked = saveChangesBtn ? saveChangesBtn.hasAttribute("data-locked-action") : false;
   const isDeleteLocked = deleteAccountBtn ? deleteAccountBtn.hasAttribute("data-locked-action") : false;
 
@@ -44,9 +48,19 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  function openDeleteAccountModal() {
+    if (!deleteAccountModal) return;
+    deleteAccountModal.classList.add("open");
+  }
+
+  function closeDeleteAccountModal() {
+    if (!deleteAccountModal) return;
+    deleteAccountModal.classList.remove("open");
+  }
+
   if (phoneInput && !phoneInput.hasAttribute("readonly")) {
     phoneInput.addEventListener("input", function () {
-      this.value = this.value.replace(/[^\d+]/g, "").slice(0, 15);
+      this.value = this.value.replace(/[^0-9]/g, "").slice(0, 10);
     });
   }
 
@@ -75,12 +89,31 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      const confirmed = window.confirm("Are you sure you want to delete your account? This action cannot be undone.");
-      if (!confirmed) {
-        event.preventDefault();
-        return;
-      }
+      event.preventDefault();
+      openDeleteAccountModal();
+    });
+  }
+
+  if (deleteAccountModalCancel) {
+    deleteAccountModalCancel.addEventListener("click", function () {
+      closeDeleteAccountModal();
+    });
+  }
+
+  if (deleteAccountModalConfirm) {
+    deleteAccountModalConfirm.addEventListener("click", function () {
+      if (!deleteAccountForm) return;
+      closeDeleteAccountModal();
       setButtonLoading(deleteAccountBtn, "Deleting...");
+      deleteAccountForm.submit();
+    });
+  }
+
+  if (deleteAccountModal) {
+    deleteAccountModal.addEventListener("click", function (event) {
+      if (event.target === deleteAccountModal) {
+        closeDeleteAccountModal();
+      }
     });
   }
 
@@ -101,6 +134,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.addEventListener("keydown", function (event) {
     const activeTag = document.activeElement ? document.activeElement.tagName : "";
+
     if (
       event.key === "/" &&
       firstNameInput &&
@@ -110,6 +144,10 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
       event.preventDefault();
       firstNameInput.focus();
+    }
+
+    if (event.key === "Escape" && deleteAccountModal && deleteAccountModal.classList.contains("open")) {
+      closeDeleteAccountModal();
     }
   });
 });

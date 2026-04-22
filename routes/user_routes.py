@@ -144,7 +144,6 @@ def save_uploaded_file(file_obj, subfolder="uploads/requested_documents"):
 
     filename = secure_filename(file_obj.filename)
 
-    # Only allow PDF files
     if not filename.lower().endswith(".pdf"):
         return None
 
@@ -466,6 +465,214 @@ def get_dashboard_data(user_id, user):
         "notifications": notifications,
         "unread_notifications": unread_notifications,
     }
+
+
+def delete_user_related_records(cursor, user_id):
+    nullable_updates = [
+        (
+            """
+            UPDATE planning_applications
+            SET reviewed_by = NULL
+            WHERE reviewed_by = ?
+            """,
+            (user_id,),
+        ),
+        (
+            """
+            UPDATE planning_applications
+            SET first_officer_by = NULL
+            WHERE first_officer_by = ?
+            """,
+            (user_id,),
+        ),
+        (
+            """
+            UPDATE planning_applications
+            SET deputy_director_by = NULL
+            WHERE deputy_director_by = ?
+            """,
+            (user_id,),
+        ),
+        (
+            """
+            UPDATE planning_applications
+            SET committee_by = NULL
+            WHERE committee_by = ?
+            """,
+            (user_id,),
+        ),
+        (
+            """
+            UPDATE planning_application_workflow_history
+            SET acted_by = NULL
+            WHERE acted_by = ?
+            """,
+            (user_id,),
+        ),
+        (
+            """
+            UPDATE planning_application_requested_documents
+            SET uploaded_by_user_id = NULL
+            WHERE uploaded_by_user_id = ?
+            """,
+            (user_id,),
+        ),
+        (
+            """
+            UPDATE suspicious_events
+            SET reviewed_by = NULL
+            WHERE reviewed_by = ?
+            """,
+            (user_id,),
+        ),
+        (
+            """
+            UPDATE transaction_history_update_request
+            SET reviewed_by = NULL
+            WHERE reviewed_by = ?
+            """,
+            (user_id,),
+        ),
+    ]
+
+    for query, params in nullable_updates:
+        try:
+            cursor.execute(query, params)
+        except Exception:
+            pass
+
+    cursor.execute(
+        """
+        SELECT application_id
+        FROM planning_applications
+        WHERE user_id = ?
+        """,
+        (user_id,),
+    )
+    application_ids = [row["application_id"] for row in cursor.fetchall()]
+
+    if application_ids:
+        app_placeholders = ",".join("?" for _ in application_ids)
+
+        child_delete_queries = [
+            f"DELETE FROM planning_application_requested_documents WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_requests WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_attachments WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_workflow_history WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_submitted_plans WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_units_parking WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_development_metrics WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_dimensions WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_site_usage WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_clearances WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_land_owner WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_technical_details WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_applicants WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_proposed_uses WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM planning_application_summary WHERE application_id IN ({app_placeholders})",
+            f"DELETE FROM user_notifications WHERE application_id IN ({app_placeholders})",
+        ]
+
+        for query in child_delete_queries:
+            try:
+                cursor.execute(query, application_ids)
+            except Exception:
+                pass
+
+        cursor.execute(
+            f"""
+            DELETE FROM planning_applications
+            WHERE application_id IN ({app_placeholders})
+            """,
+            application_ids,
+        )
+
+    direct_delete_queries = [
+        ("DELETE FROM transaction_history_update_request WHERE user_id = ?", (user_id,)),
+        ("DELETE FROM user_notifications WHERE user_id = ?", (user_id,)),
+    ]
+
+    for query, params in direct_delete_queries:
+        try:
+            cursor.execute(query, params)
+        except Exception:
+            pass
+
+    try:
+        cursor.execute(
+            """
+            DELETE FROM suspicious_events
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        )
+    except Exception:
+        pass
+
+    cursor.execute(
+        """
+        SELECT property_id
+        FROM property
+        WHERE owner_id = ?
+        """,
+        (user_id,),
+    )
+    property_ids = [row["property_id"] for row in cursor.fetchall()]
+
+    if property_ids:
+        prop_placeholders = ",".join("?" for _ in property_ids)
+
+        property_child_queries = [
+            f"DELETE FROM transaction_history WHERE property_id IN ({prop_placeholders})",
+            f"DELETE FROM value_prediction WHERE property_id IN ({prop_placeholders})",
+        ]
+
+        for query in property_child_queries:
+            try:
+                cursor.execute(query, property_ids)
+            except Exception:
+                pass
+
+        try:
+            cursor.execute(
+                f"""
+                DELETE FROM document
+                WHERE property_id IN ({prop_placeholders})
+                """,
+                property_ids,
+            )
+        except Exception:
+            pass
+
+        try:
+            cursor.execute(
+                f"""
+                DELETE FROM ownership_history
+                WHERE land_id IN ({prop_placeholders})
+                """,
+                property_ids,
+            )
+        except Exception:
+            pass
+
+        cursor.execute(
+            f"""
+            DELETE FROM property
+            WHERE property_id IN ({prop_placeholders})
+            """,
+            property_ids,
+        )
+
+    optional_direct_queries = [
+        ("DELETE FROM plan_case WHERE user_id = ?", (user_id,)),
+        ("DELETE FROM document WHERE user_id = ?", (user_id,)),
+    ]
+
+    for query, params in optional_direct_queries:
+        try:
+            cursor.execute(query, params)
+        except Exception:
+            pass
 
 
 @user_bp.route("/user_dashboard")
@@ -839,163 +1046,7 @@ def delete_account():
     cursor = conn.cursor()
 
     try:
-        cursor.execute(
-            """
-            SELECT application_id
-            FROM planning_applications
-            WHERE user_id = ?
-            """,
-            (user_id,),
-        )
-        application_ids = [row["application_id"] for row in cursor.fetchall()]
-
-        if application_ids:
-            app_placeholders = ",".join("?" for _ in application_ids)
-
-            cursor.execute(
-                f"""
-                DELETE FROM planning_application_requested_documents
-                WHERE application_id IN ({app_placeholders})
-                """,
-                application_ids,
-            )
-
-            cursor.execute(
-                f"""
-                DELETE FROM planning_application_requests
-                WHERE application_id IN ({app_placeholders})
-                """,
-                application_ids,
-            )
-
-            cursor.execute(
-                f"""
-                DELETE FROM planning_application_attachments
-                WHERE application_id IN ({app_placeholders})
-                """,
-                application_ids,
-            )
-
-            cursor.execute(
-                f"""
-                DELETE FROM planning_application_workflow_history
-                WHERE application_id IN ({app_placeholders})
-                """,
-                application_ids,
-            )
-
-            cursor.execute(
-                f"""
-                DELETE FROM user_notifications
-                WHERE application_id IN ({app_placeholders})
-                """,
-                application_ids,
-            )
-
-            cursor.execute(
-                f"""
-                DELETE FROM planning_applications
-                WHERE application_id IN ({app_placeholders})
-                """,
-                application_ids,
-            )
-
-        cursor.execute(
-            """
-            DELETE FROM transaction_history_update_request
-            WHERE user_id = ?
-            """,
-            (user_id,),
-        )
-
-        try:
-            cursor.execute(
-                """
-                DELETE FROM suspicious_events
-                WHERE user_id = ? OR reviewed_by = ?
-                """,
-                (user_id, user_id),
-            )
-        except Exception:
-            pass
-
-        cursor.execute(
-            """
-            SELECT property_id
-            FROM property
-            WHERE owner_id = ?
-            """,
-            (user_id,),
-        )
-        property_ids = [row["property_id"] for row in cursor.fetchall()]
-
-        if property_ids:
-            prop_placeholders = ",".join("?" for _ in property_ids)
-
-            cursor.execute(
-                f"""
-                DELETE FROM transaction_history
-                WHERE property_id IN ({prop_placeholders})
-                """,
-                property_ids,
-            )
-
-            cursor.execute(
-                f"""
-                DELETE FROM value_prediction
-                WHERE property_id IN ({prop_placeholders})
-                """,
-                property_ids,
-            )
-
-            try:
-                cursor.execute(
-                    f"""
-                    DELETE FROM document
-                    WHERE property_id IN ({prop_placeholders})
-                    """,
-                    property_ids,
-                )
-            except Exception:
-                pass
-
-            cursor.execute(
-                f"""
-                DELETE FROM property
-                WHERE property_id IN ({prop_placeholders})
-                """,
-                property_ids,
-            )
-
-        try:
-            cursor.execute(
-                """
-                DELETE FROM plan_case
-                WHERE user_id = ?
-                """,
-                (user_id,),
-            )
-        except Exception:
-            pass
-
-        try:
-            cursor.execute(
-                """
-                DELETE FROM document
-                WHERE user_id = ?
-                """,
-                (user_id,),
-            )
-        except Exception:
-            pass
-
-        cursor.execute(
-            """
-            DELETE FROM user_notifications
-            WHERE user_id = ?
-            """,
-            (user_id,),
-        )
+        delete_user_related_records(cursor, user_id)
 
         cursor.execute(
             """

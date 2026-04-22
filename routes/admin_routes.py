@@ -1947,8 +1947,8 @@ def approve_transaction_history_request(request_id):
     cursor.execute(
         """
         SELECT deed_number, proposed_owner_name, proposed_owner_nic,
-               proposed_owner_address, proposed_owner_phone,
-               proposed_transfer_date, proposed_transaction_type
+            proposed_owner_address, proposed_owner_phone,
+            proposed_transfer_date, proposed_transaction_type
         FROM transaction_history_update_request
         WHERE request_id = ? AND status = 'Pending'
         """,
