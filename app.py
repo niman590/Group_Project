@@ -32,4 +32,12 @@ app.register_blueprint(support_documents_bp)
 app.register_blueprint(admin_reports_bp)
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     app.run(debug=True)
+=======
+    app.run(debug=True)
+
+    #test comment for git 
+    #Ayeshan Gay
+    #Dhana Gay
+>>>>>>> d3553b8026000e03755e628db9f98563941aa184
