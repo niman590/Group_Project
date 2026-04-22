@@ -164,13 +164,29 @@
 
                                 <div class="admin-field">
                                     <label for="nic">NIC Number</label>
-                                    <input type="text" id="nic" name="nic" required>
+                                    <input
+                                        type="text"
+                                        id="nic"
+                                        name="nic"
+                                        maxlength="12"
+                                        required
+                                        title="Enter old NIC (9 digits + V/X) or new NIC (12 digits).">
                                     <small>Old: 9 digits + V/X or New: 12 digits.</small>
                                 </div>
 
+                                
                                 <div class="admin-field">
                                     <label for="phone_number">Phone Number</label>
-                                    <input type="text" id="phone_number" name="phone_number" placeholder="0771234567">
+                                    <input
+                                        type="text"
+                                        id="phone_number"
+                                        name="phone_number"
+                                        maxlength="10"
+                                        pattern="[0-9]{10}"
+                                        inputmode="numeric"
+                                        placeholder="0771234567"
+                                        required
+                                        title="Phone number must be exactly 10 digits">
                                     <small>Phone number must be exactly 10 digits.</small>
                                 </div>
 
@@ -185,9 +201,39 @@
                                 </div>
 
                                 <div class="admin-field">
-                                    <label for="date_of_birth">Date of Birth</label>
-                                    <input type="date" id="date_of_birth" name="date_of_birth">
-                                    <small>Select date of birth.</small>
+                                    <label>Date of Birth</label>
+                                    <div class="dob-select-group">
+                                        <select name="birth_month" id="birth_month">
+                                            <option value="">Month</option>
+                                            <option value="01">January</option>
+                                            <option value="02">February</option>
+                                            <option value="03">March</option>
+                                            <option value="04">April</option>
+                                            <option value="05">May</option>
+                                            <option value="06">June</option>
+                                            <option value="07">July</option>
+                                            <option value="08">August</option>
+                                            <option value="09">September</option>
+                                            <option value="10">October</option>
+                                            <option value="11">November</option>
+                                            <option value="12">December</option>
+                                        </select>
+
+                                        <select name="birth_day" id="birth_day">
+                                            <option value="">Day</option>
+                                            {% for day in range(1, 32) %}
+                                            <option value="{{ '%02d' % day }}">{{ day }}</option>
+                                            {% endfor %}
+                                        </select>
+
+                                        <select name="birth_year" id="birth_year">
+                                            <option value="">Year</option>
+                                            {% for year in range(2008, 1949, -1) %}
+                                            <option value="{{ year }}">{{ year }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <small>Select month, day, and year.</small>
                                 </div>
 
                                 <div class="admin-field full">

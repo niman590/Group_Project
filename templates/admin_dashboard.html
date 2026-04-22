@@ -33,8 +33,6 @@
                 </a>
             </header>
 
-           
-
             <section class="stats-section">
                 <div class="section-head">
                     <div>
@@ -86,6 +84,7 @@
                     </div>
                 </div>
             </section>
+
             <section class="stats-section">
                 <div class="section-head">
                     <div>
@@ -100,38 +99,39 @@
                     </a>
                 </div>
 
-        <div class="stats-grid application-stats-grid">
-            <div class="stat-card app-stat-card total">
-                <div class="stat-top-line"></div>
-                <div class="stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                <div class="stat-content">
-                    <span class="stat-label">Total Security Events</span>
-                    <h3>{{ security_total }}</h3>
-                    <p>All suspicious events currently stored in the system.</p>
-                </div>
-            </div>
+                <div class="stats-grid application-stats-grid">
+                    <div class="stat-card app-stat-card total">
+                        <div class="stat-top-line"></div>
+                        <div class="stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Security Events</span>
+                            <h3>{{ security_total }}</h3>
+                            <p>All suspicious events currently stored in the system.</p>
+                        </div>
+                    </div>
 
-            <div class="stat-card app-stat-card pending">
-                <div class="stat-top-line"></div>
-                <div class="stat-icon"><i class="fa-solid fa-bell"></i></div>
-                <div class="stat-content">
-                    <span class="stat-label">New Alerts</span>
-                    <h3>{{ security_new }}</h3>
-                    <p>Events that still require admin review.</p>
-                </div>
-            </div>
+                    <div class="stat-card app-stat-card pending">
+                        <div class="stat-top-line"></div>
+                        <div class="stat-icon"><i class="fa-solid fa-bell"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">New Alerts</span>
+                            <h3>{{ security_new }}</h3>
+                            <p>Events that still require admin review.</p>
+                        </div>
+                    </div>
 
-            <div class="stat-card app-stat-card rejected">
-                <div class="stat-top-line"></div>
-                <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                <div class="stat-content">
-                    <span class="stat-label">High Severity Alerts</span>
-                    <h3>{{ security_high }}</h3>
-                    <p>High-priority events that may need immediate action.</p>
+                    <div class="stat-card app-stat-card rejected">
+                        <div class="stat-top-line"></div>
+                        <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="stat-content">
+                            <span class="stat-label">High Severity Alerts</span>
+                            <h3>{{ security_high }}</h3>
+                            <p>High-priority events that may need immediate action.</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </section>
+            </section>
+
             <section class="filter-section">
                 <div class="section-head">
                     <div>
@@ -357,192 +357,10 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            if ("scrollRestoration" in history) {
-                history.scrollRestoration = "manual";
-            }
-
-            const savedScrollY = sessionStorage.getItem("exactDashboardScrollY");
-            if (savedScrollY !== null) {
-                window.scrollTo(0, parseInt(savedScrollY, 10));
-                sessionStorage.removeItem("exactDashboardScrollY");
-            }
-
-            const filterForm = document.querySelector(".dashboard-filter-card");
-            if (filterForm) {
-                filterForm.addEventListener("submit", function () {
-                    sessionStorage.setItem("exactDashboardScrollY", String(window.scrollY));
-                });
-            }
-
-            const clearBtn = document.querySelector(".clear-search");
-            if (clearBtn) {
-                clearBtn.addEventListener("click", function () {
-                    sessionStorage.setItem("exactDashboardScrollY", String(window.scrollY));
-                });
-            }
-
-            const initialValuationData = {{ land_valuation_chart | tojson }};
-            const granularitySelect = document.getElementById("valuationGranularity");
-            const areaSelect = document.getElementById("valuationArea");
-            const latestValuationMetric = document.getElementById("latestValuationMetric");
-            const latestChangeMetric = document.getElementById("latestChangeMetric");
-            const forecastSlopeMetric = document.getElementById("forecastSlopeMetric");
-            const chartDescription = document.getElementById("valuationChartDescription");
-            const emptyState = document.getElementById("landValuationEmptyState");
-            const chartCanvas = document.getElementById("landValuationTrendChart");
-
-            let landValuationChart = null;
-
-            function formatCurrency(value) {
-                const numericValue = Number(value || 0);
-                return `LKR ${numericValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            }
-
-            function formatPercent(value) {
-                if (value === null || value === undefined || Number.isNaN(Number(value))) {
-                    return "No comparison";
-                }
-                const numericValue = Number(value);
-                const prefix = numericValue > 0 ? "+" : "";
-                return `${prefix}${numericValue.toFixed(2)}%`;
-            }
-
-            function resolveTrendLabel(value) {
-                const numericValue = Number(value || 0);
-                if (numericValue > 0) return "Upward";
-                if (numericValue < 0) return "Downward";
-                return "Stable";
-            }
-
-            function renderLandValuationChart(payload) {
-                const hasData = payload && payload.has_data && Array.isArray(payload.labels) && payload.labels.length;
-
-                if (!hasData) {
-                    chartCanvas.style.display = "none";
-                    emptyState.style.display = "flex";
-                    latestValuationMetric.textContent = "LKR 0.00";
-                    latestChangeMetric.textContent = "No comparison";
-                    forecastSlopeMetric.textContent = "Stable";
-                    chartDescription.textContent = "No valuation history found for the selected area and time view.";
-                    if (landValuationChart) {
-                        landValuationChart.destroy();
-                        landValuationChart = null;
-                    }
-                    return;
-                }
-
-                chartCanvas.style.display = "block";
-                emptyState.style.display = "none";
-
-                latestValuationMetric.textContent = formatCurrency(payload.latest_value);
-                latestChangeMetric.textContent = formatPercent(payload.latest_change_percent);
-                forecastSlopeMetric.textContent = resolveTrendLabel(payload.forecast_slope);
-
-                const areaLabel = payload.selected_area && payload.selected_area !== "all" ? payload.selected_area : "all recorded areas";
-                chartDescription.textContent = `Showing ${payload.granularity} land valuation movement for ${areaLabel}, including forecasted ${payload.forecast_period_label}.`;
-
-                const ctx = chartCanvas.getContext("2d");
-                if (landValuationChart) {
-                    landValuationChart.destroy();
-                }
-
-                landValuationChart = new Chart(ctx, {
-                    type: "line",
-                    data: {
-                        labels: payload.labels,
-                        datasets: [
-                            {
-                                label: "Historical",
-                                data: payload.historical_values,
-                                borderColor: "#2563eb",
-                                backgroundColor: "rgba(37, 99, 235, 0.14)",
-                                borderWidth: 3,
-                                tension: 0.35,
-                                fill: false,
-                                pointRadius: 4,
-                                pointHoverRadius: 5,
-                                spanGaps: false
-                            },
-                            {
-                                label: "Forecast",
-                                data: payload.forecast_values,
-                                borderColor: "#f59e0b",
-                                backgroundColor: "rgba(245, 158, 11, 0.12)",
-                                borderDash: [7, 6],
-                                borderWidth: 3,
-                                tension: 0.35,
-                                fill: false,
-                                pointRadius: 4,
-                                pointHoverRadius: 5,
-                                spanGaps: true
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: "index",
-                            intersect: false
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const value = context.raw;
-                                        if (value === null || value === undefined) {
-                                            return `${context.dataset.label}: No data`;
-                                        }
-                                        return `${context.dataset.label}: ${formatCurrency(value)}`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value) {
-                                        return `LKR ${Number(value).toLocaleString()}`;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            async function loadLandValuationChart() {
-                const params = new URLSearchParams({
-                    granularity: granularitySelect.value,
-                    area: areaSelect.value
-                });
-
-                chartDescription.textContent = "Updating valuation insights...";
-
-                try {
-                    const response = await fetch(`{{ url_for('admin.admin_land_valuation_trends') }}?${params.toString()}`);
-                    const payload = await response.json();
-                    renderLandValuationChart(payload);
-                } catch (error) {
-                    chartCanvas.style.display = "none";
-                    emptyState.style.display = "flex";
-                    emptyState.textContent = "Unable to load land valuation trend data right now.";
-                    chartDescription.textContent = "There was a problem loading the valuation chart.";
-                }
-            }
-
-            if (granularitySelect && areaSelect && chartCanvas) {
-                renderLandValuationChart(initialValuationData);
-                granularitySelect.addEventListener("change", loadLandValuationChart);
-                areaSelect.addEventListener("change", loadLandValuationChart);
-            }
-        });
+        window.initialLandValuationData = {{ land_valuation_chart | tojson }};
+        window.landValuationTrendsUrl = "{{ url_for('admin.admin_land_valuation_trends') }}";
     </script>
+    <script src="{{ url_for('static', filename='admin_dashboard.js') }}"></script>
 </body>
 
 </html>

@@ -401,3 +401,18 @@ document.addEventListener("DOMContentLoaded", function () {
         updateRowNumbers();
     }
 });
+
+// Phone number validation (numbers only, max 10)
+const phoneInput = document.getElementById("phone_number");
+
+if (phoneInput) {
+    phoneInput.addEventListener("input", function () {
+        // Remove non-numeric characters
+        this.value = this.value.replace(/[^0-9]/g, "");
+
+        // Limit to 10 digits
+        if (this.value.length > 10) {
+            this.value = this.value.slice(0, 10);
+        }
+    });
+}

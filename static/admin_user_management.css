@@ -793,6 +793,33 @@ a.btn {
     line-height: 1.4;
 }
 
+.dob-select-group {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 10px;
+}
+
+.dob-select-group select {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    outline: none;
+    background: #fff;
+    color: var(--text);
+    font-family: inherit;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.dob-select-group select:focus {
+    border-color: #b7cae7;
+    box-shadow: 0 0 0 4px rgba(18, 63, 130, 0.08);
+    background: #ffffff;
+}
+
 .admin-form-actions {
     display: flex;
     justify-content: flex-end;
@@ -1067,5 +1094,9 @@ a.btn {
 
     .custom-modal-actions .btn {
         width: 100%;
+    }
+
+    .dob-select-group {
+        grid-template-columns: 1fr;
     }
 }

@@ -1760,7 +1760,15 @@ def create_admin_user():
     phone_number = request.form.get("phone_number", "").strip()
     address = request.form.get("address", "").strip()
     city = request.form.get("city", "").strip()
-    date_of_birth = request.form.get("date_of_birth", "").strip()
+
+    birth_month = request.form.get("birth_month", "").strip()
+    birth_day = request.form.get("birth_day", "").strip()
+    birth_year = request.form.get("birth_year", "").strip()
+
+    date_of_birth = ""
+    if birth_year and birth_month and birth_day:
+        date_of_birth = f"{birth_year}-{birth_month}-{birth_day}"
+
     nic = request.form.get("nic", "").strip().upper()
     employee_id = normalize_employee_id(request.form.get("employee_id"))
     password = request.form.get("password", "").strip()
