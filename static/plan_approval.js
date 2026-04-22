@@ -967,7 +967,12 @@ document.querySelectorAll('input[name="applicant_owns_land"]').forEach((radio) =
 });
 
 form.querySelectorAll('input[type="file"]').forEach((field) => {
-    field.addEventListener("change", updateFilePreview);
+    field.addEventListener("change", (e) => {
+        const isValid = validatePDFOnly(field);
+        if (isValid) {
+            updateFilePreview();
+        }
+    });
 });
 
 document.querySelectorAll(".map-picker-btn").forEach((button) => {
@@ -1034,3 +1039,36 @@ updateFilePreview();
 allowOnlyNumbersInput();
 allowNICInput();
 loadDraftFromServer();
+
+
+function validatePDFOnly(fileInput) {
+    const files = fileInput.files;
+    const uploadCard = fileInput.closest(".upload-card");
+    const errorBox = uploadCard ? uploadCard.querySelector(".file-error") : null;
+
+    if (errorBox) {
+        errorBox.textContent = "";
+    }
+
+    fileInput.classList.remove("file-input-invalid");
+
+    if (!files || !files.length) {
+        return true;
+    }
+
+    for (let file of files) {
+        if (!file.name.toLowerCase().endsWith(".pdf")) {
+            fileInput.value = "";
+            fileInput.classList.add("file-input-invalid");
+
+            if (errorBox) {
+                errorBox.textContent = "Rejected: only PDF files are allowed.";
+            }
+
+            updateFilePreview();
+            return false;
+        }
+    }
+
+    return true;
+}

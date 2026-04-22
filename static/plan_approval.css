@@ -669,3 +669,25 @@ textarea {
         height: 320px;
     }
 }
+
+.file-error {
+    min-height: 18px;
+    margin-top: 8px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #d64545;
+}
+
+.file-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.82rem;
+    color: #6b7280;
+}
+
+.upload-card input[type="file"].file-input-invalid {
+    border: 1px solid #d64545;
+    background: #fff5f5;
+    border-radius: 10px;
+    padding: 10px;
+}
