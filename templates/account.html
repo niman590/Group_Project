@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Civic Plan - My Account</title>
+
+  {% if user['is_admin'] %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
+  {% else %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
+  {% endif %}
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='account.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body>
+  {% set is_system_admin = (user.email == 'admin@civicplan.local' and user.nic == 'ADMIN000000V') %}
+
+  <div class="dashboard-shell">
+
+    {% if user['is_admin'] %}
+      {% include 'partials/admin_sidebar.html' %}
+    {% else %}
+      {% include 'partials/user_sidebar.html' %}
+    {% endif %}
+
+    <main class="main-content">
+      <div class="account-page">
+
+        <div class="left-side">
+          <div class="overlay"></div>
+
+          <div class="left-content">
+            <span class="hero-badge">Account Center</span>
+
+            <h1>
+              Manage
+              Your Account
+              Details
+              Securely
+            </h1>
+
+            <p>
+              Update your personal information, review important account details,
+              reset your password, and permanently remove your account when needed
+              from one secure place.
+            </p>
+
+            <div class="feature-list">
+              <div class="feature-item">
+                <i class="fa-solid fa-user-gear"></i>
+                <span>Update your profile information anytime</span>
+              </div>
+              <div class="feature-item">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Keep your account secure and current</span>
+              </div>
+              <div class="feature-item">
+                <i class="fa-solid fa-key"></i>
+                <span>Quick access to password reset</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="right-side">
+          <div class="form-container">
+            <div class="logo-box">
+              <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
+            </div>
+
+            <h2 class="brand-title">CIVIC PLAN</h2>
+            <p class="brand-subtitle">Land Management Portal</p>
+
+            <div class="section-header">
+              <p class="section-kicker">Profile Settings</p>
+              <p class="section-title">My Account</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+              <div class="flash-message {{ category }}" data-flash>
+                <div class="flash-inner">
+                  <i class="fa-solid
+                    {% if category == 'success' %}fa-circle-check
+                    {% elif category == 'error' %}fa-circle-xmark
+                    {% else %}fa-circle-info
+                    {% endif %}"></i>
+                  <span>{{ message }}</span>
+                </div>
+                <button type="button" class="flash-close" data-flash-close aria-label="Close message">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <div class="account-card">
+              <div class="account-summary">
+                <div class="account-avatar">
+                  {{ (user.first_name or 'U')[0] | upper }}{{ (user.last_name or '')[:1] | upper }}
+                </div>
+                <div class="account-summary-text">
+                  <h3>{{ user.first_name or '' }} {{ user.last_name or '' }}</h3>
+                  <p>{{ user.email or 'No email available' }}</p>
+                </div>
+              </div>
+
+              {% if is_system_admin %}
+              <div class="lock-notice">
+                <div class="lock-notice-icon">
+                  <i class="fa-solid fa-lock"></i>
+                </div>
+                <div class="lock-notice-content">
+                  <strong>Protected System Admin Account</strong>
+                  <p>This account is locked. Profile updates, password reset, and account deletion are disabled for the protected system administrator.</p>
+                </div>
+              </div>
+              {% endif %}
+
+              <form action="{{ url_for('user.account') }}" method="POST" id="accountForm">
+
+                <div class="form-grid">
+                  <div class="detail-group">
+                    <label for="first_name">First Name</label>
+                    <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
+                      <span class="input-icon"><i class="fa-regular fa-user"></i></span>
+                      <input
+                        type="text"
+                        id="first_name"
+                        name="first_name"
+                        value="{{ user.first_name or '' }}"
+                        {% if not is_system_admin %}required{% endif %}
+                        {% if is_system_admin %}readonly data-locked="true"{% endif %}>
+                    </div>
+                  </div>
+
+                  <div class="detail-group">
+                    <label for="last_name">Last Name</label>
+                    <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
+                      <span class="input-icon"><i class="fa-regular fa-user"></i></span>
+                      <input
+                        type="text"
+                        id="last_name"
+                        name="last_name"
+                        value="{{ user.last_name or '' }}"
+                        {% if not is_system_admin %}required{% endif %}
+                        {% if is_system_admin %}readonly data-locked="true"{% endif %}>
+                    </div>
+                  </div>
+
+                  <div class="detail-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
+                      <span class="input-icon"><i class="fa-regular fa-envelope"></i></span>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value="{{ user.email or '' }}"
+                        {% if not is_system_admin %}required{% endif %}
+                        {% if is_system_admin %}readonly data-locked="true"{% endif %}>
+                    </div>
+                  </div>
+
+                  <div class="detail-group">
+                    <label for="phone_number">Phone Number</label>
+                    <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
+                      <span class="input-icon"><i class="fa-solid fa-phone"></i></span>
+                      <input
+                        type="text"
+                        id="phone_number"
+                        name="phone_number"
+                        value="{{ user.phone_number or '' }}"
+                        maxlength="10"
+                        pattern="[0-9]{10}"
+                        inputmode="numeric"
+                        {% if is_system_admin %}readonly data-locked="true"{% endif %}>
+                    </div>
+                  </div>
+
+                  <div class="detail-group">
+                    <label for="nic">NIC Number</label>
+                    <div class="input-wrap readonly-wrap">
+                      <span class="input-icon"><i class="fa-regular fa-id-card"></i></span>
+                      <input type="text" id="nic" name="nic" value="{{ user.nic or '' }}" readonly>
+                    </div>
+                  </div>
+
+                  <div class="detail-group">
+                    <label for="city">City</label>
+                    <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
+                      <span class="input-icon"><i class="fa-solid fa-city"></i></span>
+                      <input
+                        type="text"
+                        id="city"
+                        name="city"
+                        value="{{ user.city or '' }}"
+                        {% if is_system_admin %}readonly data-locked="true"{% endif %}>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="detail-group full-width">
+                  <label for="address">Residential Address</label>
+                  <div class="input-wrap textarea-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
+                    <span class="input-icon textarea-icon"><i class="fa-solid fa-location-dot"></i></span>
+                    <textarea
+                      id="address"
+                      name="address"
+                      rows="4"
+                      {% if is_system_admin %}readonly data-locked="true"{% endif %}>{{ user.address or '' }}</textarea>
+                  </div>
+                </div>
+
+                <div class="account-tools">
+                  {% if is_system_admin %}
+                  <span class="secondary-link-btn disabled-link" aria-disabled="true">
+                    <i class="fa-solid fa-key"></i>
+                    <span>Reset Password Disabled</span>
+                  </span>
+                  {% else %}
+                  <a href="{{ url_for('auth.password_reset') }}" class="secondary-link-btn">
+                    <i class="fa-solid fa-key"></i>
+                    <span>Reset Password</span>
+                  </a>
+                  {% endif %}
+                </div>
+
+                <div class="button-group">
+                  <button
+                    type="submit"
+                    class="edit-btn {% if is_system_admin %}locked-btn{% endif %}"
+                    id="saveChangesBtn"
+                    {% if is_system_admin %}disabled data-locked-action="true"{% endif %}>
+                    <span class="btn-text">{% if is_system_admin %}System Admin Locked{% else %}Save Changes{% endif %}</span>
+                  </button>
+                </div>
+              </form>
+
+              <form action="{{ url_for('user.delete_account') }}" method="POST" class="delete-form delete-account-form" id="deleteAccountForm">
+                <button
+                  type="submit"
+                  class="delete-btn {% if is_system_admin %}locked-btn{% endif %}"
+                  id="deleteAccountBtn"
+                  {% if is_system_admin %}disabled data-locked-action="true"{% endif %}>
+                  <span class="btn-text">{% if is_system_admin %}Delete Disabled{% else %}Delete My Account{% endif %}</span>
+                </button>
+              </form>
+
+              <p class="back-text">
+                <a href="{% if user['is_admin'] %}{{ url_for('admin.admin_dashboard') }}{% else %}{{ url_for('user.user_dashboard') }}{% endif %}">
+                  Back to Dashboard
+                </a>
+              </p>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <div class="custom-modal-overlay" id="deleteAccountModal">
+    <div class="custom-modal-card danger-modal" role="dialog" aria-modal="true" aria-labelledby="deleteAccountModalTitle">
+      <div class="custom-modal-header">
+        <div class="custom-modal-icon danger">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <h3 id="deleteAccountModalTitle">Delete Account</h3>
+          <p>This action is permanent and cannot be undone.</p>
+        </div>
+      </div>
+
+      <div class="custom-modal-body">
+        <p class="custom-modal-message">
+          Are you sure you want to delete your account? All related data that can be removed by the system will be deleted permanently.
+        </p>
+        <div class="custom-modal-warning">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Please confirm only if you are absolutely sure.</span>
+        </div>
+      </div>
+
+      <div class="custom-modal-actions">
+        <button type="button" class="secondary-link-btn modal-cancel-btn" id="deleteAccountModalCancel">
+          <i class="fa-solid fa-xmark"></i>
+          <span>Cancel</span>
+        </button>
+
+        <button type="button" class="delete-btn modal-delete-btn" id="deleteAccountModalConfirm">
+          <i class="fa-solid fa-trash"></i>
+          <span>Delete My Account</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='account.js') }}"></script>
+</body>
+
+</html>

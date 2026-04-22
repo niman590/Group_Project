@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Applications</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='my_applications.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body class="my-app-page">
+    <div class="my-app-shell">
+        {% include 'partials/user_sidebar.html' %}
+
+        <main class="my-app-main">
+            <section class="hero-panel reveal-up">
+                <div class="hero-left">
+                    <span class="page-kicker">Citizen Services</span>
+                    <h1>My Applications</h1>
+                    <p>
+                        Track your planning applications, review live status updates,
+                        upload requested documents, and manage drafts from one dashboard.
+                    </p>
+
+                    <div class="hero-tags">
+                        <span class="hero-chip"><i class="fa-solid fa-folder-open"></i> Records</span>
+                        <span class="hero-chip"><i class="fa-solid fa-chart-line"></i> Progress Tracking</span>
+                        <span class="hero-chip"><i class="fa-solid fa-file-arrow-up"></i> Document Uploads</span>
+                    </div>
+                </div>
+
+                <div class="hero-right">
+                    <div class="hero-stat-card floating-card">
+                        <span class="hero-stat-label">Total Records</span>
+                        <strong>{{ total_records }}</strong>
+                    </div>
+                </div>
+            </section>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-wrap reveal-up">
+                        {% for category, message in messages %}
+                            <div class="flash-msg flash-{{ category }}">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <section class="applications-panel reveal-up">
+                <div class="panel-header panel-header-premium">
+                    <div>
+                        <span class="panel-kicker">Application History</span>
+                        <h2>Submitted Applications</h2>
+                        <p>
+                            Each application is shown as a separate timeline card so you can quickly
+                            identify status, workflow stage, pending actions, and supporting documents.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="cards-stack">
+                    {% for item in application_cards %}
+                    <article class="app-card reveal-up">
+                        <div class="app-card-glow"></div>
+
+                        <div class="app-card-top">
+                            <div class="app-primary">
+                                <div class="app-id-badge">
+                                    <span>Application</span>
+                                    <strong>#{{ item.application['application_id'] }}</strong>
+                                </div>
+
+                                <div class="app-heading-block">
+                                    <span class="mini-label">Workflow Stage</span>
+                                    <h3>{{ item.application['workflow_stage'] or 'Not started' }}</h3>
+                                    <p class="app-subtext">
+                                        Created on {{ item.application['created_at'] }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="app-top-right">
+                                <div class="top-status-box">
+                                    <span class="mini-label">Status</span>
+                                    <span class="status-badge {{ item.badge_class }}">{{ item.real_status }}</span>
+                                </div>
+
+                                <div class="top-step-box">
+                                    <span class="mini-label">Current Step</span>
+                                    <span class="step-pill">
+                                        <i class="fa-solid fa-stairs"></i>
+                                        Step {{ item.application['current_step'] or '-' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="meta-ribbon">
+                            <div class="meta-ribbon-item">
+                                <span class="mini-label">Created At</span>
+                                <strong>{{ item.application['created_at'] }}</strong>
+                            </div>
+
+                            <div class="meta-ribbon-item">
+                                <span class="mini-label">Updated At</span>
+                                <strong>{{ item.application['updated_at'] }}</strong>
+                            </div>
+
+                            <div class="meta-ribbon-item meta-ribbon-wide">
+                                <span class="mini-label">Admin Comment</span>
+                                <strong>{{ item.application['admin_comment'] or 'No admin comment yet.' }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="request-strip">
+                            <div class="request-strip-left">
+                                <div class="request-icon">
+                                    <i class="fa-solid fa-file-circle-plus"></i>
+                                </div>
+
+                                <div class="request-text">
+                                    <strong>Additional Documents</strong>
+                                    <span>
+                                        {{ item.uploaded_total }} / {{ item.requested_total }} uploaded
+                                        {% if item.requested_total == 0 %}
+                                            — No requests yet
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {% if item.requested_total > 0 %}
+                            <a href="{{ url_for('submit_documents.planning_approval', application_id=item.application['application_id']) }}"
+                               class="secondary-btn action-btn">
+                                <i class="fa-solid fa-upload"></i>
+                                Add Additional Documents
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        <div class="timeline-section">
+                            <div class="timeline-header">
+                                <h4>Workflow Progress</h4>
+                                <span>Visual tracking for this application</span>
+                            </div>
+
+                            <div class="progress-track">
+                                <div class="progress-node done">
+                                    <div class="node-dot"><i class="fa-solid fa-check"></i></div>
+                                    <span>Submitted</span>
+                                </div>
+
+                                <div class="progress-line {% if item.application['site_visit_status'] == 'Completed' %}done{% else %}active{% endif %}"></div>
+
+                                <div class="progress-node {% if item.application['site_visit_status'] == 'Completed' %}done{% else %}active{% endif %}">
+                                    <div class="node-dot">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                    </div>
+                                    <span>Site Visit</span>
+                                </div>
+
+                                <div class="progress-line {% if item.application['additional_docs_required'] %}active{% else %}done{% endif %}"></div>
+
+                                <div class="progress-node {% if item.application['additional_docs_required'] %}active{% else %}done{% endif %}">
+                                    <div class="node-dot">
+                                        <i class="fa-solid fa-file-circle-plus"></i>
+                                    </div>
+                                    <span>Additional Docs</span>
+                                </div>
+
+                                <div class="progress-line {% if item.application['first_officer_decision'] %}done{% else %}locked{% endif %}"></div>
+
+                                <div class="progress-node {% if item.application['first_officer_decision'] %}done{% else %}locked{% endif %}">
+                                    <div class="node-dot">
+                                        <i class="fa-solid fa-user-tie"></i>
+                                    </div>
+                                    <span>First Officer</span>
+                                </div>
+
+                                <div class="progress-line {% if item.application['deputy_director_decision'] %}done{% else %}locked{% endif %}"></div>
+
+                                <div class="progress-node {% if item.application['deputy_director_decision'] %}done{% else %}locked{% endif %}">
+                                    <div class="node-dot">
+                                        <i class="fa-solid fa-user-gear"></i>
+                                    </div>
+                                    <span>Deputy Director</span>
+                                </div>
+
+                                <div class="progress-line {% if item.application['committee_decision'] %}done{% else %}locked{% endif %}"></div>
+
+                                <div class="progress-node {% if item.application['committee_decision'] %}done{% else %}locked{% endif %}">
+                                    <div class="node-dot">
+                                        <i class="fa-solid fa-users"></i>
+                                    </div>
+                                    <span>Committee</span>
+                                </div>
+                            </div>
+
+                            <div class="progress-pills">
+                                <div class="progress-mini done">Submitted</div>
+                                <div class="progress-mini {% if item.application['site_visit_status'] == 'Completed' %}done{% else %}active{% endif %}">
+                                    Site Visit
+                                </div>
+                                <div class="progress-mini {% if item.application['additional_docs_required'] %}active{% else %}done{% endif %}">
+                                    Additional Docs
+                                </div>
+                                <div class="progress-mini {% if item.application['first_officer_decision'] %}done{% else %}locked{% endif %}">
+                                    First Officer
+                                </div>
+                                <div class="progress-mini {% if item.application['deputy_director_decision'] %}done{% else %}locked{% endif %}">
+                                    Deputy Director
+                                </div>
+                                <div class="progress-mini {% if item.application['committee_decision'] %}done{% else %}locked{% endif %}">
+                                    Committee
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="app-actions">
+                            {% if (item.application['status'] or '').lower() == 'draft' %}
+                                <a class="primary-btn action-btn"
+                                   href="{{ url_for('submit_documents.edit_planning_draft', application_id=item.application['application_id']) }}">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    Edit Draft
+                                </a>
+
+                                <form method="POST"
+                                      action="{{ url_for('submit_documents.delete_draft_application', application_id=item.application['application_id']) }}"
+                                      onsubmit="return confirm('Delete this draft application?');">
+                                    <button type="submit" class="danger-btn action-btn">
+                                        <i class="fa-solid fa-trash"></i>
+                                        Delete Draft
+                                    </button>
+                                </form>
+                            {% else %}
+                                <a class="primary-btn action-btn"
+                                   href="{{ url_for('submit_documents.planning_approval', application_id=item.application['application_id']) }}">
+                                    <i class="fa-solid fa-chart-line"></i>
+                                    View Progress
+                                </a>
+
+                                {% if item.application['decision_pdf_path'] %}
+                                <a class="secondary-btn action-btn"
+                                   href="{{ url_for('submit_documents.download_decision_pdf', application_id=item.application['application_id']) }}">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                    Download PDF
+                                </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </article>
+                    {% else %}
+                    <div class="empty-state reveal-up">
+                        <div class="empty-state-icon">
+                            <i class="fa-regular fa-folder-open"></i>
+                        </div>
+                        <h3>No applications found</h3>
+                        <p>You have not created any planning applications yet.</p>
+                        <a href="{{ url_for('submit_documents.submit_documents') }}" class="primary-btn action-btn">
+                            <i class="fa-solid fa-plus"></i>
+                            Start New Application
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='my_applications.js') }}"></script>
+</body>
+</html>

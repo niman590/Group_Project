@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin User Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_user_management.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="dashboard-shell">
+        {% include 'partials/admin_sidebar.html' %}
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-content">
+                    <div class="page-heading">
+                        <span class="page-kicker">Administration</span>
+                        <h1>User Management</h1>
+                        <p>Manage users, roles, permissions, and account status from one place.</p>
+                    </div>
+                </div>
+
+                <div class="admin-chip">
+                    <div class="avatar">{{ user['first_name'][0] | upper }}</div>
+                    <div>
+                        <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
+                        <span>User ID: USER-{{ user['user_id'] }}</span>
+                    </div>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}" data-flash>
+                    <div class="flash-body">
+                        <i class="fa-solid
+                            {% if category == 'success' %}fa-circle-check
+                            {% elif category == 'error' %}fa-circle-xmark
+                            {% elif category == 'warning' %}fa-triangle-exclamation
+                            {% else %}fa-circle-info
+                            {% endif %}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button type="button" class="flash-close" aria-label="Close message" data-flash-close>
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <section class="stats-section">
+                <div class="section-head">
+                    <div>
+                        <span class="section-kicker">Overview</span>
+                        <h2>User Summary</h2>
+                        <p>Quick overview of system accounts, roles, and account activity.</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid reports-stats-grid">
+                    <div class="stat-card report-stat-card total-users">
+                        <div class="stat-icon blue">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Users</span>
+                            <h3>{{ total_users }}</h3>
+                            <p>All user accounts currently registered in the system.</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card report-stat-card total-admins">
+                        <div class="stat-icon indigo">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Total Admins</span>
+                            <h3>{{ total_admins }}</h3>
+                            <p>Accounts with administrator privileges and system access.</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card report-stat-card active-users">
+                        <div class="stat-icon green">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Active Accounts</span>
+                            <h3>{{ active_users }}</h3>
+                            <p>Currently active accounts available for normal system use.</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card report-stat-card total-applications">
+                        <div class="stat-icon amber">
+                            <i class="fa-solid fa-user-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <span class="stat-label">Inactive Accounts</span>
+                            <h3>{{ inactive_users }}</h3>
+                            <p>Accounts currently inactive or temporarily disabled.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header panel-header-split">
+                    <div>
+                        <h2>User Directory</h2>
+                        <p>Promote users, remove admin rights, activate or deactivate accounts, and delete users.</p>
+                    </div>
+
+                    <div class="panel-search-summary">
+                        <div class="directory-summary-actions">
+                            <button type="button" class="btn primary small" id="toggleAddAdminBtn">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <span>Add Admin</span>
+                            </button>
+
+                            <span class="summary-pill" id="visibleUserCount">
+                                {{ 5 if users|length > 5 else users|length }} visible
+                            </span>
+
+                            {% if users|length > 5 %}
+                            <button type="button" class="btn light small toggle-view-btn" id="toggleUsersViewBtn">
+                                <i class="fa-solid fa-eye"></i>
+                                <span>View All</span>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-create-panel">
+                    <div class="admin-create-toolbar">
+                        <div>
+                            <h3>Manual Admin Creation</h3>
+                            <p>Create a new admin account with full registration details, NIC, and employee ID.</p>
+                        </div>
+                    </div>
+
+                    <div class="admin-create-form-wrap" id="addAdminFormWrap">
+                        <form method="POST" action="{{ url_for('admin.create_admin_user') }}">
+                            <div class="admin-create-grid">
+                                <div class="admin-field">
+                                    <label for="first_name">First Name</label>
+                                    <input type="text" id="first_name" name="first_name" required>
+                                </div>
+
+                                <div class="admin-field">
+                                    <label for="last_name">Last Name</label>
+                                    <input type="text" id="last_name" name="last_name" required>
+                                </div>
+
+                                <div class="admin-field">
+                                    <label for="nic">NIC Number</label>
+                                    <input
+                                        type="text"
+                                        id="nic"
+                                        name="nic"
+                                        maxlength="12"
+                                        required
+                                        title="Enter old NIC (9 digits + V/X) or new NIC (12 digits).">
+                                    <small>Old: 9 digits + V/X or New: 12 digits.</small>
+                                </div>
+
+                                
+                                <div class="admin-field">
+                                    <label for="phone_number">Phone Number</label>
+                                    <input
+                                        type="text"
+                                        id="phone_number"
+                                        name="phone_number"
+                                        maxlength="10"
+                                        pattern="[0-9]{10}"
+                                        inputmode="numeric"
+                                        placeholder="0771234567"
+                                        required
+                                        title="Phone number must be exactly 10 digits">
+                                    <small>Phone number must be exactly 10 digits.</small>
+                                </div>
+
+                                <div class="admin-field full">
+                                    <label for="address">Residential Address</label>
+                                    <input type="text" id="address" name="address">
+                                </div>
+
+                                <div class="admin-field">
+                                    <label for="city">City</label>
+                                    <input type="text" id="city" name="city">
+                                </div>
+
+                                <div class="admin-field">
+                                    <label>Date of Birth</label>
+                                    <div class="dob-select-group">
+                                        <select name="birth_month" id="birth_month">
+                                            <option value="">Month</option>
+                                            <option value="01">January</option>
+                                            <option value="02">February</option>
+                                            <option value="03">March</option>
+                                            <option value="04">April</option>
+                                            <option value="05">May</option>
+                                            <option value="06">June</option>
+                                            <option value="07">July</option>
+                                            <option value="08">August</option>
+                                            <option value="09">September</option>
+                                            <option value="10">October</option>
+                                            <option value="11">November</option>
+                                            <option value="12">December</option>
+                                        </select>
+
+                                        <select name="birth_day" id="birth_day">
+                                            <option value="">Day</option>
+                                            {% for day in range(1, 32) %}
+                                            <option value="{{ '%02d' % day }}">{{ day }}</option>
+                                            {% endfor %}
+                                        </select>
+
+                                        <select name="birth_year" id="birth_year">
+                                            <option value="">Year</option>
+                                            {% for year in range(2008, 1949, -1) %}
+                                            <option value="{{ year }}">{{ year }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <small>Select month, day, and year.</small>
+                                </div>
+
+                                <div class="admin-field full">
+                                    <label for="email">Email Address</label>
+                                    <input type="email" id="email" name="email" required>
+                                </div>
+
+                                <div class="admin-field">
+                                    <label for="employee_id">Employee ID</label>
+                                    <input type="text" id="employee_id" name="employee_id" required>
+                                    <small>Required for manually created admin accounts.</small>
+                                </div>
+
+                                <div class="admin-field">
+                                    <label for="password">Password</label>
+                                    <input
+                                        type="password"
+                                        id="password"
+                                        name="password"
+                                        required
+                                        title="Minimum 8 characters with uppercase, lowercase, number, and symbol.">
+                                    <small>Minimum 8 characters with uppercase, lowercase, number, and symbol.</small>
+                                </div>
+
+                                <div class="admin-field">
+                                    <label for="confirm_password">Confirm Password</label>
+                                    <input
+                                        type="password"
+                                        id="confirm_password"
+                                        name="confirm_password"
+                                        required
+                                        title="Re-enter the same password.">
+                                    <small>Re-enter the same password.</small>
+                                </div>
+                            </div>
+
+                            <div class="admin-form-actions">
+                                <button type="button" class="btn outline-neutral small" id="cancelAddAdminBtn">
+                                    <i class="fa-solid fa-xmark"></i>
+                                    <span>Cancel</span>
+                                </button>
+                                <button type="submit" class="btn primary small">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    <span>Create Admin</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <form class="search-form" method="GET" action="{{ url_for('admin.admin_users') }}" id="userSearchForm">
+                    <div class="search-input-group">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="userSearchInput" name="search"
+                            placeholder="Search by name, NIC, email, or employee ID"
+                            value="{{ search_query if search_query else '' }}" autocomplete="off">
+                        <button type="button" class="search-inline-clear" id="clearSearchInput"
+                            aria-label="Clear search input">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="search-actions">
+                        <button type="submit" class="btn primary">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span>Search</span>
+                        </button>
+
+                        {% if search_query %}
+                        <a href="{{ url_for('admin.admin_users') }}" class="btn light clear-search">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            <span>Reset</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+
+                {% if search_query %}
+                <div class="search-result-info" id="serverSearchInfo">
+                    Showing <strong>{{ users|length }}</strong> result{{ '' if users|length == 1 else 's' }} for
+                    "<strong>{{ search_query }}</strong>"
+                </div>
+                {% endif %}
+
+                <div class="search-result-info live-search-info" id="liveSearchInfo" style="display: none;"></div>
+
+                <div class="table-wrap">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Name</th>
+                                <th>NIC</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>User ID</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            {% if users %}
+                            {% set sorted_users = users|sort(attribute='is_admin', reverse=true) %}
+                            {% for u in sorted_users %}
+                            <tr class="user-row"
+                                data-name="{{ (u['first_name'] ~ ' ' ~ u['last_name'])|lower }}"
+                                data-nic="{{ (u['nic'] if u['nic'] else '')|lower }}"
+                                data-email="{{ u['email']|lower }}"
+                                data-employee-id="{{ (u['employee_id'] if u['employee_id'] else '')|lower }}"
+                                data-role="{% if u['is_admin'] %}admin{% else %}user{% endif %}"
+                                data-status="{% if u['is_active'] %}active{% else %}inactive{% endif %}"
+                                data-user-id="USER-{{ u['user_id'] }}">
+                                <td class="row-number">{{ loop.index }}</td>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="user-mini-avatar">
+                                            {{ u['first_name'][0] | upper }}{{ u['last_name'][0] | upper }}
+                                        </div>
+                                        <div class="user-meta">
+                                            <strong>{{ u['first_name'] }} {{ u['last_name'] }}</strong>
+                                            <span>{{ u['email'] }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ u['nic'] if u['nic'] else '-' }}</td>
+                                <td class="email-cell copy-email" title="Click to copy email">{{ u['email'] }}</td>
+                                <td>
+                                    {% if u['is_admin'] %}
+                                    <span class="badge admin">Admin</span>
+                                    {% else %}
+                                    <span class="badge user">User</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if u['is_active'] %}
+                                    <span class="badge active">Active</span>
+                                    {% else %}
+                                    <span class="badge inactive">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="user-id-pill copy-user-id" title="Click to copy user ID">USER-{{ u['user_id'] }}</span>
+                                </td>
+                                <td>
+                                    {% set is_system_admin = (u['email'] == 'admin@civicplan.local' and u['nic'] == 'ADMIN000000V') %}
+                                    {% if is_system_admin %}
+                                    <div class="action-buttons">
+                                        <span class="badge admin protected-badge">
+                                            <i class="fa-solid fa-shield-halved"></i>
+                                            Protected System Admin
+                                        </span>
+                                    </div>
+                                    {% else %}
+                                    <div class="action-buttons">
+                                        <form action="{{ url_for('admin.toggle_user_status', user_id=u['user_id']) }}"
+                                            method="POST">
+                                            <button type="submit" class="btn small warning action-submit-btn">
+                                                <i class="fa-solid {% if u['is_active'] %}fa-user-slash{% else %}fa-user-check{% endif %}"></i>
+                                                <span>{% if u['is_active'] %}Deactivate{% else %}Activate{% endif %}</span>
+                                            </button>
+                                        </form>
+
+                                        {% if not u['is_admin'] %}
+                                        <form action="{{ url_for('admin.make_admin', user_id=u['user_id']) }}"
+                                            method="POST"
+                                            class="make-admin-form"
+                                            data-user-name="{{ u['first_name'] }} {{ u['last_name'] }}">
+                                            <input type="hidden" name="employee_id" class="employee-id-hidden-input">
+                                            <button type="submit" class="btn small primary action-submit-btn">
+                                                <i class="fa-solid fa-user-shield"></i>
+                                                <span>Make Admin</span>
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <form action="{{ url_for('admin.remove_admin', user_id=u['user_id']) }}"
+                                            method="POST">
+                                            <button type="submit" class="btn small secondary action-submit-btn">
+                                                <i class="fa-solid fa-user-minus"></i>
+                                                <span>Remove Admin</span>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+
+                                        <form action="{{ url_for('admin.delete_user', user_id=u['user_id']) }}"
+                                            method="POST" class="delete-user-form"
+                                            data-user-name="{{ u['first_name'] }} {{ u['last_name'] }}">
+                                            <button type="submit" class="btn small danger action-submit-btn">
+                                                <i class="fa-solid fa-trash"></i>
+                                                <span>Delete</span>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr id="emptyStateRow">
+                                <td colspan="8" class="no-results">
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-users-slash"></i>
+                                        <p>No users found.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="custom-modal-overlay" id="employeeIdModal">
+        <div class="custom-modal-card" role="dialog" aria-modal="true" aria-labelledby="employeeIdModalTitle">
+            <div class="custom-modal-header">
+                <div class="custom-modal-icon">
+                    <i class="fa-solid fa-id-badge"></i>
+                </div>
+                <div>
+                    <h3 id="employeeIdModalTitle">Promote User to Admin</h3>
+                    <p id="employeeIdModalText">Enter an employee ID for this user.</p>
+                </div>
+            </div>
+
+            <div class="custom-modal-body">
+                <label for="employeeIdModalInput" class="custom-modal-label">Employee ID</label>
+                <input
+                    type="text"
+                    id="employeeIdModalInput"
+                    class="custom-modal-input"
+                    placeholder="Enter employee ID"
+                    maxlength="30"
+                    autocomplete="off">
+                <small class="custom-modal-hint">
+                    Use 3 to 30 characters with letters, numbers, hyphens, underscores, or slashes.
+                </small>
+                <div class="custom-modal-error" id="employeeIdModalError"></div>
+            </div>
+
+            <div class="custom-modal-actions">
+                <button type="button" class="btn outline-neutral small" id="employeeIdModalCancel">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>Cancel</span>
+                </button>
+                <button type="button" class="btn primary small" id="employeeIdModalConfirm">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>Promote to Admin</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='admin_user_management.js') }}"></script>
+</body>
+
+</html>

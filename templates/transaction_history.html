@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Land Transaction History</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='transaction_history.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body class="transaction-history-page">
+    <div class="dashboard-shell">
+        {% include 'partials/user_sidebar.html' %}
+
+        <main class="main-content">
+            <div class="history-container">
+
+                <section class="hero-panel">
+                    <div class="hero-left">
+                        <span class="page-kicker">Citizen Services</span>
+                        <h1>Land Transaction History</h1>
+                        <p>
+                            Search ownership records, review the transaction timeline, and submit update requests
+                            from one place.
+                        </p>
+
+                        <div class="hero-actions">
+                            <button type="button" class="hero-chip active" id="view-tab" onclick="showSection('view')">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                                <span>View History</span>
+                            </button>
+
+                            <button type="button" class="hero-chip" id="update-tab" onclick="showSection('update')">
+                                <i class="fa-solid fa-file-pen"></i>
+                                <span>Request Update</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="hero-right">
+                        <div class="metric-card">
+                            <span class="metric-label">Service Type</span>
+                            <strong>Ownership Records</strong>
+                        </div>
+
+                        <div class="metric-card">
+                            <span class="metric-label">Available Actions</span>
+                            <strong>Search / Submit</strong>
+                        </div>
+
+                        <div class="metric-card">
+                            <span class="metric-label">Access</span>
+                            <strong>Citizen Portal</strong>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="content-grid">
+                    <aside class="side-info">
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <i class="fa-solid fa-circle-info"></i>
+                                <h3>What you can do here</h3>
+                            </div>
+
+                            <ul class="info-list">
+                                <li>Search full ownership history by deed number</li>
+                                <li>Review current property and owner details</li>
+                                <li>Track previous transfers in a timeline view</li>
+                                <li>Submit correction or ownership update requests</li>
+                                <li>Upload supporting proof for verification</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-card">
+                            <div class="info-card-header">
+                                <i class="fa-solid fa-lightbulb"></i>
+                                <h3>Tips</h3>
+                            </div>
+
+                            <div class="tips-stack">
+                                <div class="tip-item">
+                                    <strong>Use the exact deed number</strong>
+                                    <p>It helps return the correct record faster.</p>
+                                </div>
+
+                                <div class="tip-item">
+                                    <strong>Attach valid proof documents</strong>
+                                    <p>Requests are easier to verify with a clear supporting file.</p>
+                                </div>
+
+                                <div class="tip-item">
+                                    <strong>Check transfer details carefully</strong>
+                                    <p>Make sure date, owner name, and transaction type are accurate.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+
+                    <section class="main-panel">
+
+                        <section id="view-section" class="panel-card">
+                            <div class="panel-header">
+                                <div>
+                                    <span class="section-badge">Search Records</span>
+                                    <h2>View Ownership History</h2>
+                                    <p>Enter a deed number to retrieve the recorded ownership history.</p>
+                                </div>
+                            </div>
+
+                            <div class="search-bar-card">
+                                <div class="form-group grow">
+                                    <label for="view_deed_number">Deed Number</label>
+                                    <div class="input-wrap">
+                                        <i class="fa-solid fa-file-signature"></i>
+                                        <input type="text" id="view_deed_number" placeholder="Enter deed number">
+                                    </div>
+                                </div>
+
+                                <button type="button" class="primary-btn search-btn" onclick="fetchTransactionHistory()">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <span>Search History</span>
+                                </button>
+                            </div>
+
+                            <div id="history-result" class="result-area">
+                                <div class="empty-state-card">
+                                    <div class="empty-state-icon">
+                                        <i class="fa-solid fa-folder-open"></i>
+                                    </div>
+                                    <h3>No search yet</h3>
+                                    <p>Enter a deed number to view ownership details and transaction history.</p>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section id="update-section" class="panel-card hidden">
+                            <div class="panel-header">
+                                <div>
+                                    <span class="section-badge">Update Request</span>
+                                    <h2>Request Transaction History Update</h2>
+                                    <p>Submit corrected ownership details and supporting proof documents for review.</p>
+                                </div>
+                            </div>
+
+                            <form id="updateForm" enctype="multipart/form-data">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="deed_number">Deed Number</label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-file-signature"></i>
+                                            <input type="text" id="deed_number" name="deed_number" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="proposed_owner_name">Proposed New Owner Name</label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-user"></i>
+                                            <input type="text" id="proposed_owner_name" name="proposed_owner_name" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="proposed_owner_nic">Owner NIC</label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-id-card"></i>
+                                            <input type="text" id="proposed_owner_nic" name="proposed_owner_nic">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="proposed_owner_phone">Owner Phone</label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-phone"></i>
+                                            <input type="text" id="proposed_owner_phone" name="proposed_owner_phone">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group full-span">
+                                        <label for="proposed_owner_address">Owner Address</label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-location-dot"></i>
+                                            <input type="text" id="proposed_owner_address" name="proposed_owner_address">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="proposed_transfer_date">Transfer Date</label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-calendar-days"></i>
+                                            <input type="date" id="proposed_transfer_date" name="proposed_transfer_date" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="proposed_transaction_type">Transaction Type</label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                            <select id="proposed_transaction_type" name="proposed_transaction_type" required>
+                                                <option value="Sale">Sale</option>
+                                                <option value="Gift">Gift</option>
+                                                <option value="Inheritance">Inheritance</option>
+                                                <option value="Correction">Correction</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group full-span">
+                                        <label for="notes">Notes</label>
+                                        <textarea id="notes" name="notes" placeholder="Add any supporting explanation here..."></textarea>
+                                    </div>
+
+                                    <div class="form-group full-span">
+                                        <label for="proof_document">Upload Proof Document</label>
+
+                                        <div class="custom-file-upload" id="customFileBox">
+                                            <div class="file-left">
+                                                <div class="file-icon">
+                                                    <i class="fa-solid fa-file-arrow-up"></i>
+                                                </div>
+
+                                                <div class="file-text">
+                                                    <span class="file-title">Choose supporting document</span>
+                                                    <span class="file-subtitle">PDF, JPG, PNG or scanned proof file</span>
+                                                </div>
+                                            </div>
+
+                                            <label for="proof_document" class="file-btn">Browse File</label>
+                                            <input type="file" id="proof_document" name="proof_document" required>
+                                        </div>
+
+                                        <div class="file-name" id="file-name">No file selected</div>
+                                    </div>
+                                </div>
+
+                                <div class="action-row">
+                                    <button type="button" class="primary-btn" onclick="submitUpdateRequest()">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                        <span>Submit Request</span>
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div id="update-result" class="result-area"></div>
+                        </section>
+
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='transaction_history.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,433 @@
+.report-page-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.report-page-topbar > div:first-child {
+    flex: 1 1 420px;
+    min-width: 280px;
+}
+
+.report-page-topbar h1 {
+    margin: 0 0 10px;
+}
+
+.report-page-topbar p {
+    margin: 0;
+    color: #5f6f89;
+    line-height: 1.6;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+    flex: 0 1 auto;
+}
+
+/* Fix for the admin chip in the header */
+.topbar-actions .admin-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border: 1px solid #d8e3f3;
+    border-radius: 18px;
+    background: #f7faff;
+    min-width: 250px;
+    max-width: 320px;
+    box-sizing: border-box;
+}
+
+.topbar-actions .admin-chip > div:last-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.topbar-actions .admin-chip strong {
+    color: #123f82;
+    font-size: 1rem;
+    line-height: 1.2;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.topbar-actions .admin-chip span {
+    color: #6b7d98;
+    font-size: 0.95rem;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.topbar-actions .admin-chip .avatar {
+    width: 62px;
+    height: 62px;
+    min-width: 62px;
+    border-radius: 50%;
+    background: #123f82;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.reports-stats-grid {
+    margin-bottom: 24px;
+}
+
+.report-stat-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 24px rgba(18, 63, 130, 0.08);
+}
+
+.report-chart-grid {
+    margin-bottom: 24px;
+}
+
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.report-panel {
+    min-height: 100%;
+}
+
+.report-summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+    margin-bottom: 18px;
+}
+
+.report-summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #d8e3f3;
+    background: #f8fbff;
+}
+
+.report-summary-item span {
+    color: #4f627f;
+    font-weight: 600;
+}
+
+.report-summary-item strong {
+    color: #123f82;
+    font-size: 1.1rem;
+}
+
+.report-summary-item.approved {
+    background: #eefaf2;
+    border-color: #b7e4c7;
+}
+
+.report-summary-item.pending {
+    background: #fff9ea;
+    border-color: #ffe3b3;
+}
+
+.report-summary-item.rejected {
+    background: #fff2f2;
+    border-color: #f3c2c2;
+}
+
+.report-summary-item.neutral {
+    background: #f3f7ff;
+    border-color: #cfe0ff;
+}
+
+.report-actions {
+    margin-top: 12px;
+}
+
+.report-details {
+    display: none;
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: #f7faff;
+    border: 1px solid #d8e3f3;
+    border-radius: 12px;
+    color: #5f6f89;
+    line-height: 1.6;
+}
+
+.report-details.show {
+    display: block;
+}
+
+.report-table-panel {
+    margin-bottom: 24px;
+}
+
+.section-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.section-top h2 {
+    margin-bottom: 6px;
+}
+
+.section-top p {
+    margin: 0;
+    color: #5f6f89;
+}
+
+.inline-filter-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(200px, 220px)) auto;
+    gap: 14px 16px;
+    align-items: end;
+    margin-bottom: 14px;
+    padding: 16px;
+    background: #f7faff;
+    border: 1px solid #d8e3f3;
+    border-radius: 14px;
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-field label {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #123f82;
+}
+
+.calendar-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.calendar-input-wrap i {
+    position: absolute;
+    left: 14px;
+    color: #123f82;
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.friendly-date-input {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px 0 42px;
+    border: 1px solid #c9d7ea;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #123f82;
+    font-size: 0.98rem;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.friendly-date-input:focus {
+    border-color: #123f82;
+    box-shadow: 0 0 0 3px rgba(18, 63, 130, 0.12);
+}
+
+.friendly-date-input::placeholder {
+    color: #7a8ca8;
+}
+
+.filter-button-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-pill-row {
+    margin-bottom: 14px;
+}
+
+.btn.success {
+    background: #157347;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn.success:hover {
+    opacity: 0.95;
+}
+
+/* Table styling */
+.table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #d8e3f3;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.table-wrap table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+.table-wrap thead {
+    background: #f3f7ff;
+}
+
+.table-wrap th,
+.table-wrap td {
+    padding: 14px 16px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid #e4ecf7;
+    color: #1b2f52;
+    font-size: 0.96rem;
+    line-height: 1.45;
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.table-wrap th {
+    font-weight: 700;
+    color: #123f82;
+    font-size: 1rem;
+}
+
+.table-wrap tbody tr:hover {
+    background: #f9fbff;
+}
+
+.table-wrap tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.no-results {
+    text-align: center;
+    color: #5f6f89;
+    font-weight: 600;
+    padding: 18px 16px;
+}
+
+.hidden-row {
+    display: none;
+}
+
+.view-all-wrap {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.view-all-btn {
+    min-width: 110px;
+}
+
+/* Optional chart support */
+.chart-card {
+    padding: 18px;
+    border: 1px solid #d8e3f3;
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+.chart-header {
+    margin-bottom: 14px;
+}
+
+.chart-header h2 {
+    margin-bottom: 6px;
+}
+
+.chart-header p {
+    margin: 0;
+    color: #5f6f89;
+}
+
+.chart-image {
+    width: 100%;
+    max-width: 100%;
+    display: block;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.chart-fallback {
+    padding: 24px;
+    text-align: center;
+    border: 1px dashed #c9d7ea;
+    border-radius: 12px;
+    color: #5f6f89;
+    background: #f8fbff;
+}
+
+@media (max-width: 1200px) {
+    .reports-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 980px) {
+    .inline-filter-form {
+        grid-template-columns: 1fr;
+    }
+
+    .filter-button-group {
+        width: 100%;
+    }
+
+    .table-wrap table {
+        min-width: 760px;
+    }
+}
+
+@media (max-width: 860px) {
+    .reports-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-summary-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .report-page-topbar,
+    .section-top,
+    .topbar-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .topbar-actions .admin-chip {
+        max-width: 100%;
+        min-width: 100%;
+    }
+}

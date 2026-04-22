@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Planning Applications</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_planning_applications.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="dashboard-shell">
+
+        {% include 'partials/admin_sidebar.html' %}
+
+        <main class="main-content">
+            <section class="page-hero reveal-up">
+                <div class="page-hero-content">
+                    <span class="page-kicker">Administration</span>
+                    <h1>Planning Applications</h1>
+                    <p>
+                        Review submitted planning applications, inspect applicant details,
+                        monitor workflow progress, and move to the application review page.
+                    </p>
+                </div>
+
+                <div class="page-hero-meta">
+                    <div class="hero-stat-card">
+                        <span class="hero-stat-label">Total Records</span>
+                        <strong>{{ applications|length }}</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="applications-panel reveal-up">
+                <div class="panel-header panel-header-split">
+                    <div>
+                        <h2>Application Directory</h2>
+                        <p>All submitted planning applications currently available for admin review.</p>
+                    </div>
+
+                    <div class="header-tools">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input
+                                type="text"
+                                id="applicationSearch"
+                                placeholder="Search by ID, applicant, email, status, or step">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-meta">
+                    <span class="table-count" id="visibleCount">{{ applications|length }} visible</span>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="applications-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Applicant</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Current Step</th>
+                                <th>Updated</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="applicationsTableBody">
+                            {% for app in applications %}
+                            <tr class="application-row"
+                                data-id="{{ app['application_id'] }}"
+                                data-applicant="{{ (app['first_name'] ~ ' ' ~ app['last_name'])|lower }}"
+                                data-email="{{ app['email']|lower }}"
+                                data-status="{{ app['status']|lower }}"
+                                data-step="{{ app['current_step'] }}">
+                                <td>
+                                    <div class="id-cell">
+                                        <span class="id-badge">#</span>
+                                        <strong>{{ app['application_id'] }}</strong>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="applicant-cell">
+                                        <div class="applicant-avatar">
+                                            {{ app['first_name'][0] | upper }}{{ app['last_name'][0] | upper }}
+                                        </div>
+                                        <div class="applicant-meta">
+                                            <strong>{{ app['first_name'] }} {{ app['last_name'] }}</strong>
+                                            <span>Applicant</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="email-cell">{{ app['email'] }}</td>
+
+                                <td>
+                                    <span class="status-pill
+                                        {% if app['status'] == 'Approved' %}status-approved
+                                        {% elif app['status'] == 'Submitted' %}status-submitted
+                                        {% elif app['status'] == 'Rejected' %}status-rejected
+                                        {% else %}status-other{% endif %}">
+                                        {{ app['status'] }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="step-pill">Step {{ app['current_step'] }}</span>
+                                </td>
+
+                                <td>
+                                    <span class="date-text">{{ app['updated_at'] }}</span>
+                                </td>
+
+                                <td>
+                                    <a class="btn review-btn"
+                                        href="{{ url_for('admin_planning.admin_planning_application_detail', application_id=app['application_id']) }}">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        <span>Review</span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr id="emptyRow">
+                                <td colspan="7" class="empty">
+                                    <div class="empty-state">
+                                        <i class="fa-regular fa-folder-open"></i>
+                                        <p>No planning applications found.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="client-empty-state" id="clientEmptyState" style="display: none;">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <p>No matching applications found for your search.</p>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='admin_planning_applications.js') }}"></script>
+</body>
+
+</html>

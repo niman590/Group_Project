@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Planning Application</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_planning_application_detail.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-shell">
+        {% include 'partials/admin_sidebar.html' %}
+
+        <main class="main-content">
+            <div class="page-shell">
+
+                <section class="topbar">
+                    <div>
+                        <span class="page-kicker">Planning Review</span>
+                        <h1>Application #{{ application['application_id'] }}</h1>
+                        <p>
+                            Review the submitted application in the same 12-step layout,
+                            then continue the admin workflow below.
+                        </p>
+                    </div>
+
+                    <div class="topbar-right">
+                        {% if application['status'] == 'Submitted' %}
+                            <span class="status-badge status-submitted">Submitted</span>
+                        {% elif application['status'] == 'Under Review' %}
+                            <span class="status-badge status-under-review">Under Review</span>
+                        {% elif application['status'] == 'Approved' %}
+                            <span class="status-badge status-approved">Approved</span>
+                        {% elif application['status'] == 'Rejected' %}
+                            <span class="status-badge status-rejected">Rejected</span>
+                        {% else %}
+                            <span class="chip">{{ application['status'] or '-' }}</span>
+                        {% endif %}
+
+                        <span class="chip">Workflow: {{ application['workflow_stage'] or '-' }}</span>
+                        <span class="chip">Current Step: {{ application['current_step'] or '-' }}</span>
+                        <span class="chip">Created: {{ application['created_at'] or '-' }}</span>
+                    </div>
+                </section>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-wrap">
+                            {% for category, message in messages %}
+                                <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <!-- SUBMITTED APPLICATION VIEW -->
+                <section class="submission-view-card">
+                    <div class="submission-view-header">
+                        <div>
+                            <span class="section-kicker">Submitted Application</span>
+                            <h2>12-Step Submitted Form Preview</h2>
+                            <p>Admin can check the submitted data step by step before taking workflow actions.</p>
+                        </div>
+
+                        <div class="submission-header-meta">
+                            <span class="chip" id="stepPill">Step 1</span>
+                            <span class="chip" id="progressText">Step 1 of 12</span>
+                        </div>
+                    </div>
+
+                    <div class="progress-wrap">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+
+                    <div class="step-jump-grid">
+                        <button type="button" class="jump-btn active" data-jump-step="1">1</button>
+                        <button type="button" class="jump-btn" data-jump-step="2">2</button>
+                        <button type="button" class="jump-btn" data-jump-step="3">3</button>
+                        <button type="button" class="jump-btn" data-jump-step="4">4</button>
+                        <button type="button" class="jump-btn" data-jump-step="5">5</button>
+                        <button type="button" class="jump-btn" data-jump-step="6">6</button>
+                        <button type="button" class="jump-btn" data-jump-step="7">7</button>
+                        <button type="button" class="jump-btn" data-jump-step="8">8</button>
+                        <button type="button" class="jump-btn" data-jump-step="9">9</button>
+                        <button type="button" class="jump-btn" data-jump-step="10">10</button>
+                        <button type="button" class="jump-btn" data-jump-step="11">11</button>
+                        <button type="button" class="jump-btn" data-jump-step="12">12</button>
+                    </div>
+
+                    <div class="readonly-form-shell">
+
+                        <section class="form-step active" data-step="1">
+                            <h3>1. Summary of Proposed Development</h3>
+                            <div class="info-grid">
+                                <div class="info-item"><span class="label">Development Work Type</span><span class="value">{{ summary['development_work_type'] if summary else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Previous Approved Plan No.</span><span class="value">{{ summary['previous_plan_no'] if summary else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Assessment No.</span><span class="value">{{ summary['assessment_no'] if summary else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Road Name</span><span class="value">{{ summary['road_name'] if summary else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Postal Code</span><span class="value">{{ summary['postal_code'] if summary else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Local Authority Name</span><span class="value">{{ summary['local_authority_name'] if summary else '-' }}</span></div>
+                                <div class="info-item"><span class="label">GND Name</span><span class="value">{{ summary['gnd_name'] if summary else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Land Ownership Type</span><span class="value">{{ summary['land_ownership_type'] if summary else '-' }}</span></div>
+                                <div class="info-item full-span"><span class="label">Ownership Other</span><span class="value">{{ summary['land_ownership_other'] if summary else '-' }}</span></div>
+                            </div>
+
+                            <div class="subsection-block">
+                                <div class="subsection-title">Proposed Uses</div>
+                                <div class="tag-list">
+                                    {% for use in proposed_uses %}
+                                        <span class="tag">{{ use['proposed_use'] }}</span>
+                                    {% else %}
+                                        <span class="empty-text">No proposed uses selected.</span>
+                                    {% endfor %}
+                                </div>
+                                <div class="mt-12">
+                                    <span class="label">Proposed Use Other</span>
+                                    <span class="value">{{ summary['proposed_use_other'] if summary else '-' }}</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="form-step" data-step="2">
+                            <h3>2. Applicant Details</h3>
+                            <div class="list-stack">
+                                {% for applicant in applicants %}
+                                    <div class="list-item">
+                                        <div class="list-title">Applicant / Owner {{ applicant['applicant_order'] }}</div>
+                                        <div class="info-grid">
+                                            <div class="info-item"><span class="label">Name</span><span class="value">{{ applicant['name'] or '-' }}</span></div>
+                                            <div class="info-item"><span class="label">NIC</span><span class="value">{{ applicant['nic'] or '-' }}</span></div>
+                                            <div class="info-item"><span class="label">Telephone</span><span class="value">{{ applicant['telephone'] or '-' }}</span></div>
+                                            <div class="info-item"><span class="label">Email</span><span class="value">{{ applicant['email'] or '-' }}</span></div>
+                                            <div class="info-item full-span"><span class="label">Address</span><span class="value">{{ applicant['address'] or '-' }}</span></div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <p class="empty-text">No applicant records found.</p>
+                                {% endfor %}
+                            </div>
+                        </section>
+
+                        <section class="form-step" data-step="3">
+                            <h3>3. Technical Service Providers & Ownership Confirmation</h3>
+                            <div class="info-grid">
+                                <div class="info-item"><span class="label">Architect / Town Planner</span><span class="value">{{ technical['architect_town_planner_name'] if technical else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Draughtsman</span><span class="value">{{ technical['draughtsman_name'] if technical else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Engineer</span><span class="value">{{ technical['engineer_name'] if technical else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Applicant Owns Land</span><span class="value">{{ technical['applicant_owns_land'] if technical else '-' }}</span></div>
+                            </div>
+                        </section>
+
+                        <section class="form-step" data-step="4">
+                            <h3>4. Land Owner Details</h3>
+                            <div class="info-grid">
+                                <div class="info-item"><span class="label">Owner Name</span><span class="value">{{ land_owner['owner_name'] if land_owner else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Owner NIC</span><span class="value">{{ land_owner['owner_nic'] if land_owner else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Telephone</span><span class="value">{{ land_owner['owner_tel'] if land_owner else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Email</span><span class="value">{{ land_owner['owner_email'] if land_owner else '-' }}</span></div>
+                                <div class="info-item full-span"><span class="label">Address</span><span class="value">{{ land_owner['owner_address'] if land_owner else '-' }}</span></div>
+                            </div>
+                        </section>
+
+                        <section class="form-step" data-step="5">
+                            <h3>5. Clearances & Reference Details</h3>
+                            <div class="info-grid">
+                                <div class="info-item"><span class="label">Rate Ref</span><span class="value">{{ clearances['rate_clearance_ref'] if clearances else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Rate Date</span><span class="value">{{ clearances['rate_clearance_date'] if clearances else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Water Ref</span><span class="value">{{ clearances['water_clearance_ref'] if clearances else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Water Date</span><span class="value">{{ clearances['water_clearance_date'] if clearances else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Drainage Ref</span><span class="value">{{ clearances['drainage_clearance_ref'] if clearances else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Drainage Date</span><span class="value">{{ clearances['drainage_clearance_date'] if clearances else '-' }}</span></div>
+                                <div class="info-item"><span class="label">UDA Ref</span><span class="value">{{ clearances['uda_preliminary_ref'] if clearances else '-' }}</span></div>
+                                <div class="info-item"><span class="label">UDA Date</span><span class="value">{{ clearances['uda_preliminary_date'] if clearances else '-' }}</span></div>
+                            </div>
+                        </section>
+
+                        <section class="form-step" data-step="6">
+                            <h3>6. Usage, Access & Site Details</h3>
+                            <div class="info-grid">
+                                <div class="info-item"><span class="label">Existing Use</span><span class="value">{{ site_usage['existing_use'] if site_usage else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Proposed Use</span><span class="value">{{ site_usage['proposed_use_text'] if site_usage else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Zoning Category</span><span class="value">{{ site_usage['zoning_category'] if site_usage else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Site Extent</span><span class="value">{{ site_usage['site_extent'] if site_usage else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Road Frontage Width</span><span class="value">{{ site_usage['site_frontage_width'] if site_usage else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Physical Width of Road</span><span class="value">{{ site_usage['physical_width_of_road'] if site_usage else '-' }}</span></div>
+                            </div>
+                        </section>
+
+                        <section class="form-step" data-step="7">
+                            <h3>7. Distances, Building Height & Floor Area</h3>
+                            <div class="info-grid">
+                                <div class="info-item"><span class="label">Street Boundary Distance</span><span class="value">{{ dimensions['distance_street_boundary'] if dimensions else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Rear Boundary Distance</span><span class="value">{{ dimensions['distance_rear_boundary'] if dimensions else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Left Boundary Distance</span><span class="value">{{ dimensions['distance_left_boundary'] if dimensions else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Right Boundary Distance</span><span class="value">{{ dimensions['distance_right_boundary'] if dimensions else '-' }}</span></div>
+                                <div class="info-item"><span class="label">No. of Floors</span><span class="value">{{ dimensions['no_of_floors'] if dimensions else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Building Height</span><span class="value">{{ dimensions['total_building_height'] if dimensions else '-' }}</span></div>
+                            </div>
+                        </section>
+
+                        <section class="form-step" data-step="8">
+                            <h3>8. Development Details</h3>
+                            <div class="info-grid">
+                                <div class="info-item"><span class="label">Plot Coverage</span><span class="value">{{ metrics['plot_coverage'] if metrics else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Floor Area Ratio</span><span class="value">{{ metrics['floor_area_ratio'] if metrics else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Estimated Water Usage</span><span class="value">{{ metrics['water_usage_liters'] if metrics else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Estimated Electricity Usage</span><span class="value">{{ metrics['electricity_usage_kw'] if metrics else '-' }}</span></div>
+                                <div class="info-item full-span"><span class="label">Site Development Notes</span><span class="value">{{ metrics['site_development_notes'] if metrics else '-' }}</span></div>
+                            </div>
+                        </section>
+
+                        <section class="form-step" data-step="9">
+                            <h3>9. Housing Units & Parking</h3>
+                            <div class="info-grid">
+                                <div class="info-item"><span class="label">Existing Units</span><span class="value">{{ units['existing_units'] if units else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Proposed Units</span><span class="value">{{ units['proposed_units'] if units else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Total Units</span><span class="value">{{ units['total_units'] if units else '-' }}</span></div>
+                                <div class="info-item"><span class="label">Proposed Car Parking</span><span class="value">{{ units['parking_car_proposed'] if units else '-' }}</span></div>
+                            </div>
+                        </section>
+
+                        <section class="form-step" data-step="10">
+                            <h3>10. Submitted Plans & Special Compliance</h3>
+                            <div class="tag-list">
+                                {% for p in plans %}
+                                    <span class="tag">{{ p['plan_name'] }}</span>
+                                {% else %}
+                                    <span class="empty-text">No submitted plans found.</span>
+                                {% endfor %}
+                            </div>
+                        </section>
+
+                        <section class="form-step" data-step="11">
+                            <h3>11. Attachments & Supporting Documents</h3>
+                            <div class="docs-list">
+                                {% for file in attachments %}
+                                    <a class="doc-card" href="/{{ file['file_path'] }}" target="_blank">
+                                        <div class="doc-left">
+                                            <div class="doc-icon"><i class="fa-solid fa-file-lines"></i></div>
+                                            <div>
+                                                <div class="list-title">{{ file['file_name'] }}</div>
+                                                <div class="muted">{{ file['file_category'] or 'Document' }}</div>
+                                            </div>
+                                        </div>
+                                        <span class="doc-badge">Open</span>
+                                    </a>
+                                {% else %}
+                                    <p class="empty-text">No attachments uploaded.</p>
+                                {% endfor %}
+                            </div>
+                        </section>
+
+                        <section class="form-step" data-step="12">
+                            <h3>12. Final Review Snapshot</h3>
+                            <div class="info-grid">
+                                <div class="info-item"><span class="label">Application ID</span><span class="value">{{ application['application_id'] }}</span></div>
+                                <div class="info-item"><span class="label">Status</span><span class="value">{{ application['status'] or '-' }}</span></div>
+                                <div class="info-item"><span class="label">Workflow Stage</span><span class="value">{{ application['workflow_stage'] or '-' }}</span></div>
+                                <div class="info-item"><span class="label">Current Step</span><span class="value">{{ application['current_step'] or '-' }}</span></div>
+                                <div class="info-item"><span class="label">Created At</span><span class="value">{{ application['created_at'] or '-' }}</span></div>
+                                <div class="info-item"><span class="label">Updated At</span><span class="value">{{ application['updated_at'] or '-' }}</span></div>
+                                <div class="info-item full-span"><span class="label">Admin Comment</span><span class="value">{{ application['admin_comment'] or '-' }}</span></div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="form-actions submission-actions">
+                        <button type="button" class="btn btn-outline" id="prevBtn">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            Previous
+                        </button>
+
+                        <button type="button" class="btn btn-primary" id="nextBtn">
+                            Next
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- ADMIN WORKFLOW -->
+                <section class="admin-workflow-shell">
+                    <div class="admin-workflow-header">
+                        <div>
+                            <span class="section-kicker">Administrative Workflow</span>
+                            <h2>Review Stages</h2>
+                            <p>Each stage unlocks only after the previous stage is completed.</p>
+                        </div>
+                    </div>
+
+                    <div class="workflow-strip workflow-strip-locked">
+                        <div class="flow-step done">
+                            <div class="flow-step-badge">01</div>
+                            <div class="flow-step-label">Submitted</div>
+                            <div class="flow-step-note">Application data and documents were submitted by the user.</div>
+                        </div>
+
+                        <div class="flow-step {% if site_visit_done %}done{% else %}active{% endif %}">
+                            <div class="flow-step-badge">02</div>
+                            <div class="flow-step-label">Site Visit</div>
+                            <div class="flow-step-note">Record scheduling, notes, and completion of the site visit.</div>
+                        </div>
+
+                        <div class="flow-step {% if docs_done %}done{% elif site_visit_done %}active{% else %}locked{% endif %}">
+                            <div class="flow-step-badge">03</div>
+                            <div class="flow-step-label">Additional Docs</div>
+                            <div class="flow-step-note">Request missing documents or clear the document stage.</div>
+                        </div>
+
+                        <div class="flow-step {% if first_officer_done %}done{% elif docs_done %}active{% else %}locked{% endif %}">
+                            <div class="flow-step-badge">04</div>
+                            <div class="flow-step-label">First Officer</div>
+                            <div class="flow-step-note">Record first officer decision after document stage.</div>
+                        </div>
+
+                        <div class="flow-step {% if deputy_done %}done{% elif first_officer_done %}active{% else %}locked{% endif %}">
+                            <div class="flow-step-badge">05</div>
+                            <div class="flow-step-label">Deputy Director</div>
+                            <div class="flow-step-note">Deputy Director opens after first officer review.</div>
+                        </div>
+
+                        <div class="flow-step {% if committee_done %}done{% elif deputy_done %}active{% else %}locked{% endif %}">
+                            <div class="flow-step-badge">06</div>
+                            <div class="flow-step-label">Committee</div>
+                            <div class="flow-step-note">Final decision opens after deputy director review.</div>
+                        </div>
+                    </div>
+
+                    <div class="admin-stage-stack">
+
+                        <section class="admin-stage-card stage-open">
+                            <div class="admin-stage-top">
+                                <div>
+                                    <span class="step-chip">Step 1</span>
+                                    <h3>Site Visit Update</h3>
+                                    <p>Start the admin workflow here.</p>
+                                </div>
+                                <span class="stage-status {% if site_visit_done %}status-done{% else %}status-live{% endif %}">
+                                    {{ application['site_visit_status'] or 'Pending' }}
+                                </span>
+                            </div>
+
+                            <form method="POST" action="{{ url_for('admin_planning.mark_site_visit', application_id=application['application_id']) }}" class="stage-form">
+                                <div class="form-group">
+                                    <label>Visit Status</label>
+                                    <select name="visit_status" required>
+                                        <option value="Pending" {% if application['site_visit_status'] == 'Pending' %}selected{% endif %}>Pending</option>
+                                        <option value="Scheduled" {% if application['site_visit_status'] == 'Scheduled' %}selected{% endif %}>Scheduled</option>
+                                        <option value="Completed" {% if application['site_visit_status'] == 'Completed' %}selected{% endif %}>Completed</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Comments</label>
+                                    <textarea name="admin_comment" placeholder="Add site visit notes, observations, or issues"></textarea>
+                                </div>
+
+                                <div class="stage-action-row">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                        Save Site Visit
+                                    </button>
+                                </div>
+                            </form>
+                        </section>
+
+                        <section class="admin-stage-card {% if site_visit_done %}stage-open{% else %}stage-locked-card{% endif %}">
+                            <div class="admin-stage-top">
+                                <div>
+                                    <span class="step-chip">Step 2</span>
+                                    <h3>Additional Documents / Clearance</h3>
+                                    <p>Only opens after site visit is completed.</p>
+                                </div>
+                                <span class="stage-status {% if docs_done %}status-done{% elif site_visit_done %}status-live{% else %}status-locked{% endif %}">
+                                    {% if docs_done %}Cleared{% elif site_visit_done %}Open{% else %}Locked{% endif %}
+                                </span>
+                            </div>
+
+                            {% if site_visit_done %}
+                                <div class="dual-stage-grid">
+                                    <div class="mini-stage-card">
+                                        <h4>Request Missing Documents</h4>
+                                        <form method="POST" action="{{ url_for('admin_planning.request_additional_documents', application_id=application['application_id']) }}" class="stage-form">
+                                            <div class="form-group">
+                                                <label>Request Title</label>
+                                                <input type="text" name="request_title" placeholder="Request title" required>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Request Message</label>
+                                                <textarea name="request_message" placeholder="Explain clearly what is missing and what the user must upload" required></textarea>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Required Documents</label>
+                                                <textarea name="document_labels" placeholder="One required document per line&#10;Example: Updated Survey Plan&#10;Drainage Clearance Letter" required></textarea>
+                                            </div>
+
+                                            <button class="btn btn-warning" type="submit">
+                                                <i class="fa-solid fa-file-circle-plus"></i>
+                                                Request Documents
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div class="mini-stage-card mini-stage-card-success">
+                                        <h4>Mark Documents as Cleared</h4>
+                                        <form method="POST" action="{{ url_for('admin_planning.request_additional_documents', application_id=application['application_id']) }}" class="stage-form">
+                                            <input type="hidden" name="docs_cleared" value="1">
+
+                                            <div class="form-group">
+                                                <label>Clearance Note</label>
+                                                <textarea name="request_message" placeholder="Optional note about document review completion">All required additional documents were reviewed and cleared.</textarea>
+                                            </div>
+
+                                            <button class="btn btn-success" type="submit">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                                Mark Step 2 as Cleared
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="card mt-18">
+                                    <div class="card-header">
+                                        <h2 class="card-title">Requested Additional Documents</h2>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="list-stack">
+                                            {% for item in requested_documents %}
+                                                <div class="request-item">
+                                                    <div class="request-title">{{ item['document_label'] }}</div>
+                                                    <div><strong>Status:</strong> {{ item['status'] or 'Pending' }}</div>
+                                                    <div><strong>Uploaded File:</strong> {{ item['uploaded_file_name'] or '-' }}</div>
+                                                    <div><strong>Uploaded At:</strong> {{ item['uploaded_at'] or '-' }}</div>
+                                                </div>
+                                            {% else %}
+                                                <p class="empty-text">No requested documents yet.</p>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="locked-message">
+                                    <i class="fa-solid fa-lock"></i>
+                                    <span>Complete Step 1: Site Visit, then this stage will open.</span>
+                                </div>
+                            {% endif %}
+                        </section>
+
+                        <section class="admin-stage-card {% if docs_done %}stage-open{% else %}stage-locked-card{% endif %}">
+                            <div class="admin-stage-top">
+                                <div>
+                                    <span class="step-chip">Step 3</span>
+                                    <h3>First Officer / Planning Office Decision</h3>
+                                    <p>Opens only after Step 2 is cleared.</p>
+                                </div>
+                                <span class="stage-status {% if first_officer_done %}status-done{% elif docs_done %}status-live{% else %}status-locked{% endif %}">
+                                    {{ application['first_officer_decision'] or ('Open' if docs_done else 'Locked') }}
+                                </span>
+                            </div>
+
+                            {% if docs_done %}
+                                <form method="POST" action="{{ url_for('admin_planning.first_officer_decision', application_id=application['application_id']) }}" class="stage-form">
+                                    <div class="form-group">
+                                        <label>Decision</label>
+                                        <select name="decision" required>
+                                            <option value="">Select decision</option>
+                                            <option value="Approved" {% if application['first_officer_decision'] == 'Approved' %}selected{% endif %}>Approved</option>
+                                            <option value="Rejected" {% if application['first_officer_decision'] == 'Rejected' %}selected{% endif %}>Rejected</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Comments</label>
+                                        <textarea name="admin_comment" rows="4" placeholder="Add first officer comments">{{ application['first_officer_comment'] or '' }}</textarea>
+                                    </div>
+
+                                    <div class="stage-action-row">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            Save First Officer Decision
+                                        </button>
+                                    </div>
+                                </form>
+
+                                {% if application['planning_office_letter_path'] or application['first_officer_letter_path'] %}
+                                    <div class="card mt-18">
+                                        <div class="card-header">
+                                            <h2 class="card-title">First Officer / Planning Office Letter</h2>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="docs-list">
+                                                <a class="doc-card" href="{{ url_for('admin_planning.download_first_officer_letter', application_id=application['application_id']) }}">
+                                                    <div class="doc-left">
+                                                        <div class="doc-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                                                        <div>
+                                                            <div class="doc-title">Generated First Officer / Planning Office Letter</div>
+                                                            <div class="doc-sub">
+                                                                Decision: {{ application['first_officer_decision'] or application['planning_office_decision'] or '-' }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="doc-badge">Open</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="locked-message">
+                                    <i class="fa-solid fa-lock"></i>
+                                    <span>Clear Step 2 first to unlock this stage.</span>
+                                </div>
+                            {% endif %}
+                        </section>
+
+                        <section class="admin-stage-card {% if first_officer_done %}stage-open{% else %}stage-locked-card{% endif %}">
+                            <div class="admin-stage-top">
+                                <div>
+                                    <span class="step-chip">Step 4</span>
+                                    <h3>Deputy Director Decision</h3>
+                                    <p>Opens only after Step 3 is completed.</p>
+                                </div>
+                                <span class="stage-status {% if deputy_done %}status-done{% elif first_officer_done %}status-live{% else %}status-locked{% endif %}">
+                                    {{ application['deputy_director_decision'] or ('Open' if first_officer_done else 'Locked') }}
+                                </span>
+                            </div>
+
+                            {% if first_officer_done %}
+                                <form method="POST" action="{{ url_for('admin_planning.deputy_director_decision', application_id=application['application_id']) }}" class="stage-form">
+                                    <div class="form-group">
+                                        <label>Decision</label>
+                                        <select name="decision" required>
+                                            <option value="">Select decision</option>
+                                            <option value="Approved" {% if application['deputy_director_decision'] == 'Approved' %}selected{% endif %}>Approved</option>
+                                            <option value="Rejected" {% if application['deputy_director_decision'] == 'Rejected' %}selected{% endif %}>Rejected</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Comments</label>
+                                        <textarea name="admin_comment" rows="4" placeholder="Add deputy director comments">{{ application['deputy_director_comment'] or '' }}</textarea>
+                                    </div>
+
+                                    <div class="stage-action-row">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            Save Deputy Director Decision
+                                        </button>
+                                    </div>
+                                </form>
+
+                                {% if application['deputy_director_decision'] in ['Approved', 'Rejected'] %}
+                                    <div class="card mt-18">
+                                        <div class="card-header">
+                                            <h2 class="card-title">Deputy Director Letter</h2>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="docs-list">
+                                                <a class="doc-card" href="{{ url_for('admin_planning.download_deputy_director_letter', application_id=application['application_id']) }}">
+                                                    <div class="doc-left">
+                                                        <div class="doc-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                                                        <div>
+                                                            <div class="doc-title">Generated Deputy Director Letter</div>
+                                                            <div class="doc-sub">Decision: {{ application['deputy_director_decision'] or '-' }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="doc-badge">Open</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="locked-message">
+                                    <i class="fa-solid fa-lock"></i>
+                                    <span>Complete Step 3 first to unlock this stage.</span>
+                                </div>
+                            {% endif %}
+                        </section>
+
+                        <section class="admin-stage-card {% if deputy_done %}stage-open{% else %}stage-locked-card{% endif %}">
+                            <div class="admin-stage-top">
+                                <div>
+                                    <span class="step-chip">Step 5</span>
+                                    <h3>Final Committee Decision</h3>
+                                    <p>Opens only after Step 4 is completed.</p>
+                                </div>
+                                <span class="stage-status {% if committee_done %}status-done{% elif deputy_done %}status-live{% else %}status-locked{% endif %}">
+                                    {{ application['committee_decision'] or ('Open' if deputy_done else 'Locked') }}
+                                </span>
+                            </div>
+
+                            {% if deputy_done %}
+                                <form method="POST" action="{{ url_for('admin_planning.committee_decision', application_id=application['application_id']) }}" class="stage-form">
+                                    <div class="form-group">
+                                        <label>Decision</label>
+                                        <select name="decision" required>
+                                            <option value="">Select decision</option>
+                                            <option value="Approved" {% if application['committee_decision'] == 'Approved' %}selected{% endif %}>Approved</option>
+                                            <option value="Rejected" {% if application['committee_decision'] == 'Rejected' %}selected{% endif %}>Rejected</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Comments</label>
+                                        <textarea name="admin_comment" rows="4" placeholder="Add committee comments">{{ application['committee_comment'] or '' }}</textarea>
+                                    </div>
+
+                                    <div class="stage-action-row">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fa-solid fa-gavel"></i>
+                                            Save Final Committee Decision
+                                        </button>
+                                    </div>
+                                </form>
+
+                                {% if application['decision_pdf_path'] %}
+                                    <div class="card mt-18">
+                                        <div class="card-header">
+                                            <h2 class="card-title">Final Committee Decision PDF</h2>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="docs-list">
+                                                <a class="doc-card" href="{{ url_for('admin_planning.download_planning_decision_pdf', application_id=application['application_id']) }}">
+                                                    <div class="doc-left">
+                                                        <div class="doc-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                                                        <div>
+                                                            <div class="doc-title">Generated Final Decision PDF</div>
+                                                            <div class="doc-sub">Decision: {{ application['committee_decision'] or application['status'] or '-' }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <span class="doc-badge">Open</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="locked-message">
+                                    <i class="fa-solid fa-lock"></i>
+                                    <span>Complete Step 4 first to unlock this stage.</span>
+                                </div>
+                            {% endif %}
+                        </section>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Workflow History</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="history-list">
+                                    {% for row in workflow_history %}
+                                        <div class="history-item">
+                                            <div class="history-title">{{ row['stage_name'] }}</div>
+                                            <div><strong>Action:</strong> {{ row['action_taken'] or '-' }}</div>
+                                            <div><strong>Comment:</strong> {{ row['comment'] or '-' }}</div>
+                                            <div><strong>At:</strong> {{ row['acted_at'] or '-' }}</div>
+                                        </div>
+                                    {% else %}
+                                        <p class="empty-text">No workflow history yet.</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='admin_planning_application_detail.js') }}"></script>
+</body>
+</html>

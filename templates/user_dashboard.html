@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Civic Plan - User Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body>
+    <div class="dashboard-shell">
+
+        {% include 'partials/user_sidebar.html' %}
+
+        <main class="main-content">
+
+            <header class="topbar compact-topbar reveal-up">
+                <div class="topbar-copy">
+                    <span class="page-kicker">Citizen Dashboard</span>
+                    <h1>Welcome back, {{ user['first_name'] if user and user['first_name'] else 'User' }}</h1>
+                    <p>Manage land records, planning approvals, valuations, and citizen services in one place.</p>
+                </div>
+
+                <div class="topbar-actions">
+                    <div class="notification-wrap">
+                        <button
+                            class="icon-btn notification-toggle"
+                            id="notificationToggle"
+                            type="button"
+                            aria-label="Notifications"
+                            title="Notifications">
+                            <i class="fa-solid fa-bell"></i>
+                            {% if unread_notifications and unread_notifications > 0 %}
+                            <span class="notification-count" id="notificationCount">{{ unread_notifications }}</span>
+                            {% endif %}
+                        </button>
+
+                        <div class="notification-panel hidden" id="notificationPanel">
+                            <div class="notification-panel-header">
+                                <div>
+                                    <h3>Notifications</h3>
+                                    <p>Progress updates, admin messages, and document requests.</p>
+                                </div>
+
+                                <div class="notification-header-actions">
+                                    <a href="{{ url_for('user.all_notifications') }}" class="notification-see-all-btn">
+                                        See all
+                                    </a>
+
+                                    <button type="button" id="markAllReadBtn" class="notification-action-btn">
+                                        Mark all as read
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="notification-panel-body" id="notificationList">
+                                {% if notifications %}
+                                    {% for notification in notifications %}
+                                    <div class="notification-item {% if notification['is_read'] == 0 %}unread{% endif %}"
+                                         data-id="{{ notification['notification_id'] }}"
+                                         data-application-id="{{ notification['application_id'] or '' }}">
+                                        <div class="notification-item-top">
+                                            <span class="notification-type {{ notification['notification_type'] or 'info' }}">
+                                                {{ notification['notification_type'] or 'info' }}
+                                            </span>
+                                            <span class="notification-time">{{ notification['created_at'] or '' }}</span>
+                                        </div>
+                                        <h4>{{ notification['title'] }}</h4>
+                                        <p>{{ notification['message'] }}</p>
+
+                                        {% if notification['application_id'] %}
+                                        <div class="notification-link-hint">
+                                            Click to open application #{{ notification['application_id'] }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="notification-empty">
+                                        <i class="fa-regular fa-bell-slash"></i>
+                                        <span>No notifications yet.</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="{{ url_for('user.account') }}" class="user-chip user-chip-link" title="Go to My Account">
+                        <div class="avatar">
+                            {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
+                        </div>
+                        <div>
+                            <strong>
+                                {{ user['first_name'] if user and user['first_name'] else 'Citizen' }}
+                                {{ user['last_name'] if user and user['last_name'] else 'User' }}
+                            </strong>
+                            <span>NIC: {{ user['nic'] if user and user['nic'] else 'N/A' }}</span>
+                        </div>
+                    </a>
+                </div>
+            </header>
+
+            <section class="overview-services-box reveal-up">
+                <div class="overview-box-header">
+                    <div>
+                        <span class="section-kicker">Overview</span>
+                        <h2>Quick Summary & Popular Services</h2>
+                        <p>See your progress and access the most-used citizen tools in one clean section.</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid inside-overview-grid">
+                    <div class="stat-card reveal-up">
+                        <div class="stat-icon blue"><i class="fa-solid fa-file-circle-check"></i></div>
+                        <div>
+                            <h3 class="count-up">{{ stats.total_applications }}</h3>
+                            <p>Total Applications</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card reveal-up">
+                        <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
+                        <div>
+                            <h3 class="count-up">{{ stats.approved_cases }}</h3>
+                            <p>Approved Cases</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card reveal-up">
+                        <div class="stat-icon orange"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <div>
+                            <h3 class="count-up">{{ stats.pending_reviews }}</h3>
+                            <p>Pending Reviews</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card reveal-up">
+                        <div class="stat-icon red"><i class="fa-solid fa-bell"></i></div>
+                        <div>
+                            <h3 class="count-up">{{ unread_notifications }}</h3>
+                            <p>Alerts & Notifications</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-grid inside-overview-grid">
+                    <a href="{{ url_for('submit_documents.submit_documents') }}" class="action-card reveal-up">
+                        <div class="action-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
+                        <h3>Submit Planning Documents</h3>
+                        <p>Upload new planning approval files and supporting documents.</p>
+                        <span class="action-link-text">Open module <i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
+
+                    <a href="{{ url_for('submit_documents.my_applications') }}" class="action-card reveal-up">
+                        <div class="action-icon"><i class="fa-solid fa-folder-open"></i></div>
+                        <h3>Track My Applications</h3>
+                        <p>Monitor review progress, approvals, rejections, and status updates.</p>
+                        <span class="action-link-text">View progress <i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
+
+                    <a href="{{ url_for('transaction_history.transaction_history_page') }}" class="action-card reveal-up">
+                        <div class="action-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                        <h3>View Land Transaction History</h3>
+                        <p>See past transactions and ownership changes.</p>
+                        <span class="action-link-text">Open records <i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
+
+                    <a href="{{ url_for('prediction.land_valuation_page') }}" class="action-card reveal-up">
+                        <div class="action-icon"><i class="fa-solid fa-chart-line"></i></div>
+                        <h3>Check Land Value</h3>
+                        <p>View current land value and estimated future trends.</p>
+                        <span class="action-link-text">View valuation <i class="fa-solid fa-arrow-right"></i></span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="content-grid">
+                <div class="left-column">
+
+                    <div class="panel reveal-up">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Pending Requests & Alerts</h2>
+                                <p class="panel-subtext">Recent alerts and important activity related to your account.</p>
+                            </div>
+                            <a href="{{ url_for('submit_documents.my_applications') }}">View all</a>
+                        </div>
+
+                        <div class="alert-list">
+                            {% if alerts %}
+                            {% for alert in alerts %}
+                            <div class="alert-item {{ alert.type }}">
+                                <div class="alert-copy">
+                                    <h4>{{ alert.title }}</h4>
+                                    <p>{{ alert.message }}</p>
+                                </div>
+                                <span>{{ alert.time }}</span>
+                            </div>
+                            {% endfor %}
+                            {% else %}
+                            <div class="alert-item info">
+                                <div class="alert-copy">
+                                    <h4>No alerts right now</h4>
+                                    <p>You do not have any active application or property alerts yet.</p>
+                                </div>
+                                <span>—</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="panel reveal-up">
+                        <div class="panel-header">
+                            <div>
+                                <h2>My Property Records</h2>
+                                <p class="panel-subtext">Property details and ownership records linked to your account.</p>
+                            </div>
+                            {% if gis_map_url %}
+                            <a href="{{ gis_map_url }}" target="_blank">Open records</a>
+                            {% else %}
+                            <a href="{{ url_for('user.account') }}">Update profile</a>
+                            {% endif %}
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Land ID</th>
+                                        <th>Location</th>
+                                        <th>Status</th>
+                                        <th>Owner Since</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if property_records %}
+                                    {% for record in property_records %}
+                                    <tr>
+                                        <td>{{ record.land_id }}</td>
+                                        <td>{{ record.location }}</td>
+                                        <td><span class="badge {{ record.badge }}">{{ record.status }}</span></td>
+                                        <td>{{ record.owner_since }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="4" class="empty-cell">No real property records found for this account yet.</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="panel reveal-up">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Application History</h2>
+                                <p class="panel-subtext">Your latest submissions and review outcomes.</p>
+                            </div>
+                            <a href="{{ url_for('submit_documents.my_applications') }}">Full history</a>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Case ID</th>
+                                        <th>Type</th>
+                                        <th>Submitted</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if application_history %}
+                                    {% for app in application_history %}
+                                    <tr>
+                                        <td>{{ app.case_id }}</td>
+                                        <td>{{ app.type }}</td>
+                                        <td>{{ app.submitted }}</td>
+                                        <td><span class="badge {{ app.badge }}">{{ app.status }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="4" class="empty-cell">No real applications found yet.</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="right-column">
+
+                    <div class="panel reveal-up">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Profile Summary</h2>
+                                <p class="panel-subtext">A quick overview of your registered account information.</p>
+                            </div>
+                            <a href="{{ url_for('user.account') }}">Edit</a>
+                        </div>
+
+                        <div class="profile-card">
+                            <div class="profile-avatar">
+                                {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
+                            </div>
+                            <div class="profile-meta">
+                                <h3>
+                                    {{ user['first_name'] if user and user['first_name'] else 'Citizen' }}
+                                    {{ user['last_name'] if user and user['last_name'] else 'User' }}
+                                </h3>
+                                <p>Email: {{ user['email'] if user and user['email'] else 'N/A' }}</p>
+                                <p>Phone: {{ user['phone_number'] if user and user['phone_number'] else 'N/A' }}</p>
+                                <p>Address: {{ user['address'] if user and user['address'] else 'N/A' }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel reveal-up">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Land Valuation</h2>
+                                <p class="panel-subtext">Latest saved valuation summary and estimated trend direction.</p>
+                            </div>
+                            <a href="{{ url_for('prediction.land_valuation_page') }}">Open module</a>
+                        </div>
+
+                        <div class="valuation-card">
+                            {% if latest_valuation %}
+                            <h3>Estimated Current Value</h3>
+                            <div class="value-number">LKR {{ latest_valuation.current_value }}</div>
+                            <p>Property: {{ latest_valuation.property_label }}</p>
+
+                            <div class="mini-stats">
+                                <div>
+                                    <span>Future Estimate</span>
+                                    <strong>LKR {{ latest_valuation.future_estimate }}</strong>
+                                </div>
+                                <div>
+                                    <span>Trend</span>
+                                    <strong>{{ latest_valuation.trend }}</strong>
+                                </div>
+                            </div>
+                            {% else %}
+                            <h3>No valuation data yet</h3>
+                            <div class="value-number">LKR 0</div>
+                            <p>Run a land valuation to see real saved results here.</p>
+
+                            <div class="mini-stats">
+                                <div>
+                                    <span>Future Estimate</span>
+                                    <strong>—</strong>
+                                </div>
+                                <div>
+                                    <span>Trend</span>
+                                    <strong>—</strong>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="panel reveal-up">
+                        <div class="panel-header">
+                            <div>
+                                <h2>Support Documents</h2>
+                                <p class="panel-subtext">Helpful documents, guides, and reference files.</p>
+                            </div>
+                            <a href="/support-documents">All files</a>
+                        </div>
+
+                        <ul class="doc-list">
+                            {% for doc in support_documents %}
+                            <li>
+                                <a href="{{ doc.url }}" class="doc-link" target="_blank">
+                                    <i class="fa-solid {{ doc.icon }}"></i>
+                                    <span>{{ doc.title }}</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <button class="chatbot-button" id="chatbotButton" aria-label="Open AI Assistant">
+        <i class="fa-solid fa-comment-dots"></i>
+    </button>
+
+    <div class="chatbot-box" id="chatbotBox">
+        <div class="chatbot-header">
+            <div class="chatbot-title">
+                <i class="fa-solid fa-robot"></i>
+                <span>AI Assistant</span>
+            </div>
+            <button type="button" class="chatbot-close" id="chatbotCloseBtn" aria-label="Close assistant">×</button>
+        </div>
+
+        <div class="chatbot-messages" id="chatMessages">
+            <div class="bot-msg">
+                Hello! I’m your Civic Plan assistant. Ask me about registration, land records, approvals, or site navigation.
+            </div>
+        </div>
+
+        <div class="chatbot-input">
+            <input type="text" id="chatInput" placeholder="Ask something..." />
+            <button type="button" id="chatSendBtn">Send</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='user_dashboard.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Land Valuation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='land_valuation.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="dashboard-shell">
+        {% include 'partials/user_sidebar.html' %}
+
+        <main class="main-content">
+            <div class="valuation-page">
+                <div class="valuation-container">
+
+                    <section class="page-hero reveal-up">
+                        <div class="page-hero-copy">
+                            <span class="page-kicker">Land Insights</span>
+                            <h1>Land Valuation</h1>
+                            <p>Estimate the current value of your land and review projected values after 1 year and 5 years using location and infrastructure details.</p>
+                        </div>
+
+                        <div class="page-hero-stat">
+                            <div class="hero-stat-card">
+                                <span class="hero-stat-label">Report Type</span>
+                                <strong>Valuation Estimate</strong>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="valuation-grid">
+                        <section class="form-card reveal-up">
+                            <div class="card-header">
+                                <div>
+                                    <h2>Enter Land Details</h2>
+                                    <p>Provide the land and area details below to generate an estimated valuation.</p>
+                                </div>
+                            </div>
+
+                            <div id="valuation_message" class="valuation-message" style="display: none;"></div>
+
+                            <div class="form-group">
+                                <label for="land_size">Land Size (Perches)</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i class="fa-solid fa-ruler-combined"></i></span>
+                                    <input
+                                        type="text"
+                                        id="land_size"
+                                        inputmode="decimal"
+                                        autocomplete="off"
+                                        placeholder="e.g. 20.5">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="access_road_size">Access Road Size (ft)</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i class="fa-solid fa-road"></i></span>
+                                    <input
+                                        type="text"
+                                        id="access_road_size"
+                                        inputmode="decimal"
+                                        autocomplete="off"
+                                        placeholder="e.g. 15.5">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="location">Location</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i class="fa-solid fa-location-dot"></i></span>
+                                    <select id="location">
+                                        <option value="Malabe">Malabe</option>
+                                        <option value="Ragama">Ragama</option>
+                                        <option value="Rajagiriya">Rajagiriya</option>
+                                        <option value="Ja-Ela">Ja-Ela</option>
+                                        <option value="Kelaniya">Kelaniya</option>
+                                        <option value="Kadana">Kadana</option>
+                                        <option value="Kadawatha">Kadawatha</option>
+                                        <option value="Kaduwela">Kaduwela</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="distance_to_city">Distance to Nearest City (km)</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i class="fa-solid fa-route"></i></span>
+                                    <input
+                                        type="text"
+                                        id="distance_to_city"
+                                        inputmode="decimal"
+                                        autocomplete="off"
+                                        placeholder="e.g. 10.2">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="zone_type">Zone Type</label>
+                                <div class="input-wrap">
+                                    <span class="input-icon"><i class="fa-solid fa-map"></i></span>
+                                    <select id="zone_type">
+                                        <option value="Residential">Residential</option>
+                                        <option value="Commercial">Commercial</option>
+                                        <option value="Agricultural">Agricultural</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="electricity">Electricity</label>
+                                    <div class="input-wrap">
+                                        <span class="input-icon"><i class="fa-solid fa-bolt"></i></span>
+                                        <select id="electricity">
+                                            <option value="1">Available</option>
+                                            <option value="0">Not Available</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="water">Water</label>
+                                    <div class="input-wrap">
+                                        <span class="input-icon"><i class="fa-solid fa-faucet-drip"></i></span>
+                                        <select id="water">
+                                            <option value="1">Available</option>
+                                            <option value="0">Not Available</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="flood_risk">Flood Risk</label>
+                                    <div class="input-wrap">
+                                        <span class="input-icon"><i class="fa-solid fa-house-flood-water"></i></span>
+                                        <select id="flood_risk">
+                                            <option value="0">Low</option>
+                                            <option value="1">High</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="button-stack">
+                                <button type="button" class="predict-btn" id="predict_btn" onclick="predictLandValue()">
+                                    <span class="btn-text">Estimate Value</span>
+                                </button>
+
+                                <button type="button" class="download-btn" id="download_pdf_btn" onclick="downloadLandValuationPDF()" disabled>
+                                    <span class="btn-text">Download PDF Report</span>
+                                </button>
+                            </div>
+                        </section>
+
+                        <section class="result-card reveal-up">
+                            <div class="card-header">
+                                <div>
+                                    <h2>Estimated Results</h2>
+                                    <p>Review the estimated present value and future projections generated from your submitted inputs.</p>
+                                </div>
+                            </div>
+
+                            <div class="result-box primary">
+                                <span class="label">Current Estimated Value</span>
+                                <span class="value" id="current_value">--</span>
+                            </div>
+
+                            <div class="result-box">
+                                <span class="label">Predicted Value After 1 Year</span>
+                                <span class="value" id="predicted_1_year">--</span>
+                            </div>
+
+                            <div class="result-box">
+                                <span class="label">Predicted Value After 5 Years</span>
+                                <span class="value" id="predicted_5_year">--</span>
+                            </div>
+
+                            <div class="insight-card">
+                                <div class="insight-item">
+                                    <span>Location</span>
+                                    <strong id="summary_location">—</strong>
+                                </div>
+                                <div class="insight-item">
+                                    <span>Zone Type</span>
+                                    <strong id="summary_zone">—</strong>
+                                </div>
+                                <div class="insight-item">
+                                    <span>Land Size</span>
+                                    <strong id="summary_size">—</strong>
+                                </div>
+                            </div>
+
+                            <div class="note-box">
+                                <strong>Note:</strong>
+                                This valuation is an estimated result based on historical data and location-specific growth trends. It does not replace an official government valuation report.
+                            </div>
+                        </section>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='land_valuation.js') }}"></script>
+</body>
+</html>

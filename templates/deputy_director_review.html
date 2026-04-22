@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deputy Director Review</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_deputy_director_review.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-shell">
+        {% include 'partials/admin_sidebar.html' %}
+
+        <main class="main-content">
+            <div class="page-shell">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-wrap">
+                            {% for category, message in messages %}
+                                <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <section class="topbar">
+                    <div class="topbar-left">
+                        <span class="page-kicker">Deputy Director Review</span>
+                        <h1>Application #{{ application['application_id'] }}</h1>
+                        <p>
+                            Review the Planning Office submission and record the Deputy Director decision.
+                        </p>
+                    </div>
+
+                    <div class="topbar-right">
+                        <span class="chip">Planning Office: {{ application['planning_office_decision'] or application['first_officer_decision'] or '-' }}</span>
+                        <span class="chip">Workflow: {{ application['workflow_stage'] or '-' }}</span>
+                    </div>
+                </section>
+
+                <section class="review-page-grid">
+                    <div class="left-column">
+
+                        {% if application['planning_office_letter_path'] or application['first_officer_letter_path'] %}
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Planning Office Approval Letter</h2>
+                            </div>
+                            <div class="card-body">
+                                <a class="doc-card"
+                                   href="/{{ application['planning_office_letter_path'] or application['first_officer_letter_path'] }}"
+                                   target="_blank">
+                                    <div class="doc-left">
+                                        <div class="doc-icon">
+                                            <i class="fa-solid fa-file-signature"></i>
+                                        </div>
+                                        <div>
+                                            <div class="doc-title">Planning Office Letter</div>
+                                            <div class="doc-sub">Open submitted file</div>
+                                        </div>
+                                    </div>
+                                    <span class="doc-badge">Open</span>
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Deputy Director Decision</h2>
+                            </div>
+
+                            <div class="card-body">
+                                <form method="POST"
+                                      action="{{ url_for('admin_planning.deputy_director_decision', application_id=application['application_id']) }}"
+                                      class="stage-form">
+
+                                    <div class="form-group">
+                                        <label for="decision">Decision</label>
+                                        <select id="decision" name="decision" required>
+                                            <option value="">Select decision</option>
+                                            <option value="Approved"
+                                                {% if application['deputy_director_decision'] == 'Approved' %}selected{% endif %}>
+                                                Approve
+                                            </option>
+                                            <option value="Rejected"
+                                                {% if application['deputy_director_decision'] == 'Rejected' %}selected{% endif %}>
+                                                Reject
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="admin_comment">Comments</label>
+                                        <textarea id="admin_comment"
+                                                  name="admin_comment"
+                                                  placeholder="Add Deputy Director comments">{{ application['deputy_director_comment'] or '' }}</textarea>
+                                    </div>
+
+                                    <button class="btn btn-success" type="submit">
+                                        <i class="fa-solid fa-floppy-disk"></i>
+                                        Save Deputy Director Decision
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="right-column">
+                        {% if application['deputy_director_decision'] in ['Approved', 'Rejected'] %}
+                        <div class="action-card highlight-card">
+                            <div class="action-card-top">
+                                <div>
+                                    <h3>Move to District Project Committee</h3>
+                                    <p>Deputy Director stage is complete.</p>
+                                </div>
+
+                                <div class="arrow-icon">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+
+                            <a class="btn btn-success"
+                               href="{{ url_for('admin_planning.district_project_committee_review', application_id=application['application_id']) }}">
+                                Go to Committee Review
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <div class="action-card">
+                            <h3>Back to Planning Office Page</h3>
+                            <p>Return to the previous review stage.</p>
+
+                            <a class="btn btn-outline"
+                               href="{{ url_for('admin_planning.planning_office_approval', application_id=application['application_id']) }}">
+                                <i class="fa-solid fa-arrow-left"></i>
+                                Back
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+</body>
+</html>

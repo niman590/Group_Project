@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All Notifications - Civic Plan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='user_sidebar.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='all_notifications.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body class="all-notifications-page">
+    <div class="notifications-shell">
+        {% include 'partials/user_sidebar.html' %}
+
+        <main class="notifications-main">
+            <section class="notifications-hero reveal-up">
+                <div class="hero-left">
+                    <span class="page-kicker">Citizen Dashboard</span>
+                    <h1>All Notifications</h1>
+                    <p>
+                        View all progress updates, admin messages, document requests,
+                        and application-related alerts in one place.
+                    </p>
+                </div>
+
+                <div class="hero-right">
+                    <div class="hero-stat-card">
+                        <span class="hero-stat-label">Total Notifications</span>
+                        <strong>{{ notifications|length if notifications else 0 }}</strong>
+                    </div>
+
+                    <div class="hero-stat-card unread">
+                        <span class="hero-stat-label">Unread</span>
+                        <strong>{{ unread_notifications or 0 }}</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="notifications-panel reveal-up">
+                <div class="panel-header">
+                    <div>
+                        <span class="section-kicker">Notification Center</span>
+                        <h2>Recent Updates</h2>
+                        <p>Click a notification to open its related application when available.</p>
+                    </div>
+
+                    <div class="panel-actions">
+                        <button type="button" id="markAllReadPageBtn" class="primary-btn">
+                            <i class="fa-solid fa-check-double"></i>
+                            Mark all as read
+                        </button>
+                    </div>
+                </div>
+
+                {% if notifications %}
+                <div class="notifications-list">
+                    {% for notification in notifications %}
+                    <article class="notification-card reveal-up {% if notification['is_read'] == 0 %}unread{% endif %}"
+                             data-id="{{ notification['notification_id'] }}"
+                             data-application-id="{{ notification['application_id'] or '' }}">
+                        <div class="notification-top">
+                            <div class="notification-type-wrap">
+                                <span class="notification-type-pill {{ notification['notification_type'] or 'info' }}">
+                                    {{ notification['notification_type'] or 'info' }}
+                                </span>
+
+                                {% if notification['is_read'] == 0 %}
+                                <span class="unread-dot">Unread</span>
+                                {% endif %}
+                            </div>
+
+                            <span class="notification-time">
+                                <i class="fa-regular fa-clock"></i>
+                                {{ notification['created_at'] or '' }}
+                            </span>
+                        </div>
+
+                        <div class="notification-body">
+                            <h3>{{ notification['title'] }}</h3>
+                            <p>{{ notification['message'] }}</p>
+
+                            {% if notification['application_id'] %}
+                            <div class="notification-meta">
+                                <span class="app-link-hint">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                    Open application #{{ notification['application_id'] }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state reveal-up">
+                    <div class="empty-icon">
+                        <i class="fa-regular fa-bell-slash"></i>
+                    </div>
+                    <h3>No notifications yet</h3>
+                    <p>You do not have any notifications at the moment.</p>
+                </div>
+                {% endif %}
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='all_notifications.js') }}"></script>
+</body>
+
+</html>

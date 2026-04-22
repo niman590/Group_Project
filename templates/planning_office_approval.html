@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning Office Approval</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_planning_office_approval.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-shell">
+        {% include 'partials/admin_sidebar.html' %}
+
+        <main class="main-content">
+            <div class="page-shell">
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-wrap">
+                            {% for category, message in messages %}
+                                <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <section class="topbar">
+                    <div class="topbar-left">
+                        <span class="page-kicker">Planning Office Approval</span>
+                        <h1>Application #{{ application['application_id'] }}</h1>
+                        <p>
+                            Review the application, upload the Planning Office approval letter,
+                            and submit the first officer decision.
+                        </p>
+                    </div>
+
+                    <div class="topbar-right">
+                        <span class="chip">Applicant: {{ application['first_name'] }} {{ application['last_name'] }}</span>
+                        <span class="chip">Workflow: {{ application['workflow_stage'] or '-' }}</span>
+                        <span class="chip">Site Visit: {{ application['site_visit_status'] or '-' }}</span>
+                    </div>
+                </section>
+
+                <section class="approval-page-grid">
+                    <div class="left-column">
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">First Officer / Planning Office Decision</h2>
+                            </div>
+
+                            <div class="card-body">
+                                <p class="card-desc">
+                                    Upload the approval letter and submit the decision from this page.
+                                </p>
+
+                                <form method="POST"
+                                      action="{{ url_for('admin_planning.submit_planning_office_review', application_id=application['application_id']) }}"
+                                      enctype="multipart/form-data"
+                                      class="stage-form">
+
+                                    <div class="form-group">
+                                        <label for="decision">Decision</label>
+                                        <select id="decision" name="decision" required>
+                                            <option value="">Select decision</option>
+                                            <option value="Approved"
+                                                {% if application['planning_office_decision'] == 'Approved' %}selected{% endif %}>
+                                                Approve
+                                            </option>
+                                            <option value="Rejected"
+                                                {% if application['planning_office_decision'] == 'Rejected' %}selected{% endif %}>
+                                                Reject
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="approval_letter">Planning Office Approval Letter</label>
+                                        <input type="file"
+                                               id="approval_letter"
+                                               name="approval_letter"
+                                               accept=".pdf,.doc,.docx">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="po_comment">Comments</label>
+                                        <textarea id="po_comment"
+                                                  name="po_comment"
+                                                  placeholder="Add Planning Office comments">{{ application['planning_office_comment'] or '' }}</textarea>
+                                    </div>
+
+                                    <button class="btn btn-success" type="submit">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                        Submit Planning Office Review
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        {% if application['planning_office_letter_path'] %}
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 class="card-title">Submitted Approval Letter</h2>
+                            </div>
+                            <div class="card-body">
+                                <a class="doc-card"
+                                   href="/{{ application['planning_office_letter_path'] }}"
+                                   target="_blank">
+                                    <div class="doc-left">
+                                        <div class="doc-icon">
+                                            <i class="fa-solid fa-file-signature"></i>
+                                        </div>
+                                        <div>
+                                            <div class="doc-title">Planning Office Approval Letter</div>
+                                            <div class="doc-sub">Open submitted file</div>
+                                        </div>
+                                    </div>
+                                    <span class="doc-badge">Open</span>
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="right-column">
+                        {% if application['planning_office_decision'] in ['Approved', 'Rejected'] %}
+                        <div class="action-card highlight-card">
+                            <div class="action-card-top">
+                                <div>
+                                    <h3>Move to Deputy Director Review</h3>
+                                    <p>Planning Office review is complete. Continue to the next stage.</p>
+                                </div>
+
+                                <div class="arrow-icon">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+
+                            <a class="btn btn-success"
+                               href="{{ url_for('admin_planning.deputy_director_review_page', application_id=application['application_id']) }}">
+                                Go to Deputy Director
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <div class="action-card">
+                            <h3>Back to Main Review</h3>
+                            <p>Return to the main planning application detail page.</p>
+
+                            <a class="btn btn-outline"
+                               href="{{ url_for('admin_planning.review_planning_application', application_id=application['application_id']) }}">
+                                <i class="fa-solid fa-arrow-left"></i>
+                                Back
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+</body>
+</html>
