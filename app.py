@@ -12,12 +12,12 @@ from routes.transaction_history_routes import transaction_history_bp
 from routes.submit_documents_routes import submit_documents_bp
 from routes.support_documents_routes import support_documents_bp
 from routes.admin_reports_routes import admin_reports_bp
-
+ 
 app = Flask(__name__)
 app.secret_key = "civic_plan_secret_key"
-
+ 
 init_db()
-
+ 
 app.register_blueprint(main_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
@@ -30,14 +30,6 @@ app.register_blueprint(transaction_history_bp)
 app.register_blueprint(submit_documents_bp)
 app.register_blueprint(support_documents_bp)
 app.register_blueprint(admin_reports_bp)
-
+ 
 if __name__ == "__main__":
-<<<<<<< HEAD
     app.run(debug=True)
-=======
-    app.run(debug=True)
-
-    #test comment for git 
-    #Ayeshan Gay
-    #Dhana Gay
->>>>>>> d3553b8026000e03755e628db9f98563941aa184

@@ -8,6 +8,9 @@ import re
 auth_bp = Blueprint("auth", __name__)
 
 MAX_LOGIN_ATTEMPTS = 5
+SYSTEM_ADMIN_EMAIL = "admin@civicplan.local"
+SYSTEM_ADMIN_NIC = "ADMIN000000V"
+SYSTEM_ADMIN_EMPLOYEE_ID = "ADMIN001"
 
 
 def get_user_columns():
@@ -54,6 +57,18 @@ def is_active_user(user):
     if "is_active" in user.keys():
         return bool(user["is_active"])
     return True
+
+
+def is_protected_system_admin(user):
+    return (
+        user is not None
+        and "is_admin" in user.keys()
+        and bool(user["is_admin"])
+        and "email" in user.keys()
+        and "nic" in user.keys()
+        and user["email"] == SYSTEM_ADMIN_EMAIL
+        and user["nic"] == SYSTEM_ADMIN_NIC
+    )
 
 
 def sync_session_user(user):
@@ -167,7 +182,7 @@ def login_post():
     password = request.form.get("password", "").strip()
 
     if not identifier or not password:
-        flash("NIC or username and password are required.", "error")
+        flash("NIC / Employee ID and password are required.", "error")
         return redirect(url_for("auth.login"))
 
     conn = get_connection()
@@ -176,44 +191,89 @@ def login_post():
 
     user = None
 
-    cursor.execute(
-        """
-        SELECT * FROM users
-        WHERE nic = ?
-        LIMIT 1
-        """,
-        (identifier,),
-    )
+    # 1. Try protected default system admin using default credentials
+    # Allowed identifiers: default NIC, default employee ID, default email
+    if "employee_id" in columns:
+        cursor.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE is_admin = 1
+              AND email = ?
+              AND nic = ?
+              AND (
+                    nic = ?
+                    OR employee_id = ?
+                    OR LOWER(email) = LOWER(?)
+              )
+            LIMIT 1
+            """,
+            (
+                SYSTEM_ADMIN_EMAIL,
+                SYSTEM_ADMIN_NIC,
+                identifier,
+                identifier,
+                identifier,
+            ),
+        )
+    else:
+        cursor.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE is_admin = 1
+              AND email = ?
+              AND nic = ?
+              AND (
+                    nic = ?
+                    OR LOWER(email) = LOWER(?)
+              )
+            LIMIT 1
+            """,
+            (
+                SYSTEM_ADMIN_EMAIL,
+                SYSTEM_ADMIN_NIC,
+                identifier,
+                identifier,
+            ),
+        )
+
     user = cursor.fetchone()
 
+    # 2. If not system admin, normal users can log in ONLY with NIC
     if not user:
-        if "employee_id" in columns:
-            cursor.execute(
-                """
-                SELECT * FROM users
-                WHERE is_admin = 1
-                  AND (
-                        LOWER(TRIM(first_name || ' ' || last_name)) = LOWER(?)
-                        OR LOWER(email) = LOWER(?)
-                        OR LOWER(employee_id) = LOWER(?)
-                  )
-                LIMIT 1
-                """,
-                (identifier, identifier, identifier),
-            )
-        else:
-            cursor.execute(
-                """
-                SELECT * FROM users
-                WHERE is_admin = 1
-                  AND (
-                        LOWER(TRIM(first_name || ' ' || last_name)) = LOWER(?)
-                        OR LOWER(email) = LOWER(?)
-                  )
-                LIMIT 1
-                """,
-                (identifier, identifier),
-            )
+        cursor.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE is_admin = 0
+              AND nic = ?
+            LIMIT 1
+            """,
+            (identifier,),
+        )
+        user = cursor.fetchone()
+
+    # 3. If still not found, admins (except protected system admin) can log in ONLY with employee ID
+    if not user and "employee_id" in columns:
+        cursor.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE is_admin = 1
+              AND NOT (
+                    email = ?
+                    AND nic = ?
+              )
+              AND employee_id = ?
+            LIMIT 1
+            """,
+            (
+                SYSTEM_ADMIN_EMAIL,
+                SYSTEM_ADMIN_NIC,
+                identifier,
+            ),
+        )
         user = cursor.fetchone()
 
     conn.close()
