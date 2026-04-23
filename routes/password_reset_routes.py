@@ -1,5 +1,6 @@
 from flask import Blueprint, request, session, jsonify, url_for
 from database.db_connection import get_connection
+from database.security_utils import track_api_request_burst, log_suspicious_event
 from werkzeug.security import generate_password_hash
 import random
 from datetime import datetime, timedelta
@@ -118,17 +119,29 @@ This is an automated email from Civic Plan Team.
 # SEND OTP
 @password_reset_bp.route("/send-otp", methods=["POST"])
 def send_otp():
+    track_api_request_burst(limit=5, minutes=1)
+
     data = request.get_json()
-    email = data.get("email")
+    email = (data.get("email") or "").strip().lower()
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+    cursor.execute("SELECT * FROM users WHERE LOWER(email) = LOWER(?)", (email,))
     user = cursor.fetchone()
     conn.close()
 
     if not user:
+        log_suspicious_event(
+            user_id=None,
+            rule_name="PASSWORD_RESET_UNKNOWN_EMAIL",
+            severity="medium",
+            event_type="auth",
+            route=request.path,
+            ip_address=request.headers.get("X-Forwarded-For", request.remote_addr),
+            user_agent=request.headers.get("User-Agent"),
+            description=f"Password reset OTP requested for unregistered email: {email}",
+        )
         return jsonify({"success": False, "message": "Email not registered"})
 
     otp = str(random.randint(100000, 999999))
@@ -152,33 +165,75 @@ def send_otp():
 # VERIFY OTP
 @password_reset_bp.route("/verify-otp", methods=["POST"])
 def verify_otp():
+    track_api_request_burst(limit=8, minutes=1)
+
     data = request.get_json()
-    otp = data.get("otp")
+    otp = (data.get("otp") or "").strip()
 
     saved_otp = session.get("reset_otp")
     expiry = session.get("otp_expiry")
 
     if not saved_otp:
+        log_suspicious_event(
+            user_id=None,
+            rule_name="PASSWORD_RESET_VERIFY_WITHOUT_REQUEST",
+            severity="medium",
+            event_type="auth",
+            route=request.path,
+            ip_address=request.headers.get("X-Forwarded-For", request.remote_addr),
+            user_agent=request.headers.get("User-Agent"),
+            description="OTP verification attempted without an active password reset session.",
+        )
         return jsonify({"success": False, "message": "No OTP requested"})
 
     if otp != saved_otp:
+        log_suspicious_event(
+            user_id=None,
+            rule_name="PASSWORD_RESET_INVALID_OTP",
+            severity="medium",
+            event_type="auth",
+            route=request.path,
+            ip_address=request.headers.get("X-Forwarded-For", request.remote_addr),
+            user_agent=request.headers.get("User-Agent"),
+            description="Invalid OTP entered during password reset verification.",
+        )
         return jsonify({"success": False, "message": "Invalid OTP"})
 
     if datetime.now() > datetime.strptime(expiry, "%Y-%m-%d %H:%M:%S"):
+        log_suspicious_event(
+            user_id=None,
+            rule_name="PASSWORD_RESET_EXPIRED_OTP",
+            severity="low",
+            event_type="auth",
+            route=request.path,
+            ip_address=request.headers.get("X-Forwarded-For", request.remote_addr),
+            user_agent=request.headers.get("User-Agent"),
+            description="Expired OTP used during password reset verification.",
+        )
         return jsonify({"success": False, "message": "OTP expired"})
 
     session["otp_verified"] = True
-
     return jsonify({"success": True, "message": "OTP verified successfully"})
 
 
 # RESET PASSWORD
 @password_reset_bp.route("/reset-password", methods=["POST"])
 def reset_password():
+    track_api_request_burst(limit=5, minutes=1)
     email = session.get("reset_email")
 
     if not session.get("otp_verified"):
-        return jsonify({"success": False, "message": "OTP not verified"})
+      log_suspicious_event(
+          user_id=None,
+          rule_name="PASSWORD_RESET_WITHOUT_VERIFIED_OTP",
+          severity="high",
+          event_type="auth",
+          route=request.path,
+          ip_address=request.headers.get("X-Forwarded-For", request.remote_addr),
+          user_agent=request.headers.get("User-Agent"),
+          description="Password reset attempted without a verified OTP.",
+      )
+      return jsonify({"success": False, "message": "OTP not verified"})
 
     data = request.get_json()
     new_password = data.get("new_password")

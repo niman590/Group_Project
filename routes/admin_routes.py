@@ -1114,6 +1114,19 @@ def get_land_valuation_chart_payload(cursor, granularity="monthly", area="all"):
 
     return payload
 
+def auto_resolve_old_low_events(cursor, days=7):
+    cursor.execute(
+        """
+        UPDATE suspicious_events
+        SET status = 'resolved'
+        WHERE severity = 'low'
+          AND status = 'reviewed'
+          AND reviewed_at IS NOT NULL
+          AND datetime(reviewed_at) <= datetime('now', ?)
+        """,
+        (f"-{days} days",),
+    )
+
 
 def get_security_overview(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
@@ -1296,6 +1309,9 @@ def admin_suspicious_behavior():
 
     conn = get_connection()
     cursor = conn.cursor()
+
+    auto_resolve_old_low_events(cursor, days=7)
+    conn.commit()
 
     overview = get_security_overview(cursor, start_date, end_date)
     events = get_suspicious_events(cursor, severity, status, rule_name, start_date, end_date)
