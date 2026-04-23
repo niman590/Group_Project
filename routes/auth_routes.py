@@ -71,6 +71,15 @@ def is_protected_system_admin(user):
     )
 
 
+def is_strong_password(password):
+    return bool(
+        re.fullmatch(
+            r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$",
+            password or "",
+        )
+    )
+
+
 def sync_session_user(user):
     session["user_id"] = user["user_id"]
     session["first_name"] = user["first_name"] if "first_name" in user.keys() else ""
@@ -191,8 +200,7 @@ def login_post():
 
     user = None
 
-    # 1. Try protected default system admin using default credentials
-    # Allowed identifiers: default NIC, default employee ID, default email
+    # 1. Protected system admin can log in using default NIC, default employee ID, or default email
     if "employee_id" in columns:
         cursor.execute(
             """
@@ -240,7 +248,7 @@ def login_post():
 
     user = cursor.fetchone()
 
-    # 2. If not system admin, normal users can log in ONLY with NIC
+    # 2. Normal users can log in ONLY using NIC
     if not user:
         cursor.execute(
             """
@@ -254,7 +262,7 @@ def login_post():
         )
         user = cursor.fetchone()
 
-    # 3. If still not found, admins (except protected system admin) can log in ONLY with employee ID
+    # 3. Other admins can log in ONLY using employee ID
     if not user and "employee_id" in columns:
         cursor.execute(
             """
@@ -330,8 +338,7 @@ def register_post():
         flash("Phone number must contain exactly 10 digits.", "error")
         return redirect(url_for("auth.register"))
 
-    password_pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$"
-    if not re.fullmatch(password_pattern, password):
+    if not is_strong_password(password):
         flash(
             "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.",
             "error",
@@ -469,6 +476,92 @@ def register_post():
 @auth_bp.route("/password_reset", methods=["GET"])
 def password_reset():
     return render_template("password_reset.html")
+
+
+@auth_bp.route("/change_password", methods=["GET", "POST"])
+def change_password():
+    if "user_id" not in session:
+        flash("Please sign in first.", "error")
+        return redirect(url_for("auth.login"))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE user_id = ?
+        """,
+        (session["user_id"],),
+    )
+    user = cursor.fetchone()
+
+    if not user:
+        conn.close()
+        session.clear()
+        flash("User not found. Please sign in again.", "error")
+        return redirect(url_for("auth.login"))
+
+    if request.method == "POST":
+        current_password = request.form.get("current_password", "").strip()
+        new_password = request.form.get("new_password", "").strip()
+        confirm_password = request.form.get("confirm_password", "").strip()
+
+        if not current_password or not new_password or not confirm_password:
+            conn.close()
+            flash("All password fields are required.", "error")
+            return render_template("change_password.html", user=user)
+
+        if not check_password_hash(user["password_hash"], current_password):
+            conn.close()
+            flash("Current password is incorrect.", "error")
+            return render_template("change_password.html", user=user)
+
+        if new_password != confirm_password:
+            conn.close()
+            flash("New password and confirm password do not match.", "error")
+            return render_template("change_password.html", user=user)
+
+        if current_password == new_password:
+            conn.close()
+            flash("New password must be different from your current password.", "error")
+            return render_template("change_password.html", user=user)
+
+        if not is_strong_password(new_password):
+            conn.close()
+            flash("Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.", "error")
+            return render_template("change_password.html", user=user)
+
+        new_password_hash = generate_password_hash(new_password)
+
+        cursor.execute(
+            """
+            UPDATE users
+            SET password_hash = ?
+            WHERE user_id = ?
+            """,
+            (new_password_hash, session["user_id"]),
+        )
+
+        if "failed_login_attempts" in get_user_columns():
+            cursor.execute(
+                """
+                UPDATE users
+                SET failed_login_attempts = 0
+                WHERE user_id = ?
+                """,
+                (session["user_id"],),
+            )
+
+        conn.commit()
+        conn.close()
+
+        flash("Password changed successfully.", "success")
+        return redirect(url_for("user.account"))
+
+    conn.close()
+    return render_template("change_password.html", user=user)
 
 
 @auth_bp.route("/logout")
