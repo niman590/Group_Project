@@ -72,15 +72,31 @@ function showStep(stepIndex) {
 }
 
 function setFieldError(field, message) {
+    if (!field) return;
     field.classList.add("field-invalid");
     const errorEl = field.parentElement.querySelector(".error-text");
     if (errorEl) errorEl.textContent = message;
 }
 
 function clearFieldError(field) {
+    if (!field) return;
     field.classList.remove("field-invalid");
     const errorEl = field.parentElement.querySelector(".error-text");
     if (errorEl) errorEl.textContent = "";
+}
+
+function setGroupError(groupName, message) {
+    const errorEl = document.querySelector(`[data-group-error="${groupName}"]`);
+    const container = document.querySelector(`[data-group-container="${groupName}"]`);
+    if (errorEl) errorEl.textContent = message;
+    if (container) container.classList.add("group-invalid");
+}
+
+function clearGroupError(groupName) {
+    const errorEl = document.querySelector(`[data-group-error="${groupName}"]`);
+    const container = document.querySelector(`[data-group-container="${groupName}"]`);
+    if (errorEl) errorEl.textContent = "";
+    if (container) container.classList.remove("group-invalid");
 }
 
 function isNumbersOnly(value) {
@@ -102,6 +118,44 @@ function isValidSriLankanNIC(value) {
     return oldNicPattern.test(normalized) || newNicPattern.test(normalized);
 }
 
+function isOptionalApplicantFilled(prefix) {
+    return [
+        document.getElementById(`${prefix}_name`)?.value.trim(),
+        document.getElementById(`${prefix}_nic`)?.value.trim(),
+        document.getElementById(`${prefix}_tel`)?.value.trim(),
+        document.getElementById(`${prefix}_email`)?.value.trim(),
+        document.getElementById(`${prefix}_address`)?.value.trim()
+    ].some(Boolean);
+}
+
+function validateDateGroups(stepIndex) {
+    const activeStep = steps[stepIndex];
+    const dateGroups = activeStep.querySelectorAll(".date-select-row[data-required='true']");
+    let isValid = true;
+
+    dateGroups.forEach((group) => {
+        const monthSelect = group.querySelector(".date-month");
+        const daySelect = group.querySelector(".date-day");
+        const yearSelect = group.querySelector(".date-year");
+        const hiddenFieldId = group.dataset.dateGroup;
+        const hiddenField = document.getElementById(hiddenFieldId);
+
+        [monthSelect, daySelect, yearSelect].forEach(select => select.classList.remove("field-invalid"));
+
+        const errorEl = group.parentElement.querySelector(".error-text");
+        if (errorEl) errorEl.textContent = "";
+
+        if (!monthSelect.value || !daySelect.value || !yearSelect.value || !hiddenField.value) {
+            [monthSelect, daySelect, yearSelect].forEach(select => select.classList.add("field-invalid"));
+            if (errorEl) errorEl.textContent = "Please select a date.";
+            if (isValid) monthSelect.focus();
+            isValid = false;
+        }
+    });
+
+    return isValid;
+}
+
 function validateNoFields(stepIndex) {
     const activeStep = steps[stepIndex];
     const noFields = activeStep.querySelectorAll(".number-only-no");
@@ -109,8 +163,8 @@ function validateNoFields(stepIndex) {
 
     noFields.forEach((field) => {
         clearFieldError(field);
-
         const value = field.value.trim();
+
         if (value && !isNumbersOnly(value)) {
             setFieldError(field, "Only numbers are allowed.");
             if (isValid) field.focus();
@@ -128,8 +182,8 @@ function validatePhoneFields(stepIndex) {
 
     phoneFields.forEach((field) => {
         clearFieldError(field);
-
         const value = field.value.trim();
+
         if (value && !isValidPhoneNumber(value)) {
             setFieldError(field, "Phone number must contain exactly 10 digits.");
             if (isValid) field.focus();
@@ -147,8 +201,8 @@ function validateEmailFields(stepIndex) {
 
     emailFields.forEach((field) => {
         clearFieldError(field);
-
         const value = field.value.trim();
+
         if (value && !isValidGmail(value)) {
             setFieldError(field, "Email must be a valid @gmail.com address.");
             if (isValid) field.focus();
@@ -166,11 +220,165 @@ function validateNICFields(stepIndex) {
 
     nicFields.forEach((field) => {
         clearFieldError(field);
-
         const value = field.value.trim();
+
         if (value && !isValidSriLankanNIC(value)) {
             setFieldError(field, "Enter a valid Sri Lankan NIC (old: 9 digits + V/X, new: 12 digits).");
             if (isValid) field.focus();
+            isValid = false;
+        }
+    });
+
+    return isValid;
+}
+
+function validateRadioAndCheckboxGroups(stepIndex) {
+    let isValid = true;
+
+    if (stepIndex === 0) {
+        clearGroupError("development_work_type");
+        clearGroupError("land_ownership_type");
+        clearGroupError("proposed_use");
+
+        if (!document.querySelector('input[name="development_work_type"]:checked')) {
+            setGroupError("development_work_type", "Please select a development work type.");
+            isValid = false;
+        }
+
+        const selectedLandOwnership = document.querySelector('input[name="land_ownership_type"]:checked')?.value || "";
+        const landOwnershipOther = document.getElementById("land_ownership_other");
+        const landOwnershipOtherValue = landOwnershipOther ? landOwnershipOther.value.trim() : "";
+
+        clearFieldError(landOwnershipOther);
+
+        if (!selectedLandOwnership && !landOwnershipOtherValue) {
+            setGroupError("land_ownership_type", "Please select land ownership type or fill 'If Other, Specify'.");
+            isValid = false;
+        }
+
+        if (landOwnershipOtherValue) {
+            clearGroupError("land_ownership_type");
+        }
+
+        const selectedProposedUses = Array.from(document.querySelectorAll('input[name="proposed_use"]:checked')).map(x => x.value);
+        const proposedUseOther = document.getElementById("proposed_use_other");
+        const proposedUseOtherValue = proposedUseOther ? proposedUseOther.value.trim() : "";
+
+        clearFieldError(proposedUseOther);
+
+        if (!selectedProposedUses.length && !proposedUseOtherValue) {
+            setGroupError("proposed_use", "Select at least one proposed use or fill 'If Other, Specify'.");
+            isValid = false;
+        }
+
+        if (proposedUseOtherValue) {
+            clearGroupError("proposed_use");
+        }
+    }
+
+    if (stepIndex === 2) {
+        clearGroupError("applicant_owns_land");
+        if (!document.querySelector('input[name="applicant_owns_land"]:checked')) {
+            setGroupError("applicant_owns_land", "Please select whether the applicant owns the land.");
+            isValid = false;
+        }
+    }
+
+    if (stepIndex === 9) {
+        clearGroupError("submitted_plans");
+        if (!document.querySelectorAll('input[name="submitted_plans"]:checked').length) {
+            setGroupError("submitted_plans", "Please select at least one submitted plan.");
+            isValid = false;
+        }
+    }
+
+    return isValid;
+}
+
+function validateConditionalOwnerStep() {
+    const ownsLand = document.querySelector('input[name="applicant_owns_land"]:checked')?.value;
+    if (ownsLand !== "No") return true;
+
+    let isValid = true;
+    const ownerRequiredFields = [
+        document.getElementById("land_owner_name"),
+        document.getElementById("land_owner_nic"),
+        document.getElementById("land_owner_tel"),
+        document.getElementById("land_owner_email"),
+        document.getElementById("land_owner_address")
+    ];
+
+    ownerRequiredFields.forEach((field) => {
+        clearFieldError(field);
+        if (!field.value.trim()) {
+            setFieldError(field, "This field is required.");
+            if (isValid) field.focus();
+            isValid = false;
+        }
+    });
+
+    return isValid;
+}
+
+function validateOptionalApplicant2() {
+    const prefix = "applicant2";
+    if (!isOptionalApplicantFilled(prefix)) return true;
+
+    let isValid = true;
+    const name = document.getElementById(`${prefix}_name`);
+    const nic = document.getElementById(`${prefix}_nic`);
+    const tel = document.getElementById(`${prefix}_tel`);
+    const email = document.getElementById(`${prefix}_email`);
+    const address = document.getElementById(`${prefix}_address`);
+
+    [name, nic, tel, email, address].forEach(clearFieldError);
+
+    if (!name.value.trim()) {
+        setFieldError(name, "Complete the name for Applicant / Owner 2.");
+        if (isValid) name.focus();
+        isValid = false;
+    }
+    if (!nic.value.trim()) {
+        setFieldError(nic, "Complete the NIC for Applicant / Owner 2.");
+        if (isValid) nic.focus();
+        isValid = false;
+    }
+    if (!tel.value.trim()) {
+        setFieldError(tel, "Complete the telephone number for Applicant / Owner 2.");
+        if (isValid) tel.focus();
+        isValid = false;
+    }
+    if (!email.value.trim()) {
+        setFieldError(email, "Complete the email for Applicant / Owner 2.");
+        if (isValid) email.focus();
+        isValid = false;
+    }
+    if (!address.value.trim()) {
+        setFieldError(address, "Complete the address for Applicant / Owner 2.");
+        if (isValid) address.focus();
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+function validateRequiredFiles(stepIndex) {
+    if (stepIndex !== 10) return true;
+
+    let isValid = true;
+    const requiredFileInputs = steps[stepIndex].querySelectorAll("[data-required-file='true']");
+
+    requiredFileInputs.forEach((input) => {
+        const uploadCard = input.closest(".upload-card");
+        const errorBox = uploadCard ? uploadCard.querySelector(".file-error") : null;
+
+        input.classList.remove("file-input-invalid");
+        if (errorBox) errorBox.textContent = "";
+
+        if (!input.files || !input.files.length) {
+            input.classList.add("file-input-invalid");
+            if (errorBox) errorBox.textContent = "This file is required.";
+            if (isValid) input.focus();
             isValid = false;
         }
     });
@@ -185,6 +393,7 @@ function validateStep(stepIndex) {
 
     requiredFields.forEach((field) => {
         clearFieldError(field);
+
         if (!field.value.trim()) {
             setFieldError(field, "This field is required.");
             if (isValid) field.focus();
@@ -192,23 +401,35 @@ function validateStep(stepIndex) {
         }
     });
 
-    if (!validateNoFields(stepIndex)) {
+    if (!validateNoFields(stepIndex)) isValid = false;
+    if (!validatePhoneFields(stepIndex)) isValid = false;
+    if (!validateEmailFields(stepIndex)) isValid = false;
+    if (!validateNICFields(stepIndex)) isValid = false;
+    if (!validateRadioAndCheckboxGroups(stepIndex)) isValid = false;
+    if (!validateDateGroups(stepIndex)) isValid = false;
+    if (!validateRequiredFiles(stepIndex)) isValid = false;
+
+    if (stepIndex === 1 && !validateOptionalApplicant2()) {
         isValid = false;
     }
 
-    if (!validatePhoneFields(stepIndex)) {
-        isValid = false;
-    }
-
-    if (!validateEmailFields(stepIndex)) {
-        isValid = false;
-    }
-
-    if (!validateNICFields(stepIndex)) {
+    if (stepIndex === 3 && !validateConditionalOwnerStep()) {
         isValid = false;
     }
 
     return isValid;
+}
+
+function validateEntireFormBeforeSubmit() {
+    for (let i = 0; i < steps.length - 1; i++) {
+        if (!validateStep(i)) {
+            currentStep = i;
+            showStep(currentStep);
+            showMessage("error", `Please complete all required fields in Step ${i + 1} before submitting.`);
+            return false;
+        }
+    }
+    return true;
 }
 
 function allowOnlyNumbersInput() {
@@ -223,7 +444,7 @@ function allowOnlyNumbersInput() {
 function allowNICInput() {
     document.querySelectorAll(".nic-field").forEach((field) => {
         field.addEventListener("input", () => {
-            field.value = field.value.replace(/[^0-9vVxX]/g, "").toUpperCase();
+            field.value = field.value.replace(/[^0-9vVxX]/g, "").toUpperCase().slice(0, 12);
             clearFieldError(field);
         });
     });
@@ -414,6 +635,12 @@ function buildReview() {
     const step1 = getStepData(1);
     const step2 = getStepData(2);
     const step3 = getStepData(3);
+    const step5 = getStepData(5);
+    const step6 = getStepData(6);
+    const step7 = getStepData(7);
+    const step8 = getStepData(8);
+    const step9 = getStepData(9);
+    const step10 = getStepData(10);
 
     reviewSummary.textContent = `
 Assessment No.: ${step1.assessment_no || "-"}
@@ -423,6 +650,12 @@ Applicant: ${step2.applicants?.[0]?.name || "-"}
 Applicant NIC: ${step2.applicants?.[0]?.nic || "-"}
 Architect / Planner: ${step3.architect_town_planner_name || "-"}
 Engineer: ${step3.engineer_name || "-"}
+Rate Clearance Ref: ${step5.rate_clearance_ref || "-"}
+Existing Use: ${step6.existing_use || "-"}
+Building Height: ${step7.total_building_height || "-"}
+Plot Coverage: ${step8.plot_coverage || "-"}
+Total Units: ${step9.total_units || "-"}
+Submitted Plans: ${step10.submitted_plans?.length ? step10.submitted_plans.join(", ") : "-"}
     `.trim();
 }
 
@@ -594,7 +827,7 @@ function applySelectedLocationToField() {
         currentPickedLocation.lat,
         currentPickedLocation.lon
     );
-
+    clearFieldError(field);
     closeMapPicker();
 }
 
@@ -815,6 +1048,7 @@ async function loadDraftFromServer() {
             fill("applicant1_tel", draft.step2[0].telephone);
             fill("applicant1_email", draft.step2[0].email);
             fill("applicant1_address", draft.step2[0].address);
+            updateAddressMeta("applicant1_address", draft.step2[0].address);
         }
 
         if (draft.step2 && draft.step2[1]) {
@@ -823,6 +1057,7 @@ async function loadDraftFromServer() {
             fill("applicant2_tel", draft.step2[1].telephone);
             fill("applicant2_email", draft.step2[1].email);
             fill("applicant2_address", draft.step2[1].address);
+            updateAddressMeta("applicant2_address", draft.step2[1].address);
         }
 
         if (draft.step3) {
@@ -842,6 +1077,7 @@ async function loadDraftFromServer() {
             fill("land_owner_tel", draft.step4.owner_tel);
             fill("land_owner_email", draft.step4.owner_email);
             fill("land_owner_address", draft.step4.owner_address);
+            updateAddressMeta("land_owner_address", draft.step4.owner_address);
         }
 
         if (draft.step5) {
@@ -915,7 +1151,10 @@ prevBtn.addEventListener("click", () => {
 });
 
 nextBtn.addEventListener("click", async () => {
-    if (!validateStep(currentStep)) return;
+    if (!validateStep(currentStep)) {
+        showMessage("error", `Please complete all required fields in Step ${currentStep + 1} before continuing.`);
+        return;
+    }
 
     const stepNumber = currentStep + 1;
 
@@ -944,6 +1183,10 @@ saveDraftBtn.addEventListener("click", async () => {
         let result;
 
         if (stepNumber === 11) {
+            if (!validateRequiredFiles(10)) {
+                showMessage("error", "Please upload the required PDF files before saving this step.");
+                return;
+            }
             result = await saveFilesStep();
         } else {
             result = await saveCurrentStep(stepNumber);
@@ -967,11 +1210,9 @@ document.querySelectorAll('input[name="applicant_owns_land"]').forEach((radio) =
 });
 
 form.querySelectorAll('input[type="file"]').forEach((field) => {
-    field.addEventListener("change", (e) => {
+    field.addEventListener("change", () => {
         const isValid = validatePDFOnly(field);
-        if (isValid) {
-            updateFilePreview();
-        }
+        if (isValid) updateFilePreview();
     });
 });
 
@@ -1010,10 +1251,44 @@ if (useCurrentLocationBtn) {
     useCurrentLocationBtn.addEventListener("click", useBrowserCurrentLocation);
 }
 
+document.querySelectorAll("input, textarea, select").forEach((field) => {
+    field.addEventListener("input", () => clearFieldError(field));
+    field.addEventListener("change", () => clearFieldError(field));
+});
+
+document.querySelectorAll('input[name="development_work_type"], input[name="land_ownership_type"], input[name="applicant_owns_land"], input[name="submitted_plans"], input[name="proposed_use"]').forEach((field) => {
+    field.addEventListener("change", () => {
+        clearGroupError(field.name);
+    });
+});
+
+const landOwnershipOtherInput = document.getElementById("land_ownership_other");
+const proposedUseOtherInput = document.getElementById("proposed_use_other");
+
+if (landOwnershipOtherInput) {
+    landOwnershipOtherInput.addEventListener("input", () => {
+        clearFieldError(landOwnershipOtherInput);
+        if (landOwnershipOtherInput.value.trim()) {
+            clearGroupError("land_ownership_type");
+        }
+    });
+}
+
+if (proposedUseOtherInput) {
+    proposedUseOtherInput.addEventListener("input", () => {
+        clearFieldError(proposedUseOtherInput);
+        if (proposedUseOtherInput.value.trim()) {
+            clearGroupError("proposed_use");
+        }
+    });
+}
+
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    if (!validateStep(currentStep)) return;
+    if (!validateEntireFormBeforeSubmit()) return;
+
+    buildReview();
 
     try {
         const res = await fetch("/submit-planning-application", {
@@ -1040,16 +1315,12 @@ allowOnlyNumbersInput();
 allowNICInput();
 loadDraftFromServer();
 
-
 function validatePDFOnly(fileInput) {
     const files = fileInput.files;
     const uploadCard = fileInput.closest(".upload-card");
     const errorBox = uploadCard ? uploadCard.querySelector(".file-error") : null;
 
-    if (errorBox) {
-        errorBox.textContent = "";
-    }
-
+    if (errorBox) errorBox.textContent = "";
     fileInput.classList.remove("file-input-invalid");
 
     if (!files || !files.length) {

@@ -204,10 +204,15 @@ body {
     grid-column: 1 / -1;
 }
 
-.form-group label {
+.form-group label,
+.group-label {
     font-size: 0.93rem;
     font-weight: 700;
     color: #334155;
+}
+
+.group-block {
+    margin-bottom: 16px;
 }
 
 .req {
@@ -241,7 +246,8 @@ textarea {
     line-height: 1.5;
 }
 
-.error-text {
+.error-text,
+.group-error {
     color: var(--danger);
     font-size: 0.82rem;
     min-height: 16px;
@@ -252,12 +258,18 @@ textarea {
     box-shadow: 0 0 0 4px rgba(214, 69, 69, 0.1) !important;
 }
 
+.group-invalid {
+    border-color: var(--danger) !important;
+    box-shadow: 0 0 0 4px rgba(214, 69, 69, 0.08);
+    border-radius: 14px;
+}
+
 .checkbox-grid,
 .checklist-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 6px;
 }
 
 .check-card,
@@ -360,6 +372,13 @@ textarea {
     border-radius: 12px;
     padding: 14px;
     margin-bottom: 14px;
+}
+
+.final-submit-note {
+    margin-top: 6px;
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 .review-actions {
@@ -597,7 +616,6 @@ textarea {
 }
 
 @media (max-width: 1100px) {
-
     .checkbox-grid,
     .checklist-grid {
         grid-template-columns: repeat(2, 1fr);

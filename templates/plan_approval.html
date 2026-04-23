@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
 
 <body>
     <div class="dashboard-shell">
@@ -50,17 +51,21 @@
                         <section class="form-step active" data-step="1">
                             <h2>1. Summary of Proposed Development</h2>
 
-                            <div class="checkbox-grid">
-                                <label class="check-card"><input type="radio" name="development_work_type"
-                                        value="New Construction"> New Construction</label>
-                                <label class="check-card"><input type="radio" name="development_work_type"
-                                        value="Re-Construction"> Re-Construction</label>
-                                <label class="check-card"><input type="radio" name="development_work_type"
-                                        value="Amendment"> Amendment</label>
-                                <label class="check-card"><input type="radio" name="development_work_type"
-                                        value="Alteration"> Alteration</label>
-                                <label class="check-card"><input type="radio" name="development_work_type"
-                                        value="Addition"> Addition</label>
+                            <div class="group-block">
+                                <label class="group-label">Development Work Type <span class="req">*</span></label>
+                                <div class="checkbox-grid" data-group-container="development_work_type">
+                                    <label class="check-card"><input type="radio" name="development_work_type"
+                                            value="New Construction"> New Construction</label>
+                                    <label class="check-card"><input type="radio" name="development_work_type"
+                                            value="Re-Construction"> Re-Construction</label>
+                                    <label class="check-card"><input type="radio" name="development_work_type"
+                                            value="Amendment"> Amendment</label>
+                                    <label class="check-card"><input type="radio" name="development_work_type"
+                                            value="Alteration"> Alteration</label>
+                                    <label class="check-card"><input type="radio" name="development_work_type"
+                                            value="Addition"> Addition</label>
+                                </div>
+                                <small class="group-error" data-group-error="development_work_type"></small>
                             </div>
 
                             <div class="form-grid two">
@@ -89,8 +94,7 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="local_authority_name">Local Authority Name <span
-                                            class="req">*</span></label>
+                                    <label for="local_authority_name">Local Authority Name <span class="req">*</span></label>
                                     <input type="text" id="local_authority_name" name="local_authority_name" required>
                                     <small class="error-text"></small>
                                 </div>
@@ -102,16 +106,19 @@
                                 </div>
                             </div>
 
-                            <h3>Ownership of the Land</h3>
-                            <div class="checkbox-grid">
-                                <label class="check-card"><input type="radio" name="land_ownership_type"
-                                        value="Freehold"> Freehold</label>
-                                <label class="check-card"><input type="radio" name="land_ownership_type" value="Lease">
-                                    Lease</label>
-                                <label class="check-card"><input type="radio" name="land_ownership_type" value="Rent">
-                                    Rent</label>
-                                <label class="check-card"><input type="radio" name="land_ownership_type" value="Other">
-                                    Other</label>
+                            <div class="group-block">
+                                <h3>Ownership of the Land</h3>
+                                <div class="checkbox-grid" data-group-container="land_ownership_type">
+                                    <label class="check-card"><input type="radio" name="land_ownership_type"
+                                            value="Freehold"> Freehold</label>
+                                    <label class="check-card"><input type="radio" name="land_ownership_type" value="Lease">
+                                        Lease</label>
+                                    <label class="check-card"><input type="radio" name="land_ownership_type" value="Rent">
+                                        Rent</label>
+                                    <label class="check-card"><input type="radio" name="land_ownership_type" value="Other">
+                                        Other</label>
+                                </div>
+                                <small class="group-error" data-group-error="land_ownership_type"></small>
                             </div>
 
                             <div class="form-group">
@@ -120,24 +127,27 @@
                                 <small class="error-text"></small>
                             </div>
 
-                            <h3>Proposed Use of the Building</h3>
-                            <div class="checkbox-grid">
-                                <label class="check-card"><input type="checkbox" name="proposed_use"
-                                        value="Residential"> Residential</label>
-                                <label class="check-card"><input type="checkbox" name="proposed_use"
-                                        value="Retail Commercial"> Retail Commercial</label>
-                                <label class="check-card"><input type="checkbox" name="proposed_use"
-                                        value="Gov Offices"> Gov. Offices</label>
-                                <label class="check-card"><input type="checkbox" name="proposed_use"
-                                        value="Other Offices"> Other Offices</label>
-                                <label class="check-card"><input type="checkbox" name="proposed_use"
-                                        value="Restaurants Hotels"> Restaurants / Hotels</label>
-                                <label class="check-card"><input type="checkbox" name="proposed_use"
-                                        value="Industry Workshops"> Industry & Workshops</label>
-                                <label class="check-card"><input type="checkbox" name="proposed_use" value="Warehouses">
-                                    Warehouses</label>
-                                <label class="check-card"><input type="checkbox" name="proposed_use" value="Other">
-                                    Other</label>
+                            <div class="group-block">
+                                <h3>Proposed Use of the Building <span class="req">*</span></h3>
+                                <div class="checkbox-grid" data-group-container="proposed_use">
+                                    <label class="check-card"><input type="checkbox" name="proposed_use"
+                                            value="Residential"> Residential</label>
+                                    <label class="check-card"><input type="checkbox" name="proposed_use"
+                                            value="Retail Commercial"> Retail Commercial</label>
+                                    <label class="check-card"><input type="checkbox" name="proposed_use"
+                                            value="Gov Offices"> Gov. Offices</label>
+                                    <label class="check-card"><input type="checkbox" name="proposed_use"
+                                            value="Other Offices"> Other Offices</label>
+                                    <label class="check-card"><input type="checkbox" name="proposed_use"
+                                            value="Restaurants Hotels"> Restaurants / Hotels</label>
+                                    <label class="check-card"><input type="checkbox" name="proposed_use"
+                                            value="Industry Workshops"> Industry & Workshops</label>
+                                    <label class="check-card"><input type="checkbox" name="proposed_use" value="Warehouses">
+                                        Warehouses</label>
+                                    <label class="check-card"><input type="checkbox" name="proposed_use" value="Other">
+                                        Other</label>
+                                </div>
+                                <small class="group-error" data-group-error="proposed_use"></small>
                             </div>
 
                             <div class="form-group">
@@ -166,26 +176,26 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="applicant1_tel">Telephone No.</label>
-                                        <input type="text" id="applicant1_tel" name="applicant1_tel" class="phone-10" maxlength="10">
+                                        <label for="applicant1_tel">Telephone No. <span class="req">*</span></label>
+                                        <input type="text" id="applicant1_tel" name="applicant1_tel" class="phone-10" maxlength="10" required>
                                         <small class="error-text"></small>
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="applicant1_email">Email</label>
-                                        <input type="text" id="applicant1_email" name="applicant1_email" class="email-gmail">
+                                        <label for="applicant1_email">Email <span class="req">*</span></label>
+                                        <input type="text" id="applicant1_email" name="applicant1_email" class="email-gmail" required>
                                         <small class="error-text"></small>
                                     </div>
 
                                     <div class="form-group full">
-                                        <label for="applicant1_address">Postal Address</label>
-                                        <textarea id="applicant1_address" name="applicant1_address"></textarea>
+                                        <label for="applicant1_address">Postal Address <span class="req">*</span></label>
+                                        <textarea id="applicant1_address" name="applicant1_address" required></textarea>
                                         <div class="gis-address-tools">
                                             <button type="button" class="map-picker-btn"
                                                 data-target="applicant1_address">Select on Map</button>
-                                            <div class="gis-selected-meta" id="applicant1_address_meta">No GIS location
-                                                selected yet.</div>
+                                            <div class="gis-selected-meta" id="applicant1_address_meta">No GIS location selected yet.</div>
                                         </div>
+                                        <small class="error-text"></small>
                                     </div>
                                 </div>
                             </div>
@@ -223,9 +233,9 @@
                                         <div class="gis-address-tools">
                                             <button type="button" class="map-picker-btn"
                                                 data-target="applicant2_address">Select on Map</button>
-                                            <div class="gis-selected-meta" id="applicant2_address_meta">No GIS location
-                                                selected yet.</div>
+                                            <div class="gis-selected-meta" id="applicant2_address_meta">No GIS location selected yet.</div>
                                         </div>
+                                        <small class="error-text"></small>
                                     </div>
                                 </div>
                             </div>
@@ -236,27 +246,29 @@
 
                             <div class="form-grid three">
                                 <div class="form-group">
-                                    <label for="architect_town_planner_name">Architect / Town Planner</label>
-                                    <input type="text" id="architect_town_planner_name"
-                                        name="architect_town_planner_name">
+                                    <label for="architect_town_planner_name">Architect / Town Planner <span class="req">*</span></label>
+                                    <input type="text" id="architect_town_planner_name" name="architect_town_planner_name" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="draughtsman_name">Draughtsman</label>
-                                    <input type="text" id="draughtsman_name" name="draughtsman_name">
+                                    <label for="draughtsman_name">Draughtsman <span class="req">*</span></label>
+                                    <input type="text" id="draughtsman_name" name="draughtsman_name" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="engineer_name">Engineer</label>
-                                    <input type="text" id="engineer_name" name="engineer_name">
+                                    <label for="engineer_name">Engineer <span class="req">*</span></label>
+                                    <input type="text" id="engineer_name" name="engineer_name" required>
                                     <small class="error-text"></small>
                                 </div>
                             </div>
 
-                            <h3>Does the Applicant Own the Land Proposed for Development?</h3>
-                            <div class="inline-radio">
-                                <label><input type="radio" name="applicant_owns_land" value="Yes" checked> Yes</label>
-                                <label><input type="radio" name="applicant_owns_land" value="No"> No</label>
+                            <div class="group-block">
+                                <h3>Does the Applicant Own the Land Proposed for Development? <span class="req">*</span></h3>
+                                <div class="inline-radio" data-group-container="applicant_owns_land">
+                                    <label><input type="radio" name="applicant_owns_land" value="Yes" checked> Yes</label>
+                                    <label><input type="radio" name="applicant_owns_land" value="No"> No</label>
+                                </div>
+                                <small class="group-error" data-group-error="applicant_owns_land"></small>
                             </div>
                         </section>
 
@@ -294,9 +306,9 @@
                                     <div class="gis-address-tools">
                                         <button type="button" class="map-picker-btn"
                                             data-target="land_owner_address">Select on Map</button>
-                                        <div class="gis-selected-meta" id="land_owner_address_meta">No GIS location
-                                            selected yet.</div>
+                                        <div class="gis-selected-meta" id="land_owner_address_meta">No GIS location selected yet.</div>
                                     </div>
+                                    <small class="error-text"></small>
                                 </div>
                             </div>
                         </section>
@@ -309,13 +321,13 @@
                                     <h3>Rate Clearance</h3>
                                     <div class="form-grid two">
                                         <div class="form-group">
-                                            <label>Reference No.</label>
-                                            <input type="text" name="rate_clearance_ref" class="number-only-no">
+                                            <label>Reference No. <span class="req">*</span></label>
+                                            <input type="text" name="rate_clearance_ref" class="number-only-no" required>
                                             <small class="error-text"></small>
                                         </div>
                                         <div class="form-group">
-                                            <label>Date</label>
-                                            <div class="date-select-row" data-date-group="rate_clearance_date">
+                                            <label>Date <span class="req">*</span></label>
+                                            <div class="date-select-row" data-date-group="rate_clearance_date" data-required="true">
                                                 <select class="date-month" aria-label="Rate clearance month">
                                                     <option value="">Month</option>
                                                 </select>
@@ -336,13 +348,13 @@
                                     <h3>NWSDB Water Clearance</h3>
                                     <div class="form-grid two">
                                         <div class="form-group">
-                                            <label>Reference No.</label>
-                                            <input type="text" name="water_clearance_ref" class="number-only-no">
+                                            <label>Reference No. <span class="req">*</span></label>
+                                            <input type="text" name="water_clearance_ref" class="number-only-no" required>
                                             <small class="error-text"></small>
                                         </div>
                                         <div class="form-group">
-                                            <label>Date</label>
-                                            <div class="date-select-row" data-date-group="water_clearance_date">
+                                            <label>Date <span class="req">*</span></label>
+                                            <div class="date-select-row" data-date-group="water_clearance_date" data-required="true">
                                                 <select class="date-month" aria-label="Water clearance month">
                                                     <option value="">Month</option>
                                                 </select>
@@ -363,13 +375,13 @@
                                     <h3>Drainage Clearance</h3>
                                     <div class="form-grid two">
                                         <div class="form-group">
-                                            <label>Reference No.</label>
-                                            <input type="text" name="drainage_clearance_ref" class="number-only-no">
+                                            <label>Reference No. <span class="req">*</span></label>
+                                            <input type="text" name="drainage_clearance_ref" class="number-only-no" required>
                                             <small class="error-text"></small>
                                         </div>
                                         <div class="form-group">
-                                            <label>Date</label>
-                                            <div class="date-select-row" data-date-group="drainage_clearance_date">
+                                            <label>Date <span class="req">*</span></label>
+                                            <div class="date-select-row" data-date-group="drainage_clearance_date" data-required="true">
                                                 <select class="date-month" aria-label="Drainage clearance month">
                                                     <option value="">Month</option>
                                                 </select>
@@ -380,8 +392,7 @@
                                                     <option value="">Year</option>
                                                 </select>
                                             </div>
-                                            <input type="hidden" name="drainage_clearance_date"
-                                                id="drainage_clearance_date">
+                                            <input type="hidden" name="drainage_clearance_date" id="drainage_clearance_date">
                                             <small class="error-text"></small>
                                         </div>
                                     </div>
@@ -391,13 +402,13 @@
                                     <h3>UDA Preliminary Clearance</h3>
                                     <div class="form-grid two">
                                         <div class="form-group">
-                                            <label>Reference No.</label>
-                                            <input type="text" name="uda_preliminary_ref" class="number-only-no">
+                                            <label>Reference No. <span class="req">*</span></label>
+                                            <input type="text" name="uda_preliminary_ref" class="number-only-no" required>
                                             <small class="error-text"></small>
                                         </div>
                                         <div class="form-group">
-                                            <label>Date</label>
-                                            <div class="date-select-row" data-date-group="uda_preliminary_date">
+                                            <label>Date <span class="req">*</span></label>
+                                            <div class="date-select-row" data-date-group="uda_preliminary_date" data-required="true">
                                                 <select class="date-month" aria-label="UDA preliminary month">
                                                     <option value="">Month</option>
                                                 </select>
@@ -421,35 +432,33 @@
 
                             <div class="form-grid two">
                                 <div class="form-group">
-                                    <label for="existing_use">Existing Use</label>
-                                    <input type="text" id="existing_use" name="existing_use">
+                                    <label for="existing_use">Existing Use <span class="req">*</span></label>
+                                    <input type="text" id="existing_use" name="existing_use" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="proposed_use_text">Proposed Use</label>
-                                    <input type="text" id="proposed_use_text" name="proposed_use_text">
+                                    <label for="proposed_use_text">Proposed Use <span class="req">*</span></label>
+                                    <input type="text" id="proposed_use_text" name="proposed_use_text" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="zoning_category">Zoning Category</label>
-                                    <input type="text" id="zoning_category" name="zoning_category">
+                                    <label for="zoning_category">Zoning Category <span class="req">*</span></label>
+                                    <input type="text" id="zoning_category" name="zoning_category" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="site_extent">Site Extent</label>
-                                    <input type="number" min="0" step="0.01" id="site_extent" name="site_extent">
+                                    <label for="site_extent">Site Extent <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="site_extent" name="site_extent" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="site_frontage_width">Road Frontage Width</label>
-                                    <input type="number" min="0" step="0.01" id="site_frontage_width"
-                                        name="site_frontage_width">
+                                    <label for="site_frontage_width">Road Frontage Width <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="site_frontage_width" name="site_frontage_width" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="physical_width_of_road">Physical Width of Road / Access</label>
-                                    <input type="number" min="0" step="0.01" id="physical_width_of_road"
-                                        name="physical_width_of_road">
+                                    <label for="physical_width_of_road">Physical Width of Road / Access <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="physical_width_of_road" name="physical_width_of_road" required>
                                     <small class="error-text"></small>
                                 </div>
                             </div>
@@ -460,38 +469,33 @@
 
                             <div class="form-grid three">
                                 <div class="form-group">
-                                    <label for="distance_street_boundary">Street Boundary Distance</label>
-                                    <input type="number" min="0" step="0.01" id="distance_street_boundary"
-                                        name="distance_street_boundary">
+                                    <label for="distance_street_boundary">Street Boundary Distance <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="distance_street_boundary" name="distance_street_boundary" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="distance_rear_boundary">Rear Boundary Distance</label>
-                                    <input type="number" min="0" step="0.01" id="distance_rear_boundary"
-                                        name="distance_rear_boundary">
+                                    <label for="distance_rear_boundary">Rear Boundary Distance <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="distance_rear_boundary" name="distance_rear_boundary" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="distance_left_boundary">Left Boundary Distance</label>
-                                    <input type="number" min="0" step="0.01" id="distance_left_boundary"
-                                        name="distance_left_boundary">
+                                    <label for="distance_left_boundary">Left Boundary Distance <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="distance_left_boundary" name="distance_left_boundary" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="distance_right_boundary">Right Boundary Distance</label>
-                                    <input type="number" min="0" step="0.01" id="distance_right_boundary"
-                                        name="distance_right_boundary">
+                                    <label for="distance_right_boundary">Right Boundary Distance <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="distance_right_boundary" name="distance_right_boundary" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="no_of_floors">No. of Floors</label>
-                                    <input type="number" min="0" id="no_of_floors" name="no_of_floors">
+                                    <label for="no_of_floors">No. of Floors <span class="req">*</span></label>
+                                    <input type="number" min="0" id="no_of_floors" name="no_of_floors" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="total_building_height">Total Building Height</label>
-                                    <input type="number" min="0" step="0.01" id="total_building_height"
-                                        name="total_building_height">
+                                    <label for="total_building_height">Total Building Height <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="total_building_height" name="total_building_height" required>
                                     <small class="error-text"></small>
                                 </div>
                             </div>
@@ -502,33 +506,30 @@
 
                             <div class="form-grid two">
                                 <div class="form-group">
-                                    <label for="plot_coverage">Plot Coverage (%)</label>
-                                    <input type="number" min="0" step="0.01" id="plot_coverage" name="plot_coverage">
+                                    <label for="plot_coverage">Plot Coverage (%) <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="plot_coverage" name="plot_coverage" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="floor_area_ratio">Floor Area Ratio (%)</label>
-                                    <input type="number" min="0" step="0.01" id="floor_area_ratio"
-                                        name="floor_area_ratio">
+                                    <label for="floor_area_ratio">Floor Area Ratio (%) <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="floor_area_ratio" name="floor_area_ratio" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="water_usage_liters">Estimated Water Usage</label>
-                                    <input type="number" min="0" step="0.01" id="water_usage_liters"
-                                        name="water_usage_liters">
+                                    <label for="water_usage_liters">Estimated Water Usage <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="water_usage_liters" name="water_usage_liters" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="electricity_usage_kw">Estimated Electricity Usage</label>
-                                    <input type="number" min="0" step="0.01" id="electricity_usage_kw"
-                                        name="electricity_usage_kw">
+                                    <label for="electricity_usage_kw">Estimated Electricity Usage <span class="req">*</span></label>
+                                    <input type="number" min="0" step="0.01" id="electricity_usage_kw" name="electricity_usage_kw" required>
                                     <small class="error-text"></small>
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label for="site_development_notes">Site Development Notes</label>
-                                <textarea id="site_development_notes" name="site_development_notes"></textarea>
+                                <label for="site_development_notes">Site Development Notes <span class="req">*</span></label>
+                                <textarea id="site_development_notes" name="site_development_notes" required></textarea>
                                 <small class="error-text"></small>
                             </div>
                         </section>
@@ -538,23 +539,23 @@
 
                             <div class="form-grid two">
                                 <div class="form-group">
-                                    <label for="existing_units">Existing Units</label>
-                                    <input type="number" min="0" id="existing_units" name="existing_units">
+                                    <label for="existing_units">Existing Units <span class="req">*</span></label>
+                                    <input type="number" min="0" id="existing_units" name="existing_units" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="proposed_units">Proposed Units</label>
-                                    <input type="number" min="0" id="proposed_units" name="proposed_units">
+                                    <label for="proposed_units">Proposed Units <span class="req">*</span></label>
+                                    <input type="number" min="0" id="proposed_units" name="proposed_units" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="total_units">Total Units</label>
-                                    <input type="number" min="0" id="total_units" name="total_units">
+                                    <label for="total_units">Total Units <span class="req">*</span></label>
+                                    <input type="number" min="0" id="total_units" name="total_units" required>
                                     <small class="error-text"></small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="parking_car_proposed">Proposed Car Parking Bays</label>
-                                    <input type="number" min="0" id="parking_car_proposed" name="parking_car_proposed">
+                                    <label for="parking_car_proposed">Proposed Car Parking Bays <span class="req">*</span></label>
+                                    <input type="number" min="0" id="parking_car_proposed" name="parking_car_proposed" required>
                                     <small class="error-text"></small>
                                 </div>
                             </div>
@@ -563,19 +564,17 @@
                         <section class="form-step" data-step="10">
                             <h2>10. Submitted Plans & Special Compliance</h2>
 
-                            <div class="checklist-grid">
-                                <label><input type="checkbox" name="submitted_plans" value="Site Plan"> Site
-                                    Plan</label>
-                                <label><input type="checkbox" name="submitted_plans" value="Floor Plan"> Floor
-                                    Plan</label>
-                                <label><input type="checkbox" name="submitted_plans" value="Roof Plan"> Roof
-                                    Plan</label>
-                                <label><input type="checkbox" name="submitted_plans" value="Cross Sections"> Cross
-                                    Section/s</label>
-                                <label><input type="checkbox" name="submitted_plans" value="Front Elevation"> Front
-                                    Elevation</label>
-                                <label><input type="checkbox" name="submitted_plans" value="Rear Elevation"> Rear
-                                    Elevation</label>
+                            <div class="group-block">
+                                <label class="group-label">Submitted Plans <span class="req">*</span></label>
+                                <div class="checklist-grid" data-group-container="submitted_plans">
+                                    <label><input type="checkbox" name="submitted_plans" value="Site Plan"> Site Plan</label>
+                                    <label><input type="checkbox" name="submitted_plans" value="Floor Plan"> Floor Plan</label>
+                                    <label><input type="checkbox" name="submitted_plans" value="Roof Plan"> Roof Plan</label>
+                                    <label><input type="checkbox" name="submitted_plans" value="Cross Sections"> Cross Section/s</label>
+                                    <label><input type="checkbox" name="submitted_plans" value="Front Elevation"> Front Elevation</label>
+                                    <label><input type="checkbox" name="submitted_plans" value="Rear Elevation"> Rear Elevation</label>
+                                </div>
+                                <small class="group-error" data-group-error="submitted_plans"></small>
                             </div>
                         </section>
 
@@ -584,22 +583,22 @@
 
                             <div class="upload-panel">
                                 <div class="upload-card">
-                                    <label for="site_plan_file">Site Plan</label>
-                                    <input type="file" id="site_plan_file" name="site_plan_file" accept=".pdf">
+                                    <label for="site_plan_file">Site Plan <span class="req">*</span></label>
+                                    <input type="file" id="site_plan_file" name="site_plan_file" accept=".pdf" data-required-file="true">
                                     <div class="file-error"></div>
                                     <small class="file-hint">You may only upload .PDF files.</small>
                                 </div>
 
                                 <div class="upload-card">
-                                    <label for="survey_plan_file">Survey Plan</label>
-                                    <input type="file" id="survey_plan_file" name="survey_plan_file" accept=".pdf">
+                                    <label for="survey_plan_file">Survey Plan <span class="req">*</span></label>
+                                    <input type="file" id="survey_plan_file" name="survey_plan_file" accept=".pdf" data-required-file="true">
                                     <div class="file-error"></div>
                                     <small class="file-hint">You may only upload .PDF files.</small>
                                 </div>
 
                                 <div class="upload-card">
-                                    <label for="clearance_docs_file">Clearance Documents</label>
-                                    <input type="file" id="clearance_docs_file" name="clearance_docs_file" multiple accept=".pdf">
+                                    <label for="clearance_docs_file">Clearance Documents <span class="req">*</span></label>
+                                    <input type="file" id="clearance_docs_file" name="clearance_docs_file" multiple accept=".pdf" data-required-file="true">
                                     <div class="file-error"></div>
                                     <small class="file-hint">You may only upload .PDF files.</small>
                                 </div>
@@ -623,9 +622,11 @@
                                 <div id="reviewSummary" class="review-summary">Click “Generate Review” to preview the
                                     entered details before submission.</div>
                                 <div class="review-actions">
-                                    <button type="button" class="secondary-btn" id="generateReviewBtn">Generate
-                                        Review</button>
+                                    <button type="button" class="secondary-btn" id="generateReviewBtn">Generate Review</button>
                                     <button type="button" class="ghost-btn" id="clearDraftBtn">Refresh Page</button>
+                                </div>
+                                <div class="final-submit-note" id="finalSubmitNote">
+                                    Complete all required fields in every step before submitting the application.
                                 </div>
                             </div>
                         </section>
@@ -634,11 +635,9 @@
                             <button type="button" class="nav-btn secondary-btn" id="prevBtn">Previous</button>
 
                             <div class="action-group-right">
-                                <button type="button" class="nav-btn secondary-btn" id="saveDraftBtn">Save
-                                    Draft</button>
+                                <button type="button" class="nav-btn secondary-btn" id="saveDraftBtn">Save Draft</button>
                                 <button type="button" class="nav-btn primary-btn" id="nextBtn">Next</button>
-                                <button type="submit" class="nav-btn submit-btn" id="submitBtn">Submit
-                                    Application</button>
+                                <button type="submit" class="nav-btn submit-btn" id="submitBtn">Submit Application</button>
                             </div>
                         </div>
                     </form>
