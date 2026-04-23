@@ -1167,7 +1167,8 @@ def get_security_overview(cursor, start_date="", end_date=""):
         f"""
         SELECT COUNT(*) AS total
         FROM suspicious_events
-        WHERE severity = 'high' {date_clause}
+        WHERE severity = 'high'
+        AND status IN ('new', 'reviewed') {date_clause}
         """,
         "total",
         params=tuple(params),
@@ -1644,7 +1645,12 @@ def admin_dashboard():
 
     security_high = safe_fetchone_value(
         cursor,
-        "SELECT COUNT(*) AS total FROM suspicious_events WHERE severity = 'high'",
+        """
+        SELECT COUNT(*) AS total
+        FROM suspicious_events
+        WHERE severity = 'high'
+        AND status IN ('new', 'reviewed')
+        """,
         "total",
     )
     conn.close()

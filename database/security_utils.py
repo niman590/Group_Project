@@ -56,12 +56,14 @@ def get_request_metadata():
     ip_address = request.headers.get("X-Forwarded-For", request.remote_addr)
     user_agent = request.headers.get("User-Agent")
     route = request.path
+    method = request.method
 
     return {
         "user_id": user_id,
         "ip_address": ip_address,
         "user_agent": user_agent,
         "route": route,
+        "method": method, 
     }
 
 def count_recent_events(rule_name, minutes=10, user_id=None, ip_address=None):
@@ -175,6 +177,8 @@ def track_unauthorized_access():
 def track_api_request_burst(limit=10, minutes=1):
     meta = get_request_metadata()
 
+    readable_action = f"{meta['method']} request to {meta['route']}"
+
     # Always log normal request (low severity)
     log_suspicious_event(
         user_id=None,
@@ -184,9 +188,10 @@ def track_api_request_burst(limit=10, minutes=1):
         route=meta["route"],
         ip_address=meta["ip_address"],
         user_agent=meta["user_agent"],
+        description=f"{readable_action} recorded for burst monitoring.",
     )
 
-    # Count how many requests in last 1 minute
+    # Count how many requests in last X minutes
     recent_count = count_recent_events(
         rule_name="API_REQUEST_EVENT",
         minutes=minutes,
@@ -200,7 +205,7 @@ def track_api_request_burst(limit=10, minutes=1):
         ip_address=meta["ip_address"],
     )
 
-    # 🚨 Only trigger if threshold reached AND not already triggered
+    # Only trigger if threshold reached and not already triggered
     if recent_count >= limit and existing_burst == 0:
         log_suspicious_event(
             user_id=None,
@@ -210,5 +215,5 @@ def track_api_request_burst(limit=10, minutes=1):
             route=meta["route"],
             ip_address=meta["ip_address"],
             user_agent=meta["user_agent"],
-            description=f"{recent_count} requests within {minutes} minute(s)",
+            description=f"Burst detected: {recent_count} requests to {meta['route']} within {minutes} minute(s).",
         )
