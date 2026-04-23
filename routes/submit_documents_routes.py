@@ -1,5 +1,6 @@
 import os
 import smtplib
+import requests
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -226,6 +227,94 @@ def get_status_badge_class(label):
     if "pending" in label or "review" in label or "submitted" in label:
         return "badge-info"
     return "badge-secondary"
+
+
+@submit_documents_bp.route("/gis-search-location", methods=["GET"])
+def gis_search_location():
+    query = request.args.get("q", "").strip()
+
+    if not query:
+        return jsonify({
+            "success": False,
+            "message": "Search query is required.",
+            "results": []
+        }), 400
+
+    try:
+        response = requests.get(
+            "https://nominatim.openstreetmap.org/search",
+            params={
+                "q": query,
+                "format": "json",
+                "limit": 5
+            },
+            headers={
+                "User-Agent": "CivicPlan/1.0"
+            },
+            timeout=10
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        return jsonify({
+            "success": True,
+            "results": [
+                {
+                    "lat": item.get("lat"),
+                    "lon": item.get("lon"),
+                    "display_name": item.get("display_name", "")
+                }
+                for item in data
+            ]
+        })
+    except Exception as e:
+        print("GIS search error:", e)
+        return jsonify({
+            "success": False,
+            "message": "Location search failed.",
+            "results": []
+        }), 500
+
+
+@submit_documents_bp.route("/gis-reverse-geocode", methods=["GET"])
+def gis_reverse_geocode():
+    lat = request.args.get("lat", "").strip()
+    lon = request.args.get("lon", "").strip()
+
+    if not lat or not lon:
+        return jsonify({
+            "success": False,
+            "message": "Latitude and longitude are required."
+        }), 400
+
+    try:
+        response = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={
+                "lat": lat,
+                "lon": lon,
+                "format": "json"
+            },
+            headers={
+                "User-Agent": "CivicPlan/1.0"
+            },
+            timeout=10
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        return jsonify({
+            "success": True,
+            "address": data.get("display_name", ""),
+            "lat": lat,
+            "lon": lon
+        })
+    except Exception as e:
+        print("Reverse geocode error:", e)
+        return jsonify({
+            "success": False,
+            "message": "Reverse geocoding failed."
+        }), 500
 
 
 @submit_documents_bp.route("/submit-documents", methods=["GET"])

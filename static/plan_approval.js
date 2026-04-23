@@ -663,12 +663,17 @@ function updateAddressMeta(fieldId, addressText, lat = null, lon = null) {
     const metaBox = document.getElementById(`${fieldId}_meta`);
     if (!metaBox) return;
 
+    if (!addressText && lat != null && lon != null) {
+        metaBox.textContent = `GIS selected location:\nLatitude: ${Number(lat).toFixed(6)}, Longitude: ${Number(lon).toFixed(6)}`;
+        return;
+    }
+
     if (!addressText) {
         metaBox.textContent = "No GIS location selected yet.";
         return;
     }
 
-    if (lat && lon) {
+    if (lat != null && lon != null) {
         metaBox.textContent = `GIS selected location: ${addressText}\nLatitude: ${Number(lat).toFixed(6)}, Longitude: ${Number(lon).toFixed(6)}`;
     } else {
         metaBox.textContent = `Address loaded: ${addressText}`;
@@ -691,6 +696,12 @@ function initMapIfNeeded() {
     mapInstance.on("click", async (event) => {
         const { lat, lng } = event.latlng;
         placeMapMarker(lat, lng);
+        currentPickedLocation = {
+            address: "",
+            lat,
+            lon: lng
+        };
+        mapSelectedAddress.textContent = `Selected coordinates:\nLatitude: ${lat.toFixed(6)}, Longitude: ${lng.toFixed(6)}\nFetching address...`;
         await fillSelectedLocationFromCoordinates(lat, lng);
     });
 
@@ -726,20 +737,36 @@ async function fillSelectedLocationFromCoordinates(lat, lon) {
         const result = await reverseGeocode(lat, lon);
 
         if (!result.success) {
-            mapStatusText.textContent = result.message || "Could not identify the selected location.";
+            currentPickedLocation = {
+                address: "",
+                lat,
+                lon
+            };
+            mapSelectedAddress.textContent = `Selected coordinates:\nLatitude: ${Number(lat).toFixed(6)}, Longitude: ${Number(lon).toFixed(6)}`;
+            mapStatusText.textContent = result.message || "Could not identify the selected location. You can still use the coordinates.";
             return;
         }
 
         currentPickedLocation = {
             address: result.address || "",
-            lat: result.lat,
-            lon: result.lon
+            lat: result.lat != null ? Number(result.lat) : Number(lat),
+            lon: result.lon != null ? Number(result.lon) : Number(lon)
         };
 
-        mapSelectedAddress.textContent = `${currentPickedLocation.address}\nLatitude: ${Number(currentPickedLocation.lat).toFixed(6)}, Longitude: ${Number(currentPickedLocation.lon).toFixed(6)}`;
+        const addressText = currentPickedLocation.address
+            ? currentPickedLocation.address
+            : `Latitude: ${Number(currentPickedLocation.lat).toFixed(6)}, Longitude: ${Number(currentPickedLocation.lon).toFixed(6)}`;
+
+        mapSelectedAddress.textContent = `${addressText}\nLatitude: ${Number(currentPickedLocation.lat).toFixed(6)}, Longitude: ${Number(currentPickedLocation.lon).toFixed(6)}`;
         mapStatusText.textContent = "Location selected successfully.";
     } catch (error) {
-        mapStatusText.textContent = "Reverse geocoding failed.";
+        currentPickedLocation = {
+            address: "",
+            lat,
+            lon
+        };
+        mapSelectedAddress.textContent = `Selected coordinates:\nLatitude: ${Number(lat).toFixed(6)}, Longitude: ${Number(lon).toFixed(6)}`;
+        mapStatusText.textContent = "Reverse geocoding failed. You can still use the coordinates.";
     }
 }
 
@@ -786,14 +813,19 @@ async function handleMapSearch() {
     try {
         const result = await searchLocation(query);
 
-        if (!result.success || !result.results?.length) {
-            mapStatusText.textContent = "No matching locations found.";
+        if (!result.success || !Array.isArray(result.results) || !result.results.length) {
+            mapStatusText.textContent = result.message || "No matching locations found.";
             return;
         }
 
         const first = result.results[0];
         const lat = parseFloat(first.lat);
         const lon = parseFloat(first.lon);
+
+        if (Number.isNaN(lat) || Number.isNaN(lon)) {
+            mapStatusText.textContent = "Invalid location data returned from search.";
+            return;
+        }
 
         placeMapMarker(lat, lon);
         currentPickedLocation = {
@@ -802,7 +834,8 @@ async function handleMapSearch() {
             lon
         };
 
-        mapSelectedAddress.textContent = `${currentPickedLocation.address}\nLatitude: ${lat.toFixed(6)}, Longitude: ${lon.toFixed(6)}`;
+        const addressText = currentPickedLocation.address || `Latitude: ${lat.toFixed(6)}, Longitude: ${lon.toFixed(6)}`;
+        mapSelectedAddress.textContent = `${addressText}\nLatitude: ${lat.toFixed(6)}, Longitude: ${lon.toFixed(6)}`;
         mapStatusText.textContent = "Search result selected. You can confirm or click another point on the map.";
     } catch (error) {
         mapStatusText.textContent = "Location search failed.";
@@ -815,19 +848,29 @@ function applySelectedLocationToField() {
     const field = document.getElementById(activeAddressFieldId);
     if (!field) return;
 
-    if (!currentPickedLocation || !currentPickedLocation.address) {
+    if (!currentPickedLocation) {
         mapStatusText.textContent = "Please select a location from the map first.";
         return;
     }
 
-    field.value = currentPickedLocation.address;
-    updateAddressMeta(
-        activeAddressFieldId,
-        currentPickedLocation.address,
-        currentPickedLocation.lat,
-        currentPickedLocation.lon
-    );
+    const lat = currentPickedLocation.lat != null ? Number(currentPickedLocation.lat) : null;
+    const lon = currentPickedLocation.lon != null ? Number(currentPickedLocation.lon) : null;
+
+    let finalValue = (currentPickedLocation.address || "").trim();
+
+    if (!finalValue && lat != null && lon != null) {
+        finalValue = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+    }
+
+    if (!finalValue) {
+        mapStatusText.textContent = "Please select a valid location from the map first.";
+        return;
+    }
+
+    field.value = finalValue;
+    updateAddressMeta(activeAddressFieldId, currentPickedLocation.address || finalValue, lat, lon);
     clearFieldError(field);
+    mapStatusText.textContent = "Selected location applied successfully.";
     closeMapPicker();
 }
 
@@ -844,14 +887,31 @@ function useBrowserCurrentLocation() {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
             placeMapMarker(lat, lon);
+
+            currentPickedLocation = {
+                address: "",
+                lat,
+                lon
+            };
+
+            mapSelectedAddress.textContent = `Current coordinates:\nLatitude: ${lat.toFixed(6)}, Longitude: ${lon.toFixed(6)}\nFetching address...`;
             await fillSelectedLocationFromCoordinates(lat, lon);
         },
-        () => {
-            mapStatusText.textContent = "Could not access your current location.";
+        (error) => {
+            if (error.code === 1) {
+                mapStatusText.textContent = "Location permission was denied.";
+            } else if (error.code === 2) {
+                mapStatusText.textContent = "Current location is unavailable.";
+            } else if (error.code === 3) {
+                mapStatusText.textContent = "Location request timed out.";
+            } else {
+                mapStatusText.textContent = "Could not access your current location.";
+            }
         },
         {
             enableHighAccuracy: true,
-            timeout: 10000
+            timeout: 10000,
+            maximumAge: 0
         }
     );
 }
