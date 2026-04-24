@@ -12,22 +12,20 @@
 </head>
 
 <body>
-
     <div class="dashboard-shell">
-
         {% include 'partials/admin_sidebar.html' %}
 
         <main class="main-content">
-            <header class="topbar">
+            <header class="topbar glass-topbar">
                 <div class="topbar-content">
                     <div class="page-heading">
                         <span class="page-kicker">Administration</span>
                         <h1>Transaction History Update Requests</h1>
-                        <p>Review, approve, or reject submitted ownership history updates.</p>
+                        <p>Review, approve, reject, or create deed records directly from the admin side.</p>
                     </div>
                 </div>
 
-                <div class="admin-chip">
+                <div class="admin-chip soft-chip">
                     <div class="avatar">{{ user['first_name'][0] | upper }}</div>
                     <div>
                         <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
@@ -38,9 +36,18 @@
 
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-            {% for category, message in messages %}
-            <div class="flash-msg {{ category }}">{{ message }}</div>
-            {% endfor %}
+            <section class="flash-wrap">
+                {% for category, message in messages %}
+                <div class="flash-msg {{ category }}">
+                    <i class="fa-solid 
+                        {% if category == 'success' %}fa-circle-check
+                        {% elif category == 'warning' %}fa-triangle-exclamation
+                        {% elif category == 'error' %}fa-circle-xmark
+                        {% else %}fa-circle-info{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </section>
             {% endif %}
             {% endwith %}
 
@@ -53,8 +60,8 @@
                     </div>
                 </div>
 
-                <div class="stats-grid reports-stats-grid">
-                    <div class="stat-card report-stat-card total-users">
+                <div class="stats-grid reports-stats-grid modern-stats-grid">
+                    <div class="stat-card modern-stat-card total-users">
                         <div class="stat-icon blue">
                             <i class="fa-solid fa-folder-open"></i>
                         </div>
@@ -65,7 +72,7 @@
                         </div>
                     </div>
 
-                    <div class="stat-card report-stat-card total-applications">
+                    <div class="stat-card modern-stat-card total-applications">
                         <div class="stat-icon amber">
                             <i class="fa-solid fa-hourglass-half"></i>
                         </div>
@@ -76,7 +83,7 @@
                         </div>
                     </div>
 
-                    <div class="stat-card report-stat-card active-users">
+                    <div class="stat-card modern-stat-card active-users">
                         <div class="stat-icon green">
                             <i class="fa-solid fa-circle-check"></i>
                         </div>
@@ -87,7 +94,7 @@
                         </div>
                     </div>
 
-                    <div class="stat-card report-stat-card rejected-card">
+                    <div class="stat-card modern-stat-card rejected-card">
                         <div class="stat-icon red">
                             <i class="fa-solid fa-circle-xmark"></i>
                         </div>
@@ -100,16 +107,23 @@
                 </div>
             </section>
 
-            <section class="panel request-panel">
-                <div class="panel-header">
+            <section class="panel request-panel request-panel-modern">
+                <div class="panel-header panel-header-modern">
                     <div>
                         <h2>Pending / Processed Requests</h2>
                         <p class="panel-subtext">Monitor submitted deed history updates and take action when needed.</p>
                     </div>
+
+                    <div class="header-actions">
+                        <a href="{{ url_for('admin.admin_add_deed_page') }}" class="btn-primary-action">
+                            <i class="fa-solid fa-plus"></i>
+                            Add New Deed
+                        </a>
+                    </div>
                 </div>
 
-                <div class="table-wrap custom-table-wrap">
-                    <table class="request-table">
+                <div class="table-wrap custom-table-wrap modern-table-wrap">
+                    <table class="request-table modern-request-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -119,14 +133,19 @@
                                 <th>Transaction Type</th>
                                 <th>Proof</th>
                                 <th>Status</th>
+                                <th>Notes</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for req in requests %}
                             <tr>
-                                <td>#{{ req['request_id'] }}</td>
-                                <td><span class="deed-badge">{{ req['deed_number'] }}</span></td>
+                                <td class="id-cell">#{{ req['request_id'] }}</td>
+
+                                <td>
+                                    <span class="deed-badge">{{ req['deed_number'] }}</span>
+                                </td>
+
                                 <td>
                                     <div class="owner-cell">
                                         <strong>{{ req['proposed_owner_name'] }}</strong>
@@ -135,19 +154,24 @@
                                         {% endif %}
                                     </div>
                                 </td>
+
                                 <td>{{ req['proposed_transfer_date'] }}</td>
+
                                 <td>
                                     <span class="type-badge">{{ req['proposed_transaction_type'] }}</span>
                                 </td>
+
                                 <td>
                                     {% if req['proof_document_path'] %}
                                     <a class="proof-link" href="/{{ req['proof_document_path'] }}" target="_blank">
-                                        <i class="fa-solid fa-file-lines"></i> View Proof
+                                        <i class="fa-solid fa-file-lines"></i>
+                                        <span>View Proof</span>
                                     </a>
                                     {% else %}
                                     <span class="muted-text">No File</span>
                                     {% endif %}
                                 </td>
+
                                 <td>
                                     {% if req['status'] == 'Pending' %}
                                     <span class="status-badge pending">Pending</span>
@@ -159,24 +183,26 @@
                                     <span class="status-badge">{{ req['status'] }}</span>
                                     {% endif %}
                                 </td>
+
+                                <td class="notes-cell">
+                                    {{ req['notes'] if req['notes'] else '-' }}
+                                </td>
+
                                 <td>
                                     {% if req['status'] == 'Pending' %}
                                     <div class="action-stack">
-                                        <form
-                                            action="{{ url_for('admin.approve_transaction_history_request', request_id=req['request_id']) }}"
-                                            method="POST">
+                                        <form action="{{ url_for('admin.approve_transaction_history_request', request_id=req['request_id']) }}" method="POST">
                                             <button type="submit" class="btn-approve">
-                                                <i class="fa-solid fa-check"></i> Approve
+                                                <i class="fa-solid fa-check"></i>
+                                                Approve
                                             </button>
                                         </form>
 
-                                        <form
-                                            action="{{ url_for('admin.reject_transaction_history_request', request_id=req['request_id']) }}"
-                                            method="POST" class="reject-form">
-                                            <input type="text" name="admin_comment" placeholder="Reason for rejection"
-                                                required>
+                                        <form action="{{ url_for('admin.reject_transaction_history_request', request_id=req['request_id']) }}" method="POST" class="reject-form">
+                                            <input type="text" name="admin_comment" placeholder="Reason for rejection" required>
                                             <button type="submit" class="btn-reject">
-                                                <i class="fa-solid fa-xmark"></i> Reject
+                                                <i class="fa-solid fa-xmark"></i>
+                                                Reject
                                             </button>
                                         </form>
                                     </div>
@@ -187,10 +213,11 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="8">
-                                    <div class="empty-state">
+                                <td colspan="9">
+                                    <div class="empty-state modern-empty-state">
                                         <i class="fa-solid fa-inbox"></i>
-                                        <p>No transaction history requests found.</p>
+                                        <h3>No transaction requests found</h3>
+                                        <p>New deed and ownership update requests will appear here.</p>
                                     </div>
                                 </td>
                             </tr>

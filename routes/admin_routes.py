@@ -1114,19 +1114,6 @@ def get_land_valuation_chart_payload(cursor, granularity="monthly", area="all"):
 
     return payload
 
-def auto_resolve_old_low_events(cursor, days=7):
-    cursor.execute(
-        """
-        UPDATE suspicious_events
-        SET status = 'resolved'
-        WHERE severity = 'low'
-          AND status = 'reviewed'
-          AND reviewed_at IS NOT NULL
-          AND datetime(reviewed_at) <= datetime('now', ?)
-        """,
-        (f"-{days} days",),
-    )
-
 
 def get_security_overview(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
@@ -1180,8 +1167,7 @@ def get_security_overview(cursor, start_date="", end_date=""):
         f"""
         SELECT COUNT(*) AS total
         FROM suspicious_events
-        WHERE severity = 'high'
-        AND status IN ('new', 'reviewed') {date_clause}
+        WHERE severity = 'high' {date_clause}
         """,
         "total",
         params=tuple(params),
@@ -1309,9 +1295,6 @@ def admin_suspicious_behavior():
 
     conn = get_connection()
     cursor = conn.cursor()
-
-    auto_resolve_old_low_events(cursor, days=7)
-    conn.commit()
 
     overview = get_security_overview(cursor, start_date, end_date)
     events = get_suspicious_events(cursor, severity, status, rule_name, start_date, end_date)
@@ -1661,12 +1644,7 @@ def admin_dashboard():
 
     security_high = safe_fetchone_value(
         cursor,
-        """
-        SELECT COUNT(*) AS total
-        FROM suspicious_events
-        WHERE severity = 'high'
-        AND status IN ('new', 'reviewed')
-        """,
+        "SELECT COUNT(*) AS total FROM suspicious_events WHERE severity = 'high'",
         "total",
     )
     conn.close()
@@ -1937,10 +1915,7 @@ def admin_transaction_history_requests():
 
     cursor.execute(
         """
-        SELECT request_id, deed_number, proposed_owner_name, proposed_owner_nic,
-               proposed_owner_address, proposed_owner_phone,
-               proposed_transfer_date, proposed_transaction_type,
-               notes, proof_document_path, status, submitted_at
+        SELECT *
         FROM transaction_history_update_request
         ORDER BY submitted_at DESC
         """
@@ -1968,11 +1943,9 @@ def approve_transaction_history_request(request_id):
 
     cursor.execute(
         """
-        SELECT deed_number, proposed_owner_name, proposed_owner_nic,
-            proposed_owner_address, proposed_owner_phone,
-            proposed_transfer_date, proposed_transaction_type
+        SELECT *
         FROM transaction_history_update_request
-        WHERE request_id = ? AND status = 'Pending'
+        WHERE request_id = ? AND status IN ('Pending', 'Pending New Deed Review')
         """,
         (request_id,),
     )
@@ -1983,81 +1956,134 @@ def approve_transaction_history_request(request_id):
         flash("Request not found or already processed.", "error")
         return redirect(url_for("admin.admin_transaction_history_requests"))
 
-    deed_number = req["deed_number"]
-    proposed_owner_name = req["proposed_owner_name"]
-    proposed_owner_nic = req["proposed_owner_nic"]
-    proposed_owner_address = req["proposed_owner_address"]
-    proposed_owner_phone = req["proposed_owner_phone"]
-    proposed_transfer_date = req["proposed_transfer_date"]
-    proposed_transaction_type = req["proposed_transaction_type"]
+    deed_number = (req["deed_number"] or "").strip()
+    proposed_owner_name = (req["proposed_owner_name"] or "").strip()
+    proposed_owner_nic = (req["proposed_owner_nic"] or "").strip()
+    proposed_owner_address = (req["proposed_owner_address"] or "").strip()
+    proposed_owner_phone = (req["proposed_owner_phone"] or "").strip()
+    proposed_transfer_date = (req["proposed_transfer_date"] or "").strip()
+    proposed_transaction_type = (req["proposed_transaction_type"] or "").strip() or "Transfer"
+    notes = (req["notes"] or "").strip()
 
     cursor.execute("SELECT land_id FROM land_record WHERE deed_number = ?", (deed_number,))
     land = cursor.fetchone()
 
-    if not land:
-        conn.close()
-        flash("No matching land record found.", "error")
-        return redirect(url_for("admin.admin_transaction_history_requests"))
-
-    land_id = land["land_id"]
-
-    cursor.execute(
-        """
-        SELECT COALESCE(MAX(ownership_order), 0)
-        FROM ownership_history
-        WHERE land_id = ?
-        """,
-        (land_id,),
-    )
-    max_order = cursor.fetchone()[0]
-    next_order = max_order + 1
-
-    cursor.execute(
-        """
-        INSERT INTO ownership_history (
-            land_id, owner_name, owner_nic, owner_address, owner_phone,
-            transfer_date, transaction_type, ownership_order
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            land_id,
-            proposed_owner_name,
-            proposed_owner_nic,
-            proposed_owner_address,
-            proposed_owner_phone,
-            proposed_transfer_date,
-            proposed_transaction_type,
-            next_order,
-        ),
-    )
-
-    cursor.execute(
-        """
-        UPDATE land_record
-        SET current_owner_name = ?
-        WHERE land_id = ?
-        """,
-        (proposed_owner_name, land_id),
-    )
-
     reviewed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    is_new_deed_request = "[NEW_DEED_REQUEST]" in notes or req["status"] == "Pending New Deed Review"
 
-    cursor.execute(
-        """
-        UPDATE transaction_history_update_request
-        SET status = 'Approved',
-            reviewed_by = ?,
-            reviewed_at = ?
-        WHERE request_id = ?
-        """,
-        (admin_user["user_id"], reviewed_at, request_id),
-    )
+    try:
+        if not land:
+            if not is_new_deed_request:
+                conn.close()
+                flash("No matching land record found for this request.", "error")
+                return redirect(url_for("admin.admin_transaction_history_requests"))
 
-    conn.commit()
-    conn.close()
+            cursor.execute(
+                """
+                INSERT INTO land_record (
+                    deed_number, property_address, location, current_owner_name
+                )
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    deed_number,
+                    proposed_owner_address or "Address to be verified",
+                    proposed_owner_address or "Location to be verified",
+                    proposed_owner_name,
+                ),
+            )
+            land_id = cursor.lastrowid
 
-    flash("Transaction history request approved successfully.", "success")
+            cursor.execute(
+                """
+                INSERT INTO ownership_history (
+                    land_id, owner_name, owner_nic, owner_address, owner_phone,
+                    transfer_date, transaction_type, ownership_order
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    land_id,
+                    proposed_owner_name,
+                    proposed_owner_nic,
+                    proposed_owner_address,
+                    proposed_owner_phone,
+                    proposed_transfer_date,
+                    proposed_transaction_type if proposed_transaction_type != "Transfer" else "New Registration",
+                    1,
+                ),
+            )
+
+        else:
+            land_id = land["land_id"]
+
+            cursor.execute(
+                """
+                SELECT COALESCE(MAX(ownership_order), 0) AS max_order
+                FROM ownership_history
+                WHERE land_id = ?
+                """,
+                (land_id,),
+            )
+            max_order_row = cursor.fetchone()
+            next_order = (max_order_row["max_order"] if max_order_row else 0) + 1
+
+            cursor.execute(
+                """
+                INSERT INTO ownership_history (
+                    land_id, owner_name, owner_nic, owner_address, owner_phone,
+                    transfer_date, transaction_type, ownership_order
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    land_id,
+                    proposed_owner_name,
+                    proposed_owner_nic,
+                    proposed_owner_address,
+                    proposed_owner_phone,
+                    proposed_transfer_date,
+                    proposed_transaction_type,
+                    next_order,
+                ),
+            )
+
+            cursor.execute(
+                """
+                UPDATE land_record
+                SET current_owner_name = ?
+                WHERE land_id = ?
+                """,
+                (proposed_owner_name, land_id),
+            )
+
+        cursor.execute(
+            """
+            UPDATE transaction_history_update_request
+            SET status = 'Approved',
+                reviewed_by = ?,
+                reviewed_at = ?,
+                admin_comment = ?
+            WHERE request_id = ?
+            """,
+            (
+                admin_user["user_id"],
+                reviewed_at,
+                "Approved by admin",
+                request_id,
+            ),
+        )
+
+        conn.commit()
+        flash("Transaction history request approved successfully.", "success")
+
+    except Exception as e:
+        conn.rollback()
+        flash(f"Failed to approve request: {str(e)}", "error")
+
+    finally:
+        conn.close()
+
     return redirect(url_for("admin.admin_transaction_history_requests"))
 
 
@@ -2067,7 +2093,7 @@ def reject_transaction_history_request(request_id):
     if redirect_response:
         return redirect_response
 
-    admin_comment = request.form.get("admin_comment", "")
+    admin_comment = (request.form.get("admin_comment") or "").strip()
     conn = get_connection()
     cursor = conn.cursor()
     reviewed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -2079,7 +2105,7 @@ def reject_transaction_history_request(request_id):
             reviewed_by = ?,
             reviewed_at = ?,
             admin_comment = ?
-        WHERE request_id = ? AND status = 'Pending'
+        WHERE request_id = ? AND status IN ('Pending', 'Pending New Deed Review')
         """,
         (admin_user["user_id"], reviewed_at, admin_comment, request_id),
     )
@@ -2091,6 +2117,150 @@ def reject_transaction_history_request(request_id):
     return redirect(url_for("admin.admin_transaction_history_requests"))
 
 
+@admin_bp.route("/admin/add-deed", methods=["GET"])
+def admin_add_deed_page():
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    return render_template(
+        "admin_add_deed.html",
+        user=admin_user,
+        active_page="add_deed"
+    )
+
+
+@admin_bp.route("/admin/add-deed", methods=["POST"])
+def admin_add_deed():
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    track_api_request_burst(limit=10, minutes=1)
+
+    deed_number = (request.form.get("deed_number") or "").strip()
+    property_address = (request.form.get("property_address") or "").strip()
+    location = (request.form.get("location") or "").strip()
+
+    owner_names = [v.strip() for v in request.form.getlist("owner_name[]")]
+    owner_nics = [v.strip() for v in request.form.getlist("owner_nic[]")]
+    owner_addresses = [v.strip() for v in request.form.getlist("owner_address[]")]
+    owner_phones = [v.strip() for v in request.form.getlist("owner_phone[]")]
+    transfer_dates = [v.strip() for v in request.form.getlist("transfer_date[]")]
+    transaction_types = [v.strip() for v in request.form.getlist("transaction_type[]")]
+
+    if not deed_number:
+        flash("Deed number is required.", "error")
+        return redirect(url_for("admin.admin_add_deed_page"))
+
+    if not property_address:
+        flash("Property address is required.", "error")
+        return redirect(url_for("admin.admin_add_deed_page"))
+
+    if not location:
+        flash("Location is required.", "error")
+        return redirect(url_for("admin.admin_add_deed_page"))
+
+    if not owner_names or all(not name for name in owner_names):
+        flash("At least one owner is required.", "error")
+        return redirect(url_for("admin.admin_add_deed_page"))
+
+    total_rows = len(owner_names)
+    if not (
+        len(owner_nics) == total_rows and
+        len(owner_addresses) == total_rows and
+        len(owner_phones) == total_rows and
+        len(transfer_dates) == total_rows and
+        len(transaction_types) == total_rows
+    ):
+        flash("Owner rows are incomplete. Please check all transaction rows.", "error")
+        return redirect(url_for("admin.admin_add_deed_page"))
+
+    cleaned_history = []
+    for i in range(total_rows):
+        if not owner_names[i]:
+            flash(f"Owner name is required for row {i + 1}.", "error")
+            return redirect(url_for("admin.admin_add_deed_page"))
+
+        if not transfer_dates[i]:
+            flash(f"Transfer date is required for row {i + 1}.", "error")
+            return redirect(url_for("admin.admin_add_deed_page"))
+
+        tx_type = transaction_types[i] or ("Original Registration" if i == 0 else "Transfer")
+
+        cleaned_history.append({
+            "owner_name": owner_names[i],
+            "owner_nic": owner_nics[i],
+            "owner_address": owner_addresses[i],
+            "owner_phone": owner_phones[i],
+            "transfer_date": transfer_dates[i],
+            "transaction_type": tx_type,
+            "ownership_order": i + 1
+        })
+
+    current_owner_name = cleaned_history[-1]["owner_name"]
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT land_id FROM land_record WHERE deed_number = ?", (deed_number,))
+    existing_land = cursor.fetchone()
+
+    if existing_land:
+        conn.close()
+        flash("This deed number already exists in the system.", "error")
+        return redirect(url_for("admin.admin_add_deed_page"))
+
+    try:
+        cursor.execute(
+            """
+            INSERT INTO land_record (
+                deed_number, property_address, location, current_owner_name
+            )
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                deed_number,
+                property_address,
+                location,
+                current_owner_name
+            ),
+        )
+
+        land_id = cursor.lastrowid
+
+        for row in cleaned_history:
+            cursor.execute(
+                """
+                INSERT INTO ownership_history (
+                    land_id, owner_name, owner_nic, owner_address,
+                    owner_phone, transfer_date, transaction_type, ownership_order
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    land_id,
+                    row["owner_name"],
+                    row["owner_nic"],
+                    row["owner_address"],
+                    row["owner_phone"],
+                    row["transfer_date"],
+                    row["transaction_type"],
+                    row["ownership_order"]
+                ),
+            )
+
+        conn.commit()
+        flash("New deed with ownership history added successfully.", "success")
+
+    except Exception as e:
+        conn.rollback()
+        flash(f"Failed to add deed: {str(e)}", "error")
+
+    finally:
+        conn.close()
+
+    return redirect(url_for("admin.admin_add_deed_page"))
 @admin_bp.route("/admin/users/<int:user_id>/make-admin", methods=["POST"])
 def make_admin(user_id):
     admin_user, redirect_response = admin_required()

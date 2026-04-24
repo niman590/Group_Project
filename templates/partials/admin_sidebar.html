@@ -33,6 +33,12 @@
                 <span class="nav-text">Transaction Requests</span>
             </a>
 
+            <a href="{{ url_for('admin.admin_add_deed_page') }}"
+                class="nav-link {% if active_page == 'add_deed' or request.endpoint == 'admin.admin_add_deed_page' or request.endpoint == 'admin.admin_add_deed' %}active{% endif %}">
+                <span class="nav-icon"><i class="fa-solid fa-file-circle-plus"></i></span>
+                <span class="nav-text">Add New Deed</span>
+            </a>
+
             <a href="{{ url_for('admin_reports.admin_reports') }}"
                 class="nav-link {% if request.endpoint == 'admin_reports.admin_reports' or request.endpoint == 'admin_reports.download_admin_reports_pdf' or request.endpoint == 'admin_reports.download_user_registration_pdf' or request.endpoint == 'admin_reports.download_applicants_pdf' %}active{% endif %}">
                 <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span>
@@ -44,7 +50,6 @@
                 <span class="nav-icon"><i class="fa-solid fa-shield-halved"></i></span>
                 <span class="nav-text">Suspicious Behavior</span>
             </a>
-
 
             <a href="{{ url_for('admin.admin_users') }}"
                 class="nav-link {% if active_page == 'user_management' or request.endpoint == 'admin.admin_users' %}active{% endif %}">
