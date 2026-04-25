@@ -311,6 +311,14 @@ body.transaction-history-page {
     font-size: 14px;
 }
 
+.transaction-history-page .field-help {
+    display: block;
+    margin-top: 7px;
+    color: #6a7c93;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
 .transaction-history-page .input-wrap {
     position: relative;
 }
@@ -388,7 +396,9 @@ body.transaction-history-page {
     min-width: 170px;
 }
 
-.transaction-history-page .result-area {
+.transaction-history-page .result-area,
+.transaction-history-page #history-result,
+.transaction-history-page #update-result {
     margin-top: 22px;
 }
 
@@ -433,12 +443,16 @@ body.transaction-history-page {
     margin-bottom: 20px;
 }
 
+.transaction-history-page .history-overview > div,
 .transaction-history-page .overview-card {
     padding: 18px;
     border-radius: 18px;
     background: linear-gradient(180deg, #fbfdff 0%, #f6faff 100%);
     border: 1px solid #dbe6f4;
     box-shadow: var(--shadow-sm);
+    color: var(--text-main);
+    line-height: 1.6;
+    word-break: break-word;
 }
 
 .transaction-history-page .overview-card span {
@@ -480,6 +494,7 @@ body.transaction-history-page {
     border: 1px solid #dce7f5;
     box-shadow: var(--shadow-sm);
     overflow: hidden;
+    margin-bottom: 14px;
 }
 
 .transaction-history-page .timeline-item::before {
@@ -552,7 +567,6 @@ body.transaction-history-page {
     word-break: break-word;
 }
 
-/* Custom file upload */
 .transaction-history-page .custom-file-upload {
     display: flex;
     align-items: center;

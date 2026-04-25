@@ -4,11 +4,12 @@ from werkzeug.utils import secure_filename
 from database.db_connection import get_connection
 from database.security_utils import track_api_request_burst, log_suspicious_event
 
-transaction_history_bp = Blueprint("transaction_history", __name__) 
+transaction_history_bp = Blueprint("transaction_history", __name__)
 
 UPLOAD_FOLDER = "static/uploads/history_proofs"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 
 @transaction_history_bp.route("/transaction-history", methods=["GET"])
 def transaction_history_page():
@@ -96,6 +97,9 @@ def request_transaction_history_update():
 
     proof_file = request.files.get("proof_document")
 
+    if not deed_number or not proposed_owner_name or not proposed_transfer_date or not proposed_transaction_type:
+        return jsonify({"error": "Please fill all required fields."})
+
     proof_path = None
     if proof_file and proof_file.filename:
         filename = secure_filename(proof_file.filename)
@@ -110,21 +114,15 @@ def request_transaction_history_update():
     cursor.execute("SELECT land_id FROM land_record WHERE deed_number = ?", (deed_number,))
     land = cursor.fetchone()
 
-    if not land:
-        conn.close()
+    if land:
+        request_type = "EXISTING_DEED_UPDATE"
+        request_note = notes
+        response_message = "Update request submitted successfully and is pending admin approval."
+    else:
+        request_type = "NEW_DEED_REQUEST"
+        request_note = f"[NEW DEED NUMBER REQUEST] This deed number is not currently in the system.\n\n{notes or ''}"
+        response_message = "New deed number request submitted successfully and is pending admin approval."
 
-        log_suspicious_event(
-            user_id=session.get("user_id"),
-            rule_name="INVALID_TRANSACTION_REQUEST",
-            severity="medium",
-            event_type="transaction",
-            route=request.path,
-            ip_address=request.headers.get("X-Forwarded-For", request.remote_addr),
-            user_agent=request.headers.get("User-Agent"),
-            description=f"Transaction history update attempted with invalid deed number: {deed_number}",
-        )
-
-        return jsonify({"error": "Invalid deed number. No matching land found."})
     cursor.execute("""
         INSERT INTO transaction_history_update_request
         (
@@ -142,14 +140,26 @@ def request_transaction_history_update():
         proposed_owner_phone,
         proposed_transfer_date,
         proposed_transaction_type,
-        notes,
+        request_note,
         proof_path
     ))
 
     conn.commit()
     conn.close()
 
-    return jsonify({"message": "Update request submitted successfully and is pending admin approval."})
+    if request_type == "NEW_DEED_REQUEST":
+        log_suspicious_event(
+            user_id=session.get("user_id"),
+            rule_name="NEW_DEED_NUMBER_REQUEST",
+            severity="low",
+            event_type="transaction",
+            route=request.path,
+            ip_address=request.headers.get("X-Forwarded-For", request.remote_addr),
+            user_agent=request.headers.get("User-Agent"),
+            description=f"User requested transaction update for deed number not yet in system: {deed_number}",
+        )
+
+    return jsonify({"message": response_message})
 
 
 @transaction_history_bp.route("/admin/delete-approved-transaction/<int:request_id>", methods=["POST"])

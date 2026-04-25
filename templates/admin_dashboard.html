@@ -25,7 +25,7 @@
                 </div>
 
                 <a href="{{ url_for('user.account') }}" class="admin-chip clickable-admin-chip" title="Go to My Account">
-                    <div class="avatar">{{ user['first_name'][0] | upper }}</div>
+                    <div class="avatar">{{ (user['first_name'][0] if user['first_name'] else 'A') | upper }}</div>
                     <div>
                         <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
                         <span>User ID: USER-{{ user['user_id'] }}</span>
@@ -86,7 +86,7 @@
             </section>
 
             <section class="stats-section">
-                <div class="section-head">
+                <div class="section-head section-head-with-action">
                     <div>
                         <span class="section-kicker">Security</span>
                         <h2>Suspicious Behavior Summary</h2>
@@ -99,7 +99,7 @@
                     </a>
                 </div>
 
-                <div class="stats-grid application-stats-grid">
+                <div class="stats-grid security-stats-grid">
                     <div class="stat-card app-stat-card total">
                         <div class="stat-top-line"></div>
                         <div class="stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
@@ -178,8 +178,6 @@
                                 <p>Select exact dates when you need a specific period.</p>
                             </div>
 
-                            <input type="hidden" name="range" value="custom">
-
                             <div class="custom-range-grid">
                                 <div class="date-field">
                                     <label for="start_date">Start Date</label>
@@ -203,7 +201,7 @@
                             </div>
 
                             <div class="date-filter-actions">
-                                <button type="submit" class="btn primary filter-btn-large">
+                                <button type="submit" name="range" value="custom" class="btn primary filter-btn-large">
                                     <i class="fa-solid fa-filter"></i>
                                     <span>Apply Filter</span>
                                 </button>
@@ -321,7 +319,7 @@
 
                         <div class="valuation-metric-card">
                             <span class="metric-label">Recent Change</span>
-                            <strong id="latestChangeMetric">0%</strong>
+                            <strong id="latestChangeMetric">No comparison</strong>
                             <p>Change compared with the previous selected period.</p>
                         </div>
 
@@ -344,11 +342,11 @@
                             </div>
                         </div>
 
-                        <div class="valuation-chart-wrap">
+                        <div class="valuation-chart-wrap" id="valuationChartWrap">
                             <canvas id="landValuationTrendChart"></canvas>
-                        </div>
-                        <div id="landValuationEmptyState" class="chart-fallback valuation-empty-state" style="display:none;">
-                            No land valuation records are available for the selected filter yet.
+                            <div id="landValuationEmptyState" class="chart-fallback valuation-empty-state" style="display:none;">
+                                No land valuation records are available for the selected filter yet.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -357,7 +355,7 @@
     </div>
 
     <script>
-        window.initialLandValuationData = {{ land_valuation_chart | tojson }};
+        window.initialLandValuationData = {{ land_valuation_chart | default({}) | tojson }};
         window.landValuationTrendsUrl = "{{ url_for('admin.admin_land_valuation_trends') }}";
     </script>
     <script src="{{ url_for('static', filename='admin_dashboard.js') }}"></script>

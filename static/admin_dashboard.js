@@ -1,207 +1,76 @@
 document.addEventListener("DOMContentLoaded", function () {
-    if ("scrollRestoration" in history) {
-        history.scrollRestoration = "manual";
-    }
 
-    const savedScrollY = sessionStorage.getItem("exactDashboardScrollY");
-    if (savedScrollY !== null) {
-        window.scrollTo(0, parseInt(savedScrollY, 10));
-        sessionStorage.removeItem("exactDashboardScrollY");
-    }
+    const chartCanvas = document.getElementById("landValuationTrendChart");
+    const emptyState = document.getElementById("landValuationEmptyState");
 
-    const filterForm = document.querySelector(".dashboard-filter-card");
-    if (filterForm) {
-        filterForm.addEventListener("submit", function () {
-            sessionStorage.setItem("exactDashboardScrollY", String(window.scrollY));
-        });
-    }
-
-    const clearBtn = document.querySelector(".clear-search");
-    if (clearBtn) {
-        clearBtn.addEventListener("click", function () {
-            sessionStorage.setItem("exactDashboardScrollY", String(window.scrollY));
-        });
-    }
-
-    const initialValuationData = window.initialLandValuationData || null;
-    const landValuationTrendsUrl = window.landValuationTrendsUrl || "";
-    const granularitySelect = document.getElementById("valuationGranularity");
-    const areaSelect = document.getElementById("valuationArea");
     const latestValuationMetric = document.getElementById("latestValuationMetric");
     const latestChangeMetric = document.getElementById("latestChangeMetric");
     const forecastSlopeMetric = document.getElementById("forecastSlopeMetric");
     const chartDescription = document.getElementById("valuationChartDescription");
-    const emptyState = document.getElementById("landValuationEmptyState");
-    const chartCanvas = document.getElementById("landValuationTrendChart");
 
-    let landValuationChart = null;
+    const granularitySelect = document.getElementById("valuationGranularity");
+    const areaSelect = document.getElementById("valuationArea");
 
-    function formatCurrency(value) {
-        const numericValue = Number(value || 0);
-        return `LKR ${numericValue.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        })}`;
+    let chart = null;
+
+    function formatCurrency(val) {
+        return `LKR ${Number(val || 0).toLocaleString()}`;
     }
 
-    function formatPercent(value) {
-        if (value === null || value === undefined || Number.isNaN(Number(value))) {
-            return "No comparison";
-        }
-        const numericValue = Number(value);
-        const prefix = numericValue > 0 ? "+" : "";
-        return `${prefix}${numericValue.toFixed(2)}%`;
-    }
+    function renderChart(data) {
 
-    function resolveTrendLabel(value) {
-        const numericValue = Number(value || 0);
-        if (numericValue > 0) return "Upward";
-        if (numericValue < 0) return "Downward";
-        return "Stable";
-    }
-
-    function renderLandValuationChart(payload) {
-        const hasData = payload && payload.has_data && Array.isArray(payload.labels) && payload.labels.length;
-
-        if (!hasData) {
-            if (chartCanvas) chartCanvas.style.display = "none";
-            if (emptyState) emptyState.style.display = "flex";
-            if (latestValuationMetric) latestValuationMetric.textContent = "LKR 0.00";
-            if (latestChangeMetric) latestChangeMetric.textContent = "No comparison";
-            if (forecastSlopeMetric) forecastSlopeMetric.textContent = "Stable";
-            if (chartDescription) {
-                chartDescription.textContent = "No valuation history found for the selected area and time view.";
-            }
-            if (landValuationChart) {
-                landValuationChart.destroy();
-                landValuationChart = null;
-            }
+        if (!data || !data.labels || data.labels.length === 0) {
+            chartCanvas.style.display = "none";
+            emptyState.style.display = "block";
             return;
         }
 
-        if (chartCanvas) chartCanvas.style.display = "block";
-        if (emptyState) emptyState.style.display = "none";
+        chartCanvas.style.display = "block";
+        emptyState.style.display = "none";
 
-        if (latestValuationMetric) latestValuationMetric.textContent = formatCurrency(payload.latest_value);
-        if (latestChangeMetric) latestChangeMetric.textContent = formatPercent(payload.latest_change_percent);
-        if (forecastSlopeMetric) forecastSlopeMetric.textContent = resolveTrendLabel(payload.forecast_slope);
+        latestValuationMetric.textContent = formatCurrency(data.latest_value);
+        latestChangeMetric.textContent = data.latest_change_percent ?? "No comparison";
+        forecastSlopeMetric.textContent = data.forecast_slope ?? "Stable";
 
-        const areaLabel = payload.selected_area && payload.selected_area !== "all"
-            ? payload.selected_area
-            : "all recorded areas";
+        chartDescription.textContent = "Land valuation trend";
 
-        if (chartDescription) {
-            chartDescription.textContent =
-                `Showing ${payload.granularity} land valuation movement for ${areaLabel}, including forecasted ${payload.forecast_period_label}.`;
-        }
+        if (chart) chart.destroy();
 
-        if (!chartCanvas) return;
-
-        const ctx = chartCanvas.getContext("2d");
-        if (landValuationChart) {
-            landValuationChart.destroy();
-        }
-
-        landValuationChart = new Chart(ctx, {
+        chart = new Chart(chartCanvas, {
             type: "line",
             data: {
-                labels: payload.labels,
+                labels: data.labels,
                 datasets: [
                     {
                         label: "Historical",
-                        data: payload.historical_values,
-                        borderColor: "#2563eb",
-                        backgroundColor: "rgba(37, 99, 235, 0.14)",
-                        borderWidth: 3,
-                        tension: 0.35,
-                        fill: false,
-                        pointRadius: 4,
-                        pointHoverRadius: 5,
-                        spanGaps: false
+                        data: data.historical_values,
+                        borderColor: "#2563eb"
                     },
                     {
                         label: "Forecast",
-                        data: payload.forecast_values,
-                        borderColor: "#f59e0b",
-                        backgroundColor: "rgba(245, 158, 11, 0.12)",
-                        borderDash: [7, 6],
-                        borderWidth: 3,
-                        tension: 0.35,
-                        fill: false,
-                        pointRadius: 4,
-                        pointHoverRadius: 5,
-                        spanGaps: true
+                        data: data.forecast_values,
+                        borderColor: "#f59e0b"
                     }
                 ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: "index",
-                    intersect: false
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                const value = context.raw;
-                                if (value === null || value === undefined) {
-                                    return `${context.dataset.label}: No data`;
-                                }
-                                return `${context.dataset.label}: ${formatCurrency(value)}`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function (value) {
-                                return `LKR ${Number(value).toLocaleString()}`;
-                            }
-                        }
-                    }
-                }
             }
         });
     }
 
-    async function loadLandValuationChart() {
-        if (!granularitySelect || !areaSelect || !landValuationTrendsUrl) return;
+    async function loadChart() {
 
-        const params = new URLSearchParams({
-            granularity: granularitySelect.value,
-            area: areaSelect.value
-        });
-
-        if (chartDescription) {
-            chartDescription.textContent = "Updating valuation insights...";
-        }
+        const url = `${window.landValuationTrendsUrl}?granularity=${granularitySelect.value}&area=${areaSelect.value}`;
 
         try {
-            const response = await fetch(`${landValuationTrendsUrl}?${params.toString()}`);
-            const payload = await response.json();
-            renderLandValuationChart(payload);
-        } catch (error) {
-            if (chartCanvas) chartCanvas.style.display = "none";
-            if (emptyState) {
-                emptyState.style.display = "flex";
-                emptyState.textContent = "Unable to load land valuation trend data right now.";
-            }
-            if (chartDescription) {
-                chartDescription.textContent = "There was a problem loading the valuation chart.";
-            }
+            const res = await fetch(url);
+            const data = await res.json();
+            renderChart(data);
+        } catch {
+            emptyState.style.display = "block";
         }
     }
 
-    if (granularitySelect && areaSelect && chartCanvas) {
-        renderLandValuationChart(initialValuationData);
-        granularitySelect.addEventListener("change", loadLandValuationChart);
-        areaSelect.addEventListener("change", loadLandValuationChart);
-    }
+    renderChart(window.initialLandValuationData);
+
+    granularitySelect.addEventListener("change", loadChart);
+    areaSelect.addEventListener("change", loadChart);
 });
