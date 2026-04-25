@@ -218,9 +218,7 @@
                                 <h2>My Property Records</h2>
                                 <p class="panel-subtext">Property details and ownership records linked to your account.</p>
                             </div>
-                            {% if gis_map_url %}
-                            <a href="{{ gis_map_url }}" target="_blank">Open records</a>
-                            {% else %}
+                            {% if not property_records %}
                             <a href="{{ url_for('user.account') }}">Update profile</a>
                             {% endif %}
                         </div>

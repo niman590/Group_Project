@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, jsonify
 from database.db_connection import get_connection
-from urllib.parse import quote_plus
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from database.security_utils import track_api_request_burst
@@ -247,8 +246,6 @@ def get_dashboard_data(user_id, user):
     application_history = application_history[:5]
 
     property_records = []
-    map_query = None
-
     try:
         cursor.execute(
             """
@@ -279,17 +276,8 @@ def get_dashboard_data(user_id, user):
                 "badge": status_to_badge(status_text),
             })
 
-        if property_records:
-            map_query = property_records[0]["location"]
-
     except Exception:
         property_records = []
-
-    if not map_query:
-        if user["address"]:
-            map_query = user["address"]
-        elif user["city"]:
-            map_query = user["city"]
 
     alerts = build_application_alerts(applications)
 
@@ -425,8 +413,6 @@ def get_dashboard_data(user_id, user):
     except Exception:
         latest_valuation = None
 
-    gis_map_url = f"https://www.google.com/maps/search/{quote_plus(map_query)}" if map_query else None
-
     support_documents = [
         {
             "title": "Planning Approval Guidelines",
@@ -460,7 +446,6 @@ def get_dashboard_data(user_id, user):
         "property_records": property_records[:5],
         "application_history": application_history,
         "latest_valuation": latest_valuation,
-        "gis_map_url": gis_map_url,
         "support_documents": support_documents,
         "notifications": notifications,
         "unread_notifications": unread_notifications,
@@ -692,7 +677,6 @@ def user_dashboard():
         property_records=dashboard_data["property_records"],
         application_history=dashboard_data["application_history"],
         latest_valuation=dashboard_data["latest_valuation"],
-        gis_map_url=dashboard_data["gis_map_url"],
         support_documents=dashboard_data["support_documents"],
         notifications=dashboard_data["notifications"],
         unread_notifications=dashboard_data["unread_notifications"],
