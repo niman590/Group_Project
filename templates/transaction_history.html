@@ -21,11 +21,16 @@
 
                 <section class="hero-panel">
                     <div class="hero-left">
-                        <span class="page-kicker">Citizen Services</span>
+                        <span class="page-kicker">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            Citizen Services
+                        </span>
+
                         <h1>Land Transaction History</h1>
+
                         <p>
                             Search ownership records, review the transaction timeline,
-                            and submit update or new deed requests from one place.
+                            and submit update or new deed requests with proof documents.
                         </p>
 
                         <div class="hero-actions">
@@ -43,18 +48,33 @@
 
                     <div class="hero-right">
                         <div class="metric-card">
-                            <span class="metric-label">Service Type</span>
-                            <strong>Ownership Records</strong>
+                            <div class="metric-icon">
+                                <i class="fa-solid fa-folder-open"></i>
+                            </div>
+                            <div>
+                                <span class="metric-label">Service Type</span>
+                                <strong>Ownership Records</strong>
+                            </div>
                         </div>
 
                         <div class="metric-card">
-                            <span class="metric-label">Available Actions</span>
-                            <strong>Search / Submit</strong>
+                            <div class="metric-icon">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </div>
+                            <div>
+                                <span class="metric-label">Available Actions</span>
+                                <strong>Search / Submit</strong>
+                            </div>
                         </div>
 
                         <div class="metric-card">
-                            <span class="metric-label">Access</span>
-                            <strong>Citizen Portal</strong>
+                            <div class="metric-icon">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </div>
+                            <div>
+                                <span class="metric-label">Access</span>
+                                <strong>Citizen Portal</strong>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -68,47 +88,98 @@
                                 <h3>What you can do here</h3>
                             </div>
 
-                            <ul class="info-list">
-                                <li>Search full ownership history by deed number</li>
-                                <li>Submit updates for existing records</li>
-                                <li>Request new deed numbers not yet in the system</li>
-                                <li>Upload proof documents</li>
-                            </ul>
+                            <div class="info-action-list">
+                                <div class="info-action-item">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <span>Search full ownership history by deed number</span>
+                                </div>
+
+                                <div class="info-action-item">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    <span>Submit updates for existing records</span>
+                                </div>
+
+                                <div class="info-action-item">
+                                    <i class="fa-solid fa-file-circle-plus"></i>
+                                    <span>Request new deed numbers not yet in the system</span>
+                                </div>
+
+                                <div class="info-action-item">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    <span>Upload proof documents for verification</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-card help-card">
+                            <div class="info-card-header">
+                                <i class="fa-solid fa-headset"></i>
+                                <h3>Need Help?</h3>
+                            </div>
+                            <p>
+                                Make sure the deed number, owner details, transfer date,
+                                and proof document are clear before submitting.
+                            </p>
                         </div>
                     </aside>
 
                     <section class="main-panel">
 
-                        <!-- VIEW SECTION -->
-                        <section id="view-section" class="panel-card">
+                        <section id="view-section" class="panel-card animated-panel">
                             <div class="panel-header">
+                                <span class="section-badge">Search Records</span>
                                 <h2>View Ownership History</h2>
-                                <p>Enter a deed number to retrieve records.</p>
+                                <p>Enter a deed number to retrieve ownership records.</p>
                             </div>
 
                             <div class="search-bar-card">
                                 <div class="form-group grow">
-                                    <label>Deed Number</label>
-                                    <input type="text" id="view_deed_number" placeholder="Enter deed number">
+                                    <label for="view_deed_number">Deed Number</label>
+                                    <div class="input-wrap">
+                                        <i class="fa-solid fa-file-signature"></i>
+                                        <input type="text" id="view_deed_number" placeholder="Enter deed number">
+                                    </div>
                                 </div>
 
-                                <button type="button" class="primary-btn" onclick="fetchTransactionHistory()">
-                                    Search
+                                <button type="button" class="primary-btn search-btn" onclick="fetchTransactionHistory()">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <span>Search History</span>
                                 </button>
                             </div>
 
-                            <div id="history-result"></div>
+                            <div id="history-result" class="result-area">
+                                <div class="empty-state-card">
+                                    <div class="empty-state-icon">
+                                        <i class="fa-solid fa-folder-open"></i>
+                                    </div>
+                                    <h3>No search yet</h3>
+                                    <p>Enter a deed number to view ownership details and transaction history.</p>
+                                </div>
+                            </div>
                         </section>
 
-                        <!-- UPDATE / NEW REQUEST SECTION -->
-                        <section id="update-section" class="panel-card hidden">
+                        <section id="update-section" class="panel-card animated-panel hidden">
 
-                            <div class="panel-header">
-                                <h2>Request Update or New Deed</h2>
-                                <p>
-                                    You can submit updates for existing deeds OR request
-                                    a deed number not yet in the system.
-                                </p>
+                            <div class="panel-header request-header">
+                                <div class="request-title">
+                                    <div class="request-icon">
+                                        <i class="fa-solid fa-file-pen"></i>
+                                    </div>
+
+                                    <div>
+                                        <span class="section-badge">Update Request</span>
+                                        <h2>Request Update or New Deed</h2>
+                                        <p>
+                                            Submit an update for an existing deed, or request a deed number
+                                            that is not yet in the system.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="notice-pill">
+                                    <i class="fa-solid fa-circle-info"></i>
+                                    <span>New deed numbers will be reviewed by admin.</span>
+                                </div>
                             </div>
 
                             <form id="updateForm" enctype="multipart/form-data">
@@ -116,70 +187,156 @@
                                 <div class="form-grid">
 
                                     <div class="form-group">
-                                        <label>Deed Number</label>
-                                        <input type="text" name="deed_number"
-                                            placeholder="Enter existing OR new deed number" required>
+                                        <label for="deed_number">Deed Number <span>*</span></label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-file-signature"></i>
+                                            <input type="text" id="deed_number" name="deed_number"
+                                                placeholder="Enter existing OR new deed number" required>
+                                        </div>
                                         <small class="field-help">
-                                            If deed is not in system, it will be treated as a NEW request.
+                                            If this deed is not in the system, it will be treated as a new deed request.
                                         </small>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Owner Name</label>
-                                        <input type="text" name="proposed_owner_name" required>
+                                        <label for="proposed_owner_name">Owner Name <span>*</span></label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-user"></i>
+                                            <input type="text" id="proposed_owner_name" name="proposed_owner_name"
+                                                placeholder="Enter owner full name" required>
+                                        </div>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>NIC</label>
-                                        <input type="text" name="proposed_owner_nic">
+                                        <label for="proposed_owner_nic">NIC</label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-id-card"></i>
+                                            <input type="text" id="proposed_owner_nic" name="proposed_owner_nic"
+                                                placeholder="Enter NIC number">
+                                        </div>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Phone</label>
-                                        <input type="text" name="proposed_owner_phone">
+                                        <label for="proposed_owner_phone">Phone</label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-phone"></i>
+                                            <input type="text" id="proposed_owner_phone" name="proposed_owner_phone"
+                                                placeholder="Enter phone number">
+                                        </div>
                                     </div>
 
                                     <div class="form-group full-span">
-                                        <label>Address</label>
-                                        <input type="text" name="proposed_owner_address">
+                                        <label for="proposed_owner_address">Address</label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-location-dot"></i>
+                                            <input type="text" id="proposed_owner_address" name="proposed_owner_address"
+                                                placeholder="Enter full address">
+                                        </div>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Transfer Date</label>
-                                        <input type="date" name="proposed_transfer_date" required>
+                                        <label for="datePickerButton">Transfer Date <span>*</span></label>
+
+                                        <input type="hidden" id="proposed_transfer_date" name="proposed_transfer_date" required>
+
+                                        <div class="custom-date-picker" id="customDatePicker">
+                                            <button type="button" class="custom-date-input" id="datePickerButton">
+                                                <span id="selectedDateText">Select transfer date</span>
+                                                <i class="fa-solid fa-calendar-days"></i>
+                                            </button>
+
+                                            <div class="date-popup hidden" id="datePopup">
+                                                <div class="date-popup-header">
+                                                    <button type="button" id="prevMonth">
+                                                        <i class="fa-solid fa-chevron-left"></i>
+                                                    </button>
+
+                                                    <strong id="calendarMonthYear"></strong>
+
+                                                    <button type="button" id="nextMonth">
+                                                        <i class="fa-solid fa-chevron-right"></i>
+                                                    </button>
+                                                </div>
+
+                                                <div class="date-weekdays">
+                                                    <span>Sun</span>
+                                                    <span>Mon</span>
+                                                    <span>Tue</span>
+                                                    <span>Wed</span>
+                                                    <span>Thu</span>
+                                                    <span>Fri</span>
+                                                    <span>Sat</span>
+                                                </div>
+
+                                                <div class="date-days" id="calendarDays"></div>
+
+                                                <div class="date-popup-footer">
+                                                    <button type="button" id="clearDate">Clear</button>
+                                                    <button type="button" id="todayDate">Today</button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Transaction Type</label>
-                                        <select name="proposed_transaction_type" required>
-                                            <option value="Sale">Sale</option>
-                                            <option value="Gift">Gift</option>
-                                            <option value="Inheritance">Inheritance</option>
-                                            <option value="Correction">Correction</option>
-                                        </select>
+                                        <label for="proposed_transaction_type">Transaction Type <span>*</span></label>
+                                        <div class="input-wrap">
+                                            <i class="fa-solid fa-tags"></i>
+                                            <select id="proposed_transaction_type" name="proposed_transaction_type" required>
+                                                <option value="Sale">Sale</option>
+                                                <option value="Gift">Gift</option>
+                                                <option value="Inheritance">Inheritance</option>
+                                                <option value="Correction">Correction</option>
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <div class="form-group full-span">
-                                        <label>Notes</label>
-                                        <textarea name="notes"></textarea>
+                                        <label for="notes">Notes</label>
+                                        <textarea id="notes" name="notes"
+                                            placeholder="Add additional notes or supporting explanation..."></textarea>
                                     </div>
 
                                     <div class="form-group full-span">
-                                        <label>Proof Document</label>
-                                        <input type="file" name="proof_document" required>
+                                        <label for="proof_document">Proof Document <span>*</span></label>
+
+                                        <div class="custom-file-upload" id="customFileBox">
+                                            <div class="file-left">
+                                                <div class="file-icon">
+                                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                                </div>
+
+                                                <div class="file-text">
+                                                    <span class="file-title" id="file-title">Drag & drop proof document here</span>
+                                                    <span class="file-subtitle">
+                                                        PDF, JPG, PNG accepted. Maximum recommended size: 10MB.
+                                                    </span>
+                                                    <span class="file-name" id="file-name">No file selected</span>
+                                                </div>
+                                            </div>
+
+                                            <label for="proof_document" class="file-btn">
+                                                <i class="fa-solid fa-folder-open"></i>
+                                                Browse File
+                                            </label>
+
+                                            <input type="file" id="proof_document" name="proof_document"
+                                                accept=".pdf,.jpg,.jpeg,.png" required>
+                                        </div>
                                     </div>
 
                                 </div>
 
                                 <div class="action-row">
-                                    <button type="button" class="primary-btn" onclick="submitUpdateRequest()">
-                                        Submit Request
+                                    <button type="button" class="primary-btn submit-btn" onclick="submitUpdateRequest()">
+                                        <i class="fa-solid fa-paper-plane"></i>
+                                        <span>Submit Request</span>
                                     </button>
                                 </div>
 
                             </form>
 
-                            <div id="update-result"></div>
+                            <div id="update-result" class="result-area"></div>
 
                         </section>
 
@@ -190,7 +347,6 @@
     </div>
 
     <script src="{{ url_for('static', filename='transaction_history.js') }}"></script>
-
 </body>
 
 </html>
