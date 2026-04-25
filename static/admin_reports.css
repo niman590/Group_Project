@@ -173,10 +173,6 @@
     line-height: 1.6;
 }
 
-.report-details.show {
-    display: block;
-}
-
 .report-table-panel {
     margin-bottom: 24px;
 }

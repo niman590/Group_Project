@@ -1,20 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const toggleButtons = document.querySelectorAll(".report-toggle-btn");
-
-    toggleButtons.forEach(function (button) {
-        button.addEventListener("click", function () {
-            const targetId = this.getAttribute("data-target");
-            const targetElement = document.getElementById(targetId);
-
-            if (!targetElement) {
-                return;
-            }
-
-            targetElement.classList.toggle("show");
-            this.textContent = targetElement.classList.contains("show") ? "Hide Details" : "View Details";
-        });
-    });
-
     const today = new Date();
     const calendarInputs = document.querySelectorAll(".js-friendly-calendar");
 

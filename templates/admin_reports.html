@@ -14,7 +14,6 @@
 
 <body>
     <div class="dashboard-shell">
-
         {% include 'partials/admin_sidebar.html' %}
 
         <main class="main-content">
@@ -127,14 +126,7 @@
                         </div>
                     </div>
 
-                    <div class="report-actions">
-                        <button type="button" class="btn primary small report-toggle-btn"
-                            data-target="planning-report-details">
-                            View Details
-                        </button>
-                    </div>
-
-                    <div class="report-details" id="planning-report-details">
+                    <div class="report-details show" id="planning-report-details">
                         <p>
                             This report shows how many planning applications were approved,
                             are pending or under review, and were rejected.
@@ -170,14 +162,7 @@
                         </div>
                     </div>
 
-                    <div class="report-actions">
-                        <button type="button" class="btn primary small report-toggle-btn"
-                            data-target="transaction-report-details">
-                            View Details
-                        </button>
-                    </div>
-
-                    <div class="report-details" id="transaction-report-details">
+                    <div class="report-details show" id="transaction-report-details">
                         <p>
                             This report shows the status of land transaction update requests.
                         </p>
