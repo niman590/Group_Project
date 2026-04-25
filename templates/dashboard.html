@@ -46,9 +46,14 @@
 
     <!-- HERO -->
     <section class="hero-section">
+        <div class="live-bg" aria-hidden="true">
+            <span class="live-orb orb-one"></span>
+            <span class="live-orb orb-two"></span>
+            <span class="live-orb orb-three"></span>
+        </div>
         <div class="container hero-grid">
             <div class="hero-content reveal-up">
-                <span class="hero-badge">SMART DIGITAL LAND SERVICES</span>
+                <span class="hero-badge"><span class="live-dot" aria-hidden="true"></span>SMART DIGITAL LAND SERVICES</span>
                 <h2>Land services made simpler and faster</h2>
                 <p>
                     Access land management and planning approval services in one secure portal.
@@ -62,15 +67,15 @@
 
                 <div class="hero-mini-stats">
                     <div class="hero-stat">
-                        <strong>3+</strong>
+                        <strong data-count="3" data-suffix="+">0+</strong>
                         <span>Main services</span>
                     </div>
                     <div class="hero-stat">
-                        <strong>24/7</strong>
+                        <strong data-count="24" data-suffix="/7">0/7</strong>
                         <span>Digital access</span>
                     </div>
                     <div class="hero-stat">
-                        <strong>Secure</strong>
+                        <strong class="secure-pulse">Secure</strong>
                         <span>User portal</span>
                     </div>
                 </div>
@@ -78,6 +83,7 @@
 
             <div class="hero-card reveal-up">
                 <div class="hero-card-overlay"></div>
+                <div class="scan-line" aria-hidden="true"></div>
                 <div class="hero-card-content">
                     <span class="hero-card-label">Digital public access</span>
                     <h3>Public access to essential services</h3>
@@ -100,7 +106,7 @@
             </div>
 
             <div class="quick-links-grid">
-                <div class="quick-card reveal-up">
+                <div class="quick-card reveal-up live-card">
                     <div class="card-icon"><i class="fa-solid fa-file-circle-check"></i></div>
                     <h3 id="planningModalTitle">Planning approval applications</h3>
                     <p>Start a new application, review required details, and manage approval progress.</p>
@@ -109,7 +115,7 @@
                     </button>
                 </div>
 
-                <div class="quick-card reveal-up">
+                <div class="quick-card reveal-up live-card">
                     <div class="card-icon"><i class="fa-solid fa-chart-line"></i></div>
                     <h3 id="valueModalTitle">Land Value Prediction</h3>
                     <p>Estimate land value trends using available property-related information.</p>
@@ -118,7 +124,7 @@
                     </button>
                 </div>
 
-                <div class="quick-card reveal-up">
+                <div class="quick-card reveal-up live-card">
                     <div class="card-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
                     <h3 id="historyModalTitle">Land Transaction History Records</h3>
                     <p>Review past land transaction records and historical activity information.</p>
@@ -140,7 +146,7 @@
             </div>
 
             <div class="info-grid">
-                <button class="info-card info-card-btn reveal-up" data-modal="ownershipInfoModal" type="button">
+                <button class="info-card info-card-btn reveal-up live-card" data-modal="ownershipInfoModal" type="button">
                     <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=900&q=80"
                         alt="Ownership help" />
                     <div class="info-content">
@@ -149,7 +155,7 @@
                     </div>
                 </button>
 
-                <button class="info-card info-card-btn reveal-up" data-modal="planningInfoModal" type="button">
+                <button class="info-card info-card-btn reveal-up live-card" data-modal="planningInfoModal" type="button">
                     <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=900&q=80"
                         alt="Checklist" />
                     <div class="info-content">
@@ -158,7 +164,7 @@
                     </div>
                 </button>
 
-                <button class="info-card info-card-btn reveal-up" data-modal="notificationInfoModal" type="button">
+                <button class="info-card info-card-btn reveal-up live-card" data-modal="notificationInfoModal" type="button">
                     <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80"
                         alt="Notifications" />
                     <div class="info-content">

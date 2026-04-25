@@ -14,6 +14,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let activeModal = null;
     let lastFocusedElement = null;
 
+    /* ================= EXISTING FUNCTIONS (UNCHANGED) ================= */
+
     function setHeaderState() {
         if (!siteHeader) return;
         if (window.scrollY > 10) {
@@ -52,17 +54,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function closeAllModals() {
         modals.forEach((modal) => modal.classList.remove("active"));
-        if (overlay) {
-            overlay.classList.remove("active");
-        }
+        if (overlay) overlay.classList.remove("active");
 
         document.body.classList.remove("modal-open");
         document.documentElement.classList.remove("modal-open");
         activeModal = null;
 
-        if (lastFocusedElement) {
-            lastFocusedElement.focus();
-        }
+        if (lastFocusedElement) lastFocusedElement.focus();
     }
 
     function openModal(modalId, triggerElement) {
@@ -78,6 +76,7 @@ document.addEventListener("DOMContentLoaded", function () {
         overlay.scrollTop = 0;
         targetModal.classList.add("active");
         overlay.classList.add("active");
+
         document.body.classList.add("modal-open");
         document.documentElement.classList.add("modal-open");
 
@@ -148,11 +147,81 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (currentSectionId) {
             const activeLink = document.querySelector(`.nav-links a[href="#${currentSectionId}"]`);
-            if (activeLink) {
-                activeLink.classList.add("active");
-            }
+            if (activeLink) activeLink.classList.add("active");
         }
     }
+
+    /* ================= NEW LIVE ANIMATIONS ================= */
+
+    // Floating hero card animation
+    const heroCard = document.querySelector(".hero-card");
+    if (heroCard) {
+        let float = 0;
+        setInterval(() => {
+            float += 0.02;
+            heroCard.style.transform = `translateY(${Math.sin(float) * 8}px)`;
+        }, 30);
+    }
+
+    // Counter animation
+    const counters = document.querySelectorAll(".hero-stat strong");
+    let counterStarted = false;
+
+    function animateCounters() {
+        if (counterStarted) return;
+
+        counters.forEach(counter => {
+            const text = counter.innerText;
+            if (text.includes("+") || text.includes("/")) return;
+
+            const target = parseInt(text);
+            if (isNaN(target)) return;
+
+            let count = 0;
+            const step = target / 40;
+
+            const interval = setInterval(() => {
+                count += step;
+                if (count >= target) {
+                    counter.innerText = target;
+                    clearInterval(interval);
+                } else {
+                    counter.innerText = Math.floor(count);
+                }
+            }, 40);
+        });
+
+        counterStarted = true;
+    }
+
+    // Parallax effect
+    window.addEventListener("scroll", () => {
+        const scrollY = window.scrollY;
+        const hero = document.querySelector(".hero-section");
+        if (hero) {
+            hero.style.backgroundPositionY = `${scrollY * 0.4}px`;
+        }
+
+        if (scrollY > 150) animateCounters();
+    });
+
+    // Ripple effect for buttons
+    document.querySelectorAll(".btn-primary, .btn-secondary").forEach(button => {
+        button.addEventListener("click", function (e) {
+            const ripple = document.createElement("span");
+            ripple.classList.add("ripple");
+
+            const rect = button.getBoundingClientRect();
+            ripple.style.left = `${e.clientX - rect.left}px`;
+            ripple.style.top = `${e.clientY - rect.top}px`;
+
+            button.appendChild(ripple);
+
+            setTimeout(() => ripple.remove(), 600);
+        });
+    });
+
+    /* ================= EVENT LISTENERS ================= */
 
     modalButtons.forEach((button) => {
         button.addEventListener("click", function () {
