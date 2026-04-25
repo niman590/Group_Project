@@ -215,47 +215,6 @@
                     <div class="panel reveal-up">
                         <div class="panel-header">
                             <div>
-                                <h2>My Property Records</h2>
-                                <p class="panel-subtext">Property details and ownership records linked to your account.</p>
-                            </div>
-                            {% if not property_records %}
-                            <a href="{{ url_for('user.account') }}">Update profile</a>
-                            {% endif %}
-                        </div>
-
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Land ID</th>
-                                        <th>Location</th>
-                                        <th>Status</th>
-                                        <th>Owner Since</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if property_records %}
-                                    {% for record in property_records %}
-                                    <tr>
-                                        <td>{{ record.land_id }}</td>
-                                        <td>{{ record.location }}</td>
-                                        <td><span class="badge {{ record.badge }}">{{ record.status }}</span></td>
-                                        <td>{{ record.owner_since }}</td>
-                                    </tr>
-                                    {% endfor %}
-                                    {% else %}
-                                    <tr>
-                                        <td colspan="4" class="empty-cell">No real property records found for this account yet.</td>
-                                    </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div class="panel reveal-up">
-                        <div class="panel-header">
-                            <div>
                                 <h2>Application History</h2>
                                 <p class="panel-subtext">Your latest submissions and review outcomes.</p>
                             </div>
