@@ -29,14 +29,6 @@
                     <a href="{{ url_for('admin_reports.download_admin_reports_pdf') }}" class="btn success">
                         <i class="fa-solid fa-file-pdf"></i> Download Full Report PDF
                     </a>
-
-                    <div class="admin-chip">
-                        <div class="avatar">{{ user['first_name'][0] | upper }}</div>
-                        <div>
-                            <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
-                            <span>User ID: USER-{{ user['user_id'] }}</span>
-                        </div>
-                    </div>
                 </div>
             </header>
 

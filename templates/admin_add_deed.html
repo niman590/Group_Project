@@ -24,14 +24,6 @@
                         <p>Create a new deed record and add a complete ownership history from oldest owner to current owner.</p>
                     </div>
                 </div>
-
-                <div class="admin-chip">
-                    <div class="avatar">{{ user['first_name'][0] | upper }}</div>
-                    <div>
-                        <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
-                        <span>User ID: USER-{{ user['user_id'] }}</span>
-                    </div>
-                </div>
             </header>
 
             {% with messages = get_flashed_messages(with_categories=true) %}

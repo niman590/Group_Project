@@ -25,13 +25,13 @@
                     </div>
                 </div>
 
-                <div class="admin-chip">
+                <a href="{{ url_for('user.account') }}" class="admin-chip clickable-admin-chip" title="Go to My Account">
                     <div class="avatar">{{ user['first_name'][0] | upper }}</div>
                     <div>
                         <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
                         <span>User ID: USER-{{ user['user_id'] }}</span>
                     </div>
-                </div>
+                </a>
             </header>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
