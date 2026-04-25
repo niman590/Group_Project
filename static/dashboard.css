@@ -839,28 +839,10 @@ body.menu-open {
     transform: translateY(0);
 }
 
-
-
 /* LIVE ANIMATIONS */
-@keyframes floatOrb {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-    50% { transform: translate3d(18px, -24px, 0) scale(1.08); }
-}
-
-@keyframes softPulse {
-    0%, 100% { transform: scale(1); opacity: 0.72; }
-    50% { transform: scale(1.18); opacity: 1; }
-}
-
 @keyframes shimmerSweep {
     0% { transform: translateX(-120%); }
     100% { transform: translateX(120%); }
-}
-
-@keyframes scanMove {
-    0% { transform: translateY(-110%); opacity: 0; }
-    12%, 78% { opacity: 0.42; }
-    100% { transform: translateY(110%); opacity: 0; }
 }
 
 @keyframes iconFloat {
@@ -876,58 +858,6 @@ body.menu-open {
 @keyframes scrollArrowBounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-3px); }
-}
-
-.live-bg {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-}
-
-.live-orb {
-    position: absolute;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.12);
-    filter: blur(6px);
-    animation: floatOrb 7s ease-in-out infinite;
-}
-
-.orb-one {
-    top: 12%;
-    left: 6%;
-}
-
-.orb-two {
-    right: 10%;
-    top: 18%;
-    width: 150px;
-    height: 150px;
-    animation-delay: 1.4s;
-    animation-duration: 8.5s;
-}
-
-.orb-three {
-    right: 28%;
-    bottom: 8%;
-    width: 110px;
-    height: 110px;
-    animation-delay: 2.2s;
-    animation-duration: 9s;
-}
-
-.live-dot {
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    margin-right: 8px;
-    border-radius: 50%;
-    background: #9bd3ff;
-    box-shadow: 0 0 0 6px rgba(155, 211, 255, 0.15);
-    animation: softPulse 1.7s ease-in-out infinite;
-    vertical-align: middle;
 }
 
 .hero-badge,
@@ -1000,28 +930,6 @@ body.menu-open {
 .info-card-btn:hover img {
     transform: scale(1.06);
     filter: saturate(1.12) contrast(1.04);
-}
-
-.scan-line {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.28), transparent);
-    animation: scanMove 5.8s ease-in-out infinite;
-    pointer-events: none;
-}
-
-.secure-pulse {
-    display: inline-block;
-    animation: softPulse 2.4s ease-in-out infinite;
-}
-
-.live-card {
-    transform-style: preserve-3d;
-}
-
-.live-card.is-live-hover {
-    box-shadow: var(--shadow-lg);
 }
 
 .scroll-top-btn.show i {
