@@ -161,6 +161,7 @@ def get_support_documents_data():
     return documents, stats
 
 
+@support_documents_bp.route("/support_documents")
 @support_documents_bp.route("/support-documents")
 def support_documents_page():
     if "user_id" not in session:
