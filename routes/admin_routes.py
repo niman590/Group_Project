@@ -1253,7 +1253,19 @@ def get_suspicious_events(cursor, severity="", status="", rule_name="", start_da
         LEFT JOIN users reviewer
             ON se.reviewed_by = reviewer.user_id
         {where_sql}
-        ORDER BY se.created_at DESC, se.event_id DESC
+        ORDER BY
+            CASE
+                WHEN LOWER(COALESCE(se.status, 'new')) != 'resolved' THEN 0
+                ELSE 1
+            END ASC,
+            CASE
+                WHEN LOWER(COALESCE(se.severity, 'low')) = 'high' THEN 0
+                WHEN LOWER(COALESCE(se.severity, 'low')) = 'medium' THEN 1
+                WHEN LOWER(COALESCE(se.severity, 'low')) = 'low' THEN 2
+                ELSE 3
+            END ASC,
+            se.created_at DESC,
+            se.event_id DESC
         LIMIT 300
         """,
         tuple(params),
@@ -1369,6 +1381,33 @@ def mark_suspicious_event_resolved(event_id):
     flash("Security event marked as resolved.", "success")
     return redirect(url_for("admin.admin_suspicious_behavior"))
 
+@admin_bp.route("/admin/suspicious-behavior/resolve-low", methods=["POST"])
+def resolve_low_severity_events():
+    admin_user, redirect_response = admin_required()
+    if redirect_response:
+        return redirect_response
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE suspicious_events
+        SET status = 'resolved',
+            reviewed_at = CURRENT_TIMESTAMP,
+            reviewed_by = ?
+        WHERE severity = 'low' AND status != 'resolved'
+        """,
+        (admin_user["user_id"],),
+    )
+
+    affected = cursor.rowcount
+
+    conn.commit()
+    conn.close()
+
+    flash(f"{affected} low severity events resolved.", "success")
+    return redirect(url_for("admin.admin_suspicious_behavior"))
 
 def create_user_notification(cursor, user_id, application_id, title, message, notification_type="info"):
     cursor.execute(
