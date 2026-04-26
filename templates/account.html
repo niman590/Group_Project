@@ -195,6 +195,16 @@
                     </div>
                   </div>
 
+                  {% if user['is_admin'] %}
+                  <div class="detail-group">
+                    <label for="employee_id">Employee ID</label>
+                    <div class="input-wrap readonly-wrap">
+                      <span class="input-icon"><i class="fa-solid fa-id-badge"></i></span>
+                      <input type="text" id="employee_id" value="{{ user.employee_id | default('', true) }}" readonly>
+                    </div>
+                  </div>
+                  {% endif %}
+
                   <div class="detail-group">
                     <label for="city">City</label>
                     <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
