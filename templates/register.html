@@ -209,7 +209,6 @@
                     </button>
                   </div>
                   <small class="hint-text">Minimum 8 characters with uppercase, lowercase, number, and symbol</small>
-                  <small class="error-text"></small>
                 </div>
 
                 <div class="form-group">
@@ -225,7 +224,43 @@
                 </div>
               </div>
 
-              <div class="password-strength" id="passwordStrengthText">Password strength: —</div>
+              <div class="password-strength-box" id="passwordStrengthBox">
+                <div class="password-strength-top">
+                  <span>Password strength</span>
+                  <strong id="passwordStrengthText">Not started</strong>
+                </div>
+
+                <div class="password-strength-track">
+                  <div class="password-strength-fill" id="passwordStrengthFill"></div>
+                </div>
+
+                <div class="password-rules-grid">
+                  <div class="password-rule" id="ruleLength">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>At least 8 characters</span>
+                  </div>
+
+                  <div class="password-rule" id="ruleUpper">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>One uppercase letter</span>
+                  </div>
+
+                  <div class="password-rule" id="ruleLower">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>One lowercase letter</span>
+                  </div>
+
+                  <div class="password-rule" id="ruleNumber">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>One number</span>
+                  </div>
+
+                  <div class="password-rule" id="ruleSymbol">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>One symbol</span>
+                  </div>
+                </div>
+              </div>
 
               <button type="submit" class="register-btn" id="registerSubmitBtn">
                 <span class="btn-text">Register</span>
