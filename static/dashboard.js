@@ -233,7 +233,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function openChatbot() {
         if (!chatbotBox) return;
-
         chatbotBox.classList.add("open");
 
         if (chatbotButton) {
@@ -247,7 +246,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function closeChatbot() {
         if (!chatbotBox) return;
-
         chatbotBox.classList.remove("open");
 
         if (chatbotButton) {
@@ -290,7 +288,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ message: message })
+                body: JSON.stringify({
+                    message: message,
+                    context: "public_dashboard"
+                })
             });
 
             const data = await response.json();
@@ -301,12 +302,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             appendChatMessage(data.reply || "I could not find a response for that.", "bot");
-
-            if (data.action === "open_page" && data.target) {
-                setTimeout(() => {
-                    window.location.href = data.target;
-                }, 900);
-            }
         } catch (error) {
             appendChatMessage("Sorry, I could not connect to the assistant right now.", "bot");
         } finally {
