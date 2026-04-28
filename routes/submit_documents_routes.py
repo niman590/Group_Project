@@ -3,6 +3,7 @@ import smtplib
 import requests
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from functools import wraps
 
 from flask import Blueprint, render_template, request, jsonify, session, send_file, flash, redirect, url_for
 from werkzeug.utils import secure_filename
@@ -10,6 +11,40 @@ from database.db_connection import get_connection
 from database.security_utils import track_api_request_burst
 
 submit_documents_bp = Blueprint("submit_documents", __name__)
+
+
+def user_login_required(view_func):
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        if not session.get("user_id"):
+            if request.is_json or request.path.startswith("/api/") or request.path in [
+                "/gis-search-location",
+                "/gis-reverse-geocode",
+                "/save-planning-draft-step",
+                "/save-planning-draft-files",
+                "/get-planning-draft",
+                "/submit-planning-application",
+            ]:
+                return jsonify({
+                    "success": False,
+                    "message": "Please log in first."
+                }), 401
+
+            flash("Please log in first.", "error")
+            return redirect(url_for("auth.login"))
+
+        return view_func(*args, **kwargs)
+
+    return wrapper
+
+
+@submit_documents_bp.after_request
+def add_submit_documents_no_cache_headers(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
 
 UPLOAD_FOLDER = "static/uploads/planning_documents"
 REQUESTED_DOCS_FOLDER = "static/uploads/requested_planning_documents"
@@ -230,6 +265,7 @@ def get_status_badge_class(label):
 
 
 @submit_documents_bp.route("/gis-search-location", methods=["GET"])
+@user_login_required
 def gis_search_location():
     query = request.args.get("q", "").strip()
 
@@ -277,6 +313,7 @@ def gis_search_location():
 
 
 @submit_documents_bp.route("/gis-reverse-geocode", methods=["GET"])
+@user_login_required
 def gis_reverse_geocode():
     lat = request.args.get("lat", "").strip()
     lon = request.args.get("lon", "").strip()
@@ -318,11 +355,13 @@ def gis_reverse_geocode():
 
 
 @submit_documents_bp.route("/submit-documents", methods=["GET"])
+@user_login_required
 def submit_documents():
     return render_template("plan_approval.html", active_page="submit_documents")
 
 
 @submit_documents_bp.route("/save-planning-draft-step", methods=["POST"])
+@user_login_required
 def save_planning_draft_step():
     user_id = session.get("user_id")
     if not user_id:
@@ -539,6 +578,7 @@ def save_planning_draft_step():
 
 
 @submit_documents_bp.route("/save-planning-draft-files", methods=["POST"])
+@user_login_required
 def save_planning_draft_files():
     user_id = session.get("user_id")
     if not user_id:
@@ -603,6 +643,7 @@ def save_planning_draft_files():
 
 
 @submit_documents_bp.route("/get-planning-draft", methods=["GET"])
+@user_login_required
 def get_planning_draft():
     user_id = session.get("user_id")
     if not user_id:
@@ -704,6 +745,7 @@ def get_planning_draft():
 
 
 @submit_documents_bp.route("/submit-planning-application", methods=["POST"])
+@user_login_required
 def submit_planning_application():
     user_id = session.get("user_id")
     if not user_id:
@@ -768,6 +810,7 @@ def submit_planning_application():
 
 
 @submit_documents_bp.route("/my-applications", methods=["GET"])
+@user_login_required
 def my_applications():
     user_id = session.get("user_id")
     if not user_id:
@@ -851,6 +894,7 @@ def my_applications():
 
 
 @submit_documents_bp.route("/my-applications/<int:application_id>/delete-draft", methods=["POST"])
+@user_login_required
 def delete_draft_application(application_id):
     user_id = session.get("user_id")
     if not user_id:
@@ -905,6 +949,7 @@ def delete_draft_application(application_id):
 
 
 @submit_documents_bp.route("/upload-requested-document/<int:requested_doc_id>", methods=["POST"])
+@user_login_required
 def upload_requested_document(requested_doc_id):
     user_id = session.get("user_id")
     if not user_id:
@@ -980,6 +1025,7 @@ def upload_requested_document(requested_doc_id):
 
 
 @submit_documents_bp.route("/notifications", methods=["GET"])
+@user_login_required
 def user_notifications():
     user_id = session.get("user_id")
     if not user_id:
@@ -1013,6 +1059,7 @@ def user_notifications():
 
 
 @submit_documents_bp.route("/edit-planning-draft/<int:application_id>", methods=["GET"])
+@user_login_required
 def edit_planning_draft(application_id):
     user_id = session.get("user_id")
     if not user_id:
@@ -1038,6 +1085,7 @@ def edit_planning_draft(application_id):
 
 
 @submit_documents_bp.route("/download-decision-pdf/<int:application_id>", methods=["GET"])
+@user_login_required
 def download_decision_pdf(application_id):
     user_id = session.get("user_id")
     if not user_id:
@@ -1063,6 +1111,7 @@ def download_decision_pdf(application_id):
 
 
 @submit_documents_bp.route("/planning-approval/<int:application_id>", methods=["GET"])
+@user_login_required
 def planning_approval(application_id):
     user_id = session.get("user_id")
     if not user_id:

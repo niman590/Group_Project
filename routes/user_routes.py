@@ -3,10 +3,50 @@ from database.db_connection import get_connection
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from database.security_utils import track_api_request_burst
+from functools import wraps
 import os
 
 
 user_bp = Blueprint("user", __name__)
+
+
+def user_login_required(view_func):
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        if not session.get("user_id"):
+            if request.is_json or request.path.startswith("/api/") or request.path.startswith("/notifications"):
+                return jsonify({
+                    "success": False,
+                    "message": "Please sign in first."
+                }), 401
+
+            flash("Please sign in first.", "error")
+            return redirect(url_for("auth.login"))
+
+        user = get_current_user()
+        if not user:
+            session.clear()
+
+            if request.is_json or request.path.startswith("/api/") or request.path.startswith("/notifications"):
+                return jsonify({
+                    "success": False,
+                    "message": "User session expired. Please sign in again."
+                }), 401
+
+            flash("User session expired. Please sign in again.", "error")
+            return redirect(url_for("auth.login"))
+
+        return view_func(*args, **kwargs)
+
+    return wrapper
+
+
+@user_bp.after_request
+def add_user_no_cache_headers(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 
 def get_current_user():
@@ -43,13 +83,32 @@ def sync_session_user(user):
 
 def user_required():
     if "user_id" not in session:
+        if request.is_json or request.path.startswith("/api/") or request.path.startswith("/notifications"):
+            return None, (
+                jsonify({
+                    "success": False,
+                    "message": "Please sign in first."
+                }),
+                401
+            )
+
         flash("Please sign in first.", "error")
         return None, redirect(url_for("auth.login"))
 
     user = get_current_user()
     if not user:
         session.clear()
-        flash("User not found. Please sign in again.", "error")
+
+        if request.is_json or request.path.startswith("/api/") or request.path.startswith("/notifications"):
+            return None, (
+                jsonify({
+                    "success": False,
+                    "message": "User session expired. Please sign in again."
+                }),
+                401
+            )
+
+        flash("User session expired. Please sign in again.", "error")
         return None, redirect(url_for("auth.login"))
 
     return user, None
@@ -326,9 +385,11 @@ def get_dashboard_data(user_id, user):
     notifications, unread_notifications = get_notifications_for_user(user_id, limit=10)
 
     for n in notifications[:5]:
+        notification_type = (n["notification_type"] or "").lower()
+
         alerts.append({
-            "type": "warning" if (n["notification_type"] or "").lower() == "warning" else
-                    "success" if (n["notification_type"] or "").lower() == "success" else
+            "type": "warning" if notification_type == "warning" else
+                    "success" if notification_type == "success" else
                     "info",
             "title": n["title"],
             "message": n["message"],
@@ -661,6 +722,7 @@ def delete_user_related_records(cursor, user_id):
 
 
 @user_bp.route("/user_dashboard")
+@user_login_required
 def user_dashboard():
     user, redirect_response = user_required()
     if redirect_response:
@@ -684,6 +746,7 @@ def user_dashboard():
 
 
 @user_bp.route("/all-notifications")
+@user_login_required
 def all_notifications():
     user, redirect_response = user_required()
     if redirect_response:
@@ -726,6 +789,7 @@ def all_notifications():
 
 
 @user_bp.route("/planning-approval/<int:application_id>")
+@user_login_required
 def planning_approval(application_id):
     user, redirect_response = user_required()
     if redirect_response:
@@ -789,6 +853,7 @@ def planning_approval(application_id):
 
 
 @user_bp.route("/requested-document/<int:request_id>/upload", methods=["POST"])
+@user_login_required
 def upload_requested_document(request_id):
     user, redirect_response = user_required()
     if redirect_response:
@@ -868,6 +933,7 @@ def upload_requested_document(request_id):
 
 
 @user_bp.route("/notifications")
+@user_login_required
 def get_notifications():
     user, redirect_response = user_required()
     if redirect_response:
@@ -890,6 +956,7 @@ def get_notifications():
 
 
 @user_bp.route("/notifications/<int:notification_id>/read", methods=["POST"])
+@user_login_required
 def mark_notification_read(notification_id):
     user, redirect_response = user_required()
     if redirect_response:
@@ -914,6 +981,7 @@ def mark_notification_read(notification_id):
 
 
 @user_bp.route("/notifications/read-all", methods=["POST"])
+@user_login_required
 def mark_all_notifications_read():
     user, redirect_response = user_required()
     if redirect_response:
@@ -938,6 +1006,7 @@ def mark_all_notifications_read():
 
 
 @user_bp.route("/account", methods=["GET", "POST"])
+@user_login_required
 def account():
     user, redirect_response = user_required()
     if redirect_response:
@@ -1017,6 +1086,7 @@ def account():
 
 
 @user_bp.route("/account/delete", methods=["POST"])
+@user_login_required
 def delete_account():
     user, redirect_response = user_required()
     if redirect_response:

@@ -1,3 +1,6 @@
+from functools import wraps
+import os
+
 from flask import (
     Blueprint,
     render_template,
@@ -8,11 +11,40 @@ from flask import (
     send_from_directory,
     abort,
     current_app,
+    request,
+    jsonify,
 )
+
 from database.db_connection import get_connection
-import os
+
 
 support_documents_bp = Blueprint("support_documents", __name__)
+
+
+def user_login_required(view_func):
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        if not session.get("user_id"):
+            if request.is_json or request.path.startswith("/api/"):
+                return jsonify({
+                    "success": False,
+                    "message": "Please sign in first."
+                }), 401
+
+            flash("Please sign in first.", "error")
+            return redirect(url_for("auth.login"))
+
+        return view_func(*args, **kwargs)
+
+    return wrapper
+
+
+@support_documents_bp.after_request
+def add_support_documents_no_cache_headers(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 
 def get_support_documents_folder():
@@ -163,11 +195,8 @@ def get_support_documents_data():
 
 @support_documents_bp.route("/support_documents")
 @support_documents_bp.route("/support-documents")
+@user_login_required
 def support_documents_page():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
-
     documents, stats = get_support_documents_data()
 
     documents = [
@@ -184,11 +213,8 @@ def support_documents_page():
 
 
 @support_documents_bp.route("/support-documents/planning-approval-guidelines/view")
+@user_login_required
 def view_planning_guidelines():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
-
     filename = "planning_approval_guidelines.pdf"
     directory = ensure_pdf_exists(filename, "Planning Approval Guidelines")
 
@@ -196,11 +222,8 @@ def view_planning_guidelines():
 
 
 @support_documents_bp.route("/support-documents/planning-approval-guidelines/download")
+@user_login_required
 def download_planning_guidelines():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
-
     filename = "planning_approval_guidelines.pdf"
     directory = ensure_pdf_exists(filename, "Planning Approval Guidelines")
 
@@ -208,16 +231,13 @@ def download_planning_guidelines():
         directory,
         filename,
         as_attachment=True,
-        download_name="planning_approval_guidelines.pdf"
+        download_name="planning_approval_guidelines.pdf",
     )
 
 
 @support_documents_bp.route("/support-documents/required-documents-checklist/view")
+@user_login_required
 def view_required_documents_checklist():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
-
     filename = "required_documents_checklist.pdf"
     directory = ensure_pdf_exists(filename, "Required Documents Checklist")
 
@@ -225,11 +245,8 @@ def view_required_documents_checklist():
 
 
 @support_documents_bp.route("/support-documents/required-documents-checklist/download")
+@user_login_required
 def download_required_documents_checklist():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
-
     filename = "required_documents_checklist.pdf"
     directory = ensure_pdf_exists(filename, "Required Documents Checklist")
 
@@ -237,16 +254,13 @@ def download_required_documents_checklist():
         directory,
         filename,
         as_attachment=True,
-        download_name="required_documents_checklist.pdf"
+        download_name="required_documents_checklist.pdf",
     )
 
 
 @support_documents_bp.route("/support-documents/gazettes-and-rules/view")
+@user_login_required
 def view_gazettes_and_rules():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
-
     filename = "gazettes_and_rules.pdf"
     directory = ensure_pdf_exists(filename, "Gazettes and Rules")
 
@@ -254,11 +268,8 @@ def view_gazettes_and_rules():
 
 
 @support_documents_bp.route("/support-documents/gazettes-and-rules/download")
+@user_login_required
 def download_gazettes_and_rules():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
-
     filename = "gazettes_and_rules.pdf"
     directory = ensure_pdf_exists(filename, "Gazettes and Rules")
 
@@ -266,22 +277,15 @@ def download_gazettes_and_rules():
         directory,
         filename,
         as_attachment=True,
-        download_name="gazettes_and_rules.pdf"
+        download_name="gazettes_and_rules.pdf",
     )
 
 
 @support_documents_bp.route("/support-documents/user-manual/view")
+@user_login_required
 def view_user_manual():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
-
-    manual_directory = os.path.join(
-        current_app.root_path,
-        "static",
-        "support_documents"
-    )
     manual_filename = "civic_plan_user_manual.pdf"
+    manual_directory = get_support_documents_folder()
     manual_path = os.path.join(manual_directory, manual_filename)
 
     if not os.path.exists(manual_path):
@@ -290,22 +294,15 @@ def view_user_manual():
     return send_from_directory(
         manual_directory,
         manual_filename,
-        as_attachment=False
+        as_attachment=False,
     )
 
 
 @support_documents_bp.route("/support-documents/user-manual/download")
+@user_login_required
 def download_user_manual():
-    if "user_id" not in session:
-        flash("Please sign in first.", "error")
-        return redirect(url_for("auth.login"))
-
-    manual_directory = os.path.join(
-        current_app.root_path,
-        "static",
-        "support_documents"
-    )
     manual_filename = "civic_plan_user_manual.pdf"
+    manual_directory = get_support_documents_folder()
     manual_path = os.path.join(manual_directory, manual_filename)
 
     if not os.path.exists(manual_path):
@@ -315,5 +312,5 @@ def download_user_manual():
         manual_directory,
         manual_filename,
         as_attachment=True,
-        download_name="civic_plan_user_manual.pdf"
+        download_name="civic_plan_user_manual.pdf",
     )

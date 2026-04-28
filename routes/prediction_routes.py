@@ -1,4 +1,15 @@
-from flask import Blueprint, request, jsonify, render_template, send_file, session
+from functools import wraps
+from flask import (
+    Blueprint,
+    request,
+    jsonify,
+    render_template,
+    send_file,
+    session,
+    redirect,
+    url_for,
+    flash,
+)
 from datetime import datetime
 from io import BytesIO
 
@@ -12,14 +23,41 @@ from routes.Prediction_model.predict_value import predict_land_value
 from routes.Prediction_model.gis_utils import (
     find_nearest_supported_city,
     reverse_geocode_openstreetmap,
-    estimate_flood_risk_basic
+    estimate_flood_risk_basic,
 )
 
 
 prediction_bp = Blueprint("prediction", __name__)
 
 
+def user_login_required(view_func):
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        if not session.get("user_id"):
+            if request.is_json or request.path.startswith("/api/"):
+                return jsonify({
+                    "success": False,
+                    "message": "Please sign in first."
+                }), 401
+
+            flash("Please sign in first.", "error")
+            return redirect(url_for("auth.login"))
+
+        return view_func(*args, **kwargs)
+
+    return wrapper
+
+
+@prediction_bp.after_request
+def add_prediction_no_cache_headers(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 @prediction_bp.route("/land-valuation", methods=["GET"])
+@user_login_required
 def land_valuation_page():
     return render_template("land_valuation.html", active_page="land_valuation")
 
@@ -63,7 +101,7 @@ def validate_old_land_inputs(data):
         "flood_risk": to_binary(data.get("flood_risk", 0)),
         "latitude": data.get("latitude"),
         "longitude": data.get("longitude"),
-        "address": data.get("address", "")
+        "address": data.get("address", ""),
     }
 
     if not cleaned_data["location"]:
@@ -101,7 +139,7 @@ def validate_gis_land_inputs(data):
         return None, jsonify({
             "error": nearest_city_result.get("error", "Selected location is not supported."),
             "nearest_supported_city": nearest_city_result.get("nearest_city"),
-            "distance_to_city_km": nearest_city_result.get("distance_to_city")
+            "distance_to_city_km": nearest_city_result.get("distance_to_city"),
         }), 400
 
     location = nearest_city_result["nearest_city"]
@@ -126,7 +164,7 @@ def validate_gis_land_inputs(data):
         "flood_risk": flood_risk,
         "latitude": latitude,
         "longitude": longitude,
-        "address": address_result.get("address") or ""
+        "address": address_result.get("address") or "",
     }
 
     return cleaned_data, None, None
@@ -198,6 +236,7 @@ def save_prediction_for_user(user_id, cleaned_data, result):
 
 
 @prediction_bp.route("/api/valuation/gis-check", methods=["POST"])
+@user_login_required
 def gis_check():
     try:
         data = request.get_json() or {}
@@ -216,7 +255,7 @@ def gis_check():
                 "longitude": longitude,
                 "address": address_result.get("address"),
                 "nearest_supported_city": nearest_city_result.get("nearest_city"),
-                "distance_to_city_km": nearest_city_result.get("distance_to_city")
+                "distance_to_city_km": nearest_city_result.get("distance_to_city"),
             }), 400
 
         return jsonify({
@@ -225,21 +264,20 @@ def gis_check():
             "longitude": longitude,
             "address": address_result.get("address"),
             "nearest_supported_city": nearest_city_result["nearest_city"],
-            "distance_to_city_km": nearest_city_result["distance_to_city"]
+            "distance_to_city_km": nearest_city_result["distance_to_city"],
         }), 200
 
     except Exception as e:
         return jsonify({
             "success": False,
-            "error": str(e)
+            "error": str(e),
         }), 500
 
 
 @prediction_bp.route("/api/valuation/estimate", methods=["POST"])
+@user_login_required
 def estimate_land_value():
     user_id = session.get("user_id")
-    if not user_id:
-        return jsonify({"error": "You must be logged in to save land valuations."}), 401
 
     data = request.get_json() or {}
 
@@ -256,13 +294,13 @@ def estimate_land_value():
         zone_type=cleaned_data["zone_type"],
         electricity=cleaned_data["electricity"],
         water=cleaned_data["water"],
-        flood_risk=cleaned_data["flood_risk"]
+        flood_risk=cleaned_data["flood_risk"],
     )
 
     if "error" in result:
         return jsonify({
             "success": False,
-            "error": result["error"]
+            "error": result["error"],
         }), 400
 
     property_id = save_prediction_for_user(user_id, cleaned_data, result)
@@ -276,22 +314,21 @@ def estimate_land_value():
         "input_location": {
             "latitude": cleaned_data["latitude"],
             "longitude": cleaned_data["longitude"],
-            "address": cleaned_data["address"]
+            "address": cleaned_data["address"],
         },
         "gis_result": {
             "nearest_supported_city": cleaned_data["location"],
             "distance_to_city_km": cleaned_data["distance_to_city"],
-            "flood_risk": cleaned_data["flood_risk"]
+            "flood_risk": cleaned_data["flood_risk"],
         },
-        "valuation": result
+        "valuation": result,
     }), 200
 
 
 @prediction_bp.route("/predict-land-value", methods=["POST"])
+@user_login_required
 def predict_land():
     user_id = session.get("user_id")
-    if not user_id:
-        return jsonify({"error": "You must be logged in to save land valuations."}), 401
 
     data = request.get_json() or {}
 
@@ -308,7 +345,7 @@ def predict_land():
         zone_type=cleaned_data["zone_type"],
         electricity=cleaned_data["electricity"],
         water=cleaned_data["water"],
-        flood_risk=cleaned_data["flood_risk"]
+        flood_risk=cleaned_data["flood_risk"],
     )
 
     if "error" in result:
@@ -373,6 +410,7 @@ def draw_result_box(pdf, title, value, x, y, width, height, fill_color, text_col
 
 
 @prediction_bp.route("/download-land-valuation-pdf", methods=["POST"])
+@user_login_required
 def download_land_valuation_pdf():
     data = request.get_json() or {}
 
@@ -393,7 +431,7 @@ def download_land_valuation_pdf():
         zone_type=cleaned_data["zone_type"],
         electricity=cleaned_data["electricity"],
         water=cleaned_data["water"],
-        flood_risk=cleaned_data["flood_risk"]
+        flood_risk=cleaned_data["flood_risk"],
     )
 
     if "error" in result:
@@ -432,7 +470,7 @@ def download_land_valuation_pdf():
     pdf.drawRightString(
         width - margin,
         height - 40,
-        f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
     )
 
     card_y_top = height - 120
@@ -453,7 +491,7 @@ def download_land_valuation_pdf():
     pdf.drawString(
         margin + 16,
         card_y_top - 40,
-        f"Location: {cleaned_data['location']}   |   Zone: {cleaned_data['zone_type']}   |   Land Size: {cleaned_data['land_size']} perches"
+        f"Location: {cleaned_data['location']}   |   Zone: {cleaned_data['zone_type']}   |   Land Size: {cleaned_data['land_size']} perches",
     )
 
     if cleaned_data.get("address"):
@@ -465,7 +503,7 @@ def download_land_valuation_pdf():
             width - (2 * margin) - 32,
             font_name="Helvetica",
             font_size=8.5,
-            line_gap=11
+            line_gap=11,
         )
 
     details_top = card_y_top - 105
@@ -524,7 +562,7 @@ def download_land_valuation_pdf():
         box_y,
         box_width,
         box_height,
-        primary
+        primary,
     )
 
     draw_result_box(
@@ -535,7 +573,7 @@ def download_land_valuation_pdf():
         box_y,
         box_width,
         box_height,
-        blue_light
+        blue_light,
     )
 
     draw_result_box(
@@ -546,7 +584,7 @@ def download_land_valuation_pdf():
         box_y,
         box_width,
         box_height,
-        green_light
+        green_light,
     )
 
     note_top = results_top - 110
@@ -576,7 +614,7 @@ def download_land_valuation_pdf():
         width - (2 * margin) - 32,
         font_name="Helvetica",
         font_size=10,
-        line_gap=14
+        line_gap=14,
     )
 
     pdf.setStrokeColor(border_color)
@@ -594,5 +632,5 @@ def download_land_valuation_pdf():
         buffer,
         as_attachment=True,
         download_name="land_valuation_report.pdf",
-        mimetype="application/pdf"
+        mimetype="application/pdf",
     )

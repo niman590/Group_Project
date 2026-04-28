@@ -2,8 +2,10 @@ from flask import Blueprint, request, jsonify, session, url_for
 from google import genai
 from dotenv import load_dotenv
 from database.db_connection import get_connection
+from functools import wraps
 import os
 import re
+
 
 load_dotenv()
 
@@ -29,6 +31,30 @@ Rules:
 - If a user asks for official status, tell them to check their dashboard or official records.
 - Keep answers helpful for Sri Lankan land-management portal users.
 """
+
+
+def chatbot_login_required(view_func):
+    @wraps(view_func)
+    def wrapper(*args, **kwargs):
+        if not session.get("user_id"):
+            return jsonify({
+                "type": "action",
+                "reply": "Please sign in first to use the assistant.",
+                "action": "open_page",
+                "target": url_for("auth.login"),
+            }), 401
+
+        return view_func(*args, **kwargs)
+
+    return wrapper
+
+
+@chatbot_bp.after_request
+def add_chatbot_no_cache_headers(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 
 def get_gemini_client():
@@ -342,25 +368,12 @@ def handle_live_data_intent(message):
     text = normalize_text(message)
 
     if not is_logged_in():
-        if any(
-            phrase in text
-            for phrase in [
-                "my application",
-                "my applications",
-                "my status",
-                "my alerts",
-                "my valuation",
-                "my property",
-                "my records",
-            ]
-        ):
-            return build_response(
-                "Please sign in first so I can show your application, property, and valuation details.",
-                response_type="action",
-                action="open_page",
-                target=url_for("auth.login"),
-            )
-        return None
+        return build_response(
+            "Please sign in first so I can show your application, property, and valuation details.",
+            response_type="action",
+            action="open_page",
+            target=url_for("auth.login"),
+        )
 
     user_id = session.get("user_id")
     summary = get_user_dashboard_summary(user_id)
@@ -511,12 +524,10 @@ def generate_gemini_fallback(user_message):
     if client is None:
         return None
 
-    user_context = "User is not signed in."
-    if is_logged_in():
-        full_name = session.get("full_name", "").strip() or "Signed-in user"
-        email = session.get("email", "").strip() or "N/A"
-        nic = session.get("nic", "").strip() or "N/A"
-        user_context = f"User is signed in as {full_name}. Email: {email}. NIC: {nic}."
+    full_name = session.get("full_name", "").strip() or "Signed-in user"
+    email = session.get("email", "").strip() or "N/A"
+    nic = session.get("nic", "").strip() or "N/A"
+    user_context = f"User is signed in as {full_name}. Email: {email}. NIC: {nic}."
 
     available_pages = f"""
 Available website modules:
@@ -552,6 +563,7 @@ Available website modules:
 
 
 @chatbot_bp.route("/chat", methods=["POST"])
+@chatbot_login_required
 def chat():
     try:
         data = request.get_json(silent=True) or {}
