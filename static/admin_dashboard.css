@@ -137,6 +137,13 @@ body {
     line-height: 1.5;
 }
 
+.section-head-with-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 18px;
+}
+
 /* Flash */
 .flash-messages {
     margin-bottom: 18px;
@@ -637,6 +644,193 @@ body {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
+.valuation-count-overview {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.valuation-count-card {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid #dbe7fb;
+    border-radius: 20px;
+    padding: 18px;
+    min-height: 135px;
+    box-shadow: 0 8px 20px rgba(18, 63, 130, 0.04);
+}
+
+.valuation-count-card::after {
+    content: "";
+    position: absolute;
+    right: -22px;
+    bottom: -22px;
+    width: 74px;
+    height: 74px;
+    border-radius: 999px;
+    opacity: 0.12;
+}
+
+.valuation-count-card.total-count::after {
+    background: #2563eb;
+}
+
+.valuation-count-card.selected-count::after {
+    background: #7c3aed;
+}
+
+.valuation-count-card.supported-count::after {
+    background: #16a34a;
+}
+
+.valuation-count-card.unsupported-count::after {
+    background: #f59e0b;
+}
+
+.count-label {
+    display: inline-block;
+    color: #6c7a92;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 9px;
+}
+
+.valuation-count-card strong {
+    display: block;
+    color: #123f82;
+    font-size: 2rem;
+    line-height: 1;
+    margin-bottom: 9px;
+}
+
+.valuation-count-card p {
+    color: #6c7a92;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}
+
+.valuation-status-box {
+    display: flex;
+    align-items: flex-end;
+    min-height: 48px;
+}
+
+.forecast-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 15px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.forecast-status-badge.success {
+    background: #e9f8ef;
+    color: #128a49;
+    border: 1px solid #c7efd5;
+}
+
+.forecast-status-badge.warning {
+    background: #fff4df;
+    color: #a05a00;
+    border: 1px solid #f2d09a;
+}
+
+.valuation-city-panel {
+    background: #f9fbff;
+    border: 1px solid #e2eaf6;
+    border-radius: 20px;
+    padding: 18px;
+    margin-bottom: 18px;
+}
+
+.valuation-city-panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.valuation-city-panel-head h3 {
+    color: #123f82;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.valuation-city-panel-head p {
+    color: #6c7a92;
+    font-size: 0.92rem;
+    line-height: 1.45;
+}
+
+.valuation-city-counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.city-count-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    min-width: 150px;
+    padding: 11px 13px;
+    border-radius: 999px;
+    border: 1px solid #dbe7fb;
+    background: #ffffff;
+}
+
+.city-count-pill span {
+    font-size: 0.9rem;
+    color: #334155;
+    font-weight: 700;
+}
+
+.city-count-pill strong {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 28px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 900;
+}
+
+.city-count-pill.has-data strong {
+    background: #e9f8ef;
+    color: #128a49;
+}
+
+.city-count-pill.no-data {
+    opacity: 0.72;
+}
+
+.city-count-pill.no-data strong {
+    background: #eef2f7;
+    color: #6c7a92;
+}
+
+.city-count-empty {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    background: #ffffff;
+    border: 1px dashed #c6d3e6;
+    color: #6c7a92;
+    text-align: center;
+    font-weight: 700;
+}
+
 .valuation-metrics-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -700,43 +894,21 @@ body {
     line-height: 1.45;
 }
 
-.valuation-legend {
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
-    color: #5f6f8c;
-    font-size: 0.9rem;
-    font-weight: 700;
-}
-
-.valuation-legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.legend-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.legend-dot.historical {
-    background: #2563eb;
-}
-
-.legend-dot.forecast {
-    background: #f59e0b;
-}
-
 .valuation-chart-wrap {
     position: relative;
+    height: 430px;
     min-height: 360px;
 }
 
+#landValuationTrendChart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
 .valuation-empty-state {
-    min-height: 220px;
+    height: 260px;
+    min-height: 260px;
+    font-weight: 700;
 }
 
 /* Reports page date selector */
@@ -861,8 +1033,19 @@ body {
 
     .filter-layout,
     .chart-grid,
-    .valuation-metrics-grid {
-        grid-template-columns: 1fr;
+    .valuation-metrics-grid,
+    .valuation-count-overview {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .valuation-status-box {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .forecast-status-badge {
+        width: 100%;
+        justify-content: center;
     }
 }
 
@@ -886,7 +1069,11 @@ body {
     }
 
     .stats-grid,
-    .custom-range-grid {
+    .custom-range-grid,
+    .valuation-count-overview,
+    .valuation-metrics-grid,
+    .filter-layout,
+    .chart-grid {
         grid-template-columns: 1fr;
     }
 
@@ -921,6 +1108,14 @@ body {
 
     .clickable-admin-chip {
         width: 100%;
+    }
+
+    .city-count-pill {
+        width: 100%;
+    }
+
+    .valuation-chart-wrap {
+        height: 340px;
     }
 }
 
