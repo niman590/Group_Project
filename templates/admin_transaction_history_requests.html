@@ -38,9 +38,17 @@
 
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
+            {% set visible_messages = [] %}
+            {% for category, message in messages %}
+                {% if message != "Login successful." and message != "Login successful" %}
+                    {% set _ = visible_messages.append((category, message)) %}
+                {% endif %}
+            {% endfor %}
+
+            {% if visible_messages %}
             <section class="flash-wrap">
-                {% for category, message in messages %}
-                <div class="flash-msg {{ category }}">
+                {% for category, message in visible_messages %}
+                <div class="flash-msg {{ category }}" data-flash>
                     <i class="fa-solid
                         {% if category == 'success' %}fa-circle-check
                         {% elif category == 'warning' %}fa-triangle-exclamation
@@ -51,6 +59,7 @@
                 </div>
                 {% endfor %}
             </section>
+            {% endif %}
             {% endif %}
             {% endwith %}
 
