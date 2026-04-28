@@ -349,6 +349,81 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+
+    /* ================= DROP QUESTION FORM ================= */
+
+    const dropQuestionForm = document.getElementById("dropQuestionForm");
+    const questionSubmitBtn = document.getElementById("questionSubmitBtn");
+    const questionStatus = document.getElementById("questionStatus");
+
+    function setQuestionStatus(message, type) {
+        if (!questionStatus) return;
+
+        questionStatus.textContent = message;
+        questionStatus.classList.remove("success", "error");
+
+        if (type) {
+            questionStatus.classList.add(type);
+        }
+    }
+
+    function setQuestionLoading(isLoading) {
+        if (!questionSubmitBtn) return;
+
+        questionSubmitBtn.disabled = isLoading;
+        questionSubmitBtn.textContent = isLoading ? "Sending..." : "Send";
+    }
+
+    if (dropQuestionForm) {
+        dropQuestionForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const nameInput = document.getElementById("questionName");
+            const emailInput = document.getElementById("questionEmail");
+            const messageInput = document.getElementById("questionMessage");
+
+            const name = nameInput ? nameInput.value.trim() : "";
+            const email = emailInput ? emailInput.value.trim() : "";
+            const message = messageInput ? messageInput.value.trim() : "";
+
+            if (!name || !email || !message) {
+                setQuestionStatus("Please fill in all required fields.", "error");
+                return;
+            }
+
+            setQuestionLoading(true);
+            setQuestionStatus("");
+
+            try {
+                const response = await fetch("/drop-question", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        message: message
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    setQuestionStatus(data.message || "Sorry, your question could not be sent.", "error");
+                    return;
+                }
+
+                setQuestionStatus(data.message || "Your question has been sent successfully.", "success");
+                dropQuestionForm.reset();
+            } catch (error) {
+                setQuestionStatus("Sorry, something went wrong. Please try again later.", "error");
+            } finally {
+                setQuestionLoading(false);
+            }
+        });
+    }
+
     /* ================= EVENT LISTENERS ================= */
 
     modalButtons.forEach((button) => {

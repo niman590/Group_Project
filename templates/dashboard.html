@@ -210,6 +210,42 @@
         </div>
     </section>
 
+    <!-- DROP YOUR QUESTIONS -->
+    <section class="question-section" id="drop-question">
+        <div class="container">
+            <div class="question-card reveal-up">
+                <div class="question-content">
+                    <span class="section-tag">CONTACT SUPPORT</span>
+                    <h2>Drop Your Questions</h2>
+                    <p>
+                        Have a question about Civic Plan services, planning approvals, land records,
+                        or account access? Send us your message and our team will review it.
+                    </p>
+                </div>
+
+                <form class="question-form" id="dropQuestionForm">
+                    <div class="form-row">
+                        <input type="text" id="questionName" name="name" placeholder="Name*" required />
+                    </div>
+
+                    <div class="form-row">
+                        <input type="email" id="questionEmail" name="email" placeholder="Email*" required />
+                    </div>
+
+                    <div class="form-row">
+                        <textarea id="questionMessage" name="message" placeholder="Message*" rows="5" required></textarea>
+                    </div>
+
+                    <button type="submit" class="question-submit-btn" id="questionSubmitBtn">
+                        Send
+                    </button>
+
+                    <p class="question-status" id="questionStatus"></p>
+                </form>
+            </div>
+        </div>
+    </section>
+
     <!-- FOOTER -->
     <footer class="site-footer">
         <div class="container footer-grid">
