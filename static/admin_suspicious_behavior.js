@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     const flashStack = document.getElementById("securityFlashStack");
+
     if (flashStack) {
         setTimeout(() => {
             flashStack.style.transition = "opacity 0.4s ease, transform 0.4s ease";
@@ -25,6 +26,11 @@ document.addEventListener("DOMContentLoaded", function () {
     let allowSubmit = false;
 
     function openSystemConfirm(form) {
+        if (!confirmOverlay || !confirmTitle || !confirmMessage || !confirmDetail || !confirmProceed || !confirmIcon) {
+            form.submit();
+            return;
+        }
+
         activeForm = form;
 
         confirmTitle.textContent = form.dataset.confirmTitle || "Confirm Action";
@@ -39,13 +45,18 @@ document.addEventListener("DOMContentLoaded", function () {
         confirmOverlay.setAttribute("aria-hidden", "false");
 
         setTimeout(() => {
-            confirmCancel.focus();
+            if (confirmCancel) {
+                confirmCancel.focus();
+            }
         }, 80);
     }
 
     function closeSystemConfirm() {
+        if (!confirmOverlay || !confirmProceed) return;
+
         confirmOverlay.classList.remove("is-visible");
         confirmOverlay.setAttribute("aria-hidden", "true");
+
         activeForm = null;
         allowSubmit = false;
         confirmProceed.disabled = false;
@@ -154,37 +165,23 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    const selectAllSecurityEvents = document.getElementById("selectAllSecurityEvents");
     const securityDownloadForm = document.getElementById("securityDownloadForm");
 
-    if (selectAllSecurityEvents) {
-        selectAllSecurityEvents.addEventListener("change", function () {
-            document.querySelectorAll(".event-download-check").forEach((checkbox) => {
-                checkbox.checked = selectAllSecurityEvents.checked;
-            });
-        });
-    }
-
-    document.querySelectorAll(".event-download-check").forEach((checkbox) => {
-        checkbox.addEventListener("change", function () {
-            const allChecks = document.querySelectorAll(".event-download-check");
-            const checkedChecks = document.querySelectorAll(".event-download-check:checked");
-
-            if (selectAllSecurityEvents) {
-                selectAllSecurityEvents.checked = allChecks.length > 0 && checkedChecks.length === allChecks.length;
-                selectAllSecurityEvents.indeterminate = checkedChecks.length > 0 && checkedChecks.length < allChecks.length;
-            }
-        });
-    });
-
     if (securityDownloadForm) {
-        securityDownloadForm.addEventListener("submit", function (event) {
-            const selectedEvents = document.querySelectorAll(".event-download-check:checked");
+        securityDownloadForm.addEventListener("submit", function () {
+            const downloadButton = securityDownloadForm.querySelector("button[type='submit']");
+            if (!downloadButton) return;
 
-            if (selectedEvents.length === 0) {
-                event.preventDefault();
-                alert("Please select at least one security notification to download.");
-            }
+            downloadButton.disabled = true;
+            downloadButton.dataset.originalText = downloadButton.innerHTML;
+            downloadButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparing PDF...';
+
+            setTimeout(() => {
+                downloadButton.disabled = false;
+                downloadButton.innerHTML =
+                    downloadButton.dataset.originalText ||
+                    '<i class="fa-solid fa-file-pdf"></i> Download Filtered PDF';
+            }, 2500);
         });
     }
 });

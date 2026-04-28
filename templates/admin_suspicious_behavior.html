@@ -4,11 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Civic Plan - Suspicious Behavior</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_suspicious_behavior.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
+
 <body>
     <div class="dashboard-shell">
 
@@ -47,7 +49,9 @@
                 <div class="stats-grid application-stats-grid">
                     <div class="stat-card app-stat-card total">
                         <div class="stat-top-line"></div>
-                        <div class="stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="stat-icon">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
                         <div class="stat-content">
                             <span class="stat-label">Total Events</span>
                             <h3>{{ overview.total_events }}</h3>
@@ -57,7 +61,9 @@
 
                     <div class="stat-card app-stat-card pending">
                         <div class="stat-top-line"></div>
-                        <div class="stat-icon"><i class="fa-solid fa-bell"></i></div>
+                        <div class="stat-icon">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
                         <div class="stat-content">
                             <span class="stat-label">New Alerts</span>
                             <h3>{{ overview.new_events }}</h3>
@@ -67,7 +73,9 @@
 
                     <div class="stat-card app-stat-card rejected">
                         <div class="stat-top-line"></div>
-                        <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="stat-icon">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
                         <div class="stat-content">
                             <span class="stat-label">High Severity</span>
                             <h3>{{ overview.high_events }}</h3>
@@ -179,8 +187,15 @@
                         </div>
 
                         <div class="filter-actions">
-                            <button type="submit" class="btn-action btn-review">Apply Filter</button>
-                            <a href="{{ url_for('admin.admin_suspicious_behavior') }}" class="btn-reset-link">Reset</a>
+                            <button type="submit" class="btn-action btn-review">
+                                <i class="fa-solid fa-filter"></i>
+                                Apply Filter
+                            </button>
+
+                            <a href="{{ url_for('admin.admin_suspicious_behavior') }}" class="btn-reset-link">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Reset
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -201,12 +216,15 @@
                             action="{{ url_for('admin.download_suspicious_events_pdf') }}"
                             data-download-form
                         >
+                            <input type="hidden" name="severity" value="{{ severity }}">
+                            <input type="hidden" name="status" value="{{ status }}">
+                            <input type="hidden" name="rule_name" value="{{ rule_name }}">
                             <input type="hidden" name="start_date" value="{{ start_date }}">
                             <input type="hidden" name="end_date" value="{{ end_date }}">
 
                             <button type="submit" class="btn-action btn-download">
                                 <i class="fa-solid fa-file-pdf"></i>
-                                Download Selected PDF
+                                Download Filtered PDF
                             </button>
                         </form>
 
@@ -216,11 +234,12 @@
                             data-confirm-form
                             data-confirm-title="Resolve Low Severity Events"
                             data-confirm-message="Are you sure you want to resolve all low severity events?"
-                            data-confirm-detail="This action will update all matching events as resolved."
+                            data-confirm-detail="This action will update all matching low severity events as resolved."
                             data-confirm-button="Resolve All"
                             data-confirm-icon="fa-shield-halved"
                         >
                             <button type="submit" class="btn-action btn-resolve">
+                                <i class="fa-solid fa-shield-heart"></i>
                                 Resolve Low Level Threats
                             </button>
                         </form>
@@ -231,9 +250,6 @@
                     <table class="security-table">
                         <thead>
                             <tr>
-                                <th>
-                                    <input type="checkbox" id="selectAllSecurityEvents">
-                                </th>
                                 <th>Time</th>
                                 <th>Rule</th>
                                 <th>Severity</th>
@@ -243,19 +259,10 @@
                                 <th>Actions</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             {% for event in events %}
                             <tr class="{% if event['severity'] | lower == 'high' %}high-row{% endif %}">
-                                <td>
-                                    <input
-                                        type="checkbox"
-                                        class="event-download-check"
-                                        name="event_ids"
-                                        value="{{ event['event_id'] }}"
-                                        form="securityDownloadForm"
-                                    >
-                                </td>
-
                                 <td>{{ event['created_at'] or '-' }}</td>
 
                                 <td>
@@ -286,7 +293,8 @@
                                     <div class="security-actions">
                                         {% if event['status'] | lower != 'resolved' %}
                                         <form method="POST" action="{{ url_for('admin.mark_suspicious_event_reviewed', event_id=event['event_id']) }}">
-                                            <button type="submit" class="btn-action btn-review">
+                                            <button type="submit" class="btn-action btn-review btn-small">
+                                                <i class="fa-solid fa-eye"></i>
                                                 Review
                                             </button>
                                         </form>
@@ -303,19 +311,23 @@
                                             data-confirm-button="Resolve Event"
                                             data-confirm-icon="fa-circle-check"
                                         >
-                                            <button type="submit" class="btn-action btn-resolve">
+                                            <button type="submit" class="btn-action btn-resolve btn-small">
+                                                <i class="fa-solid fa-circle-check"></i>
                                                 Resolve
                                             </button>
                                         </form>
                                         {% else %}
-                                        <span class="resolved-text">No actions</span>
+                                        <span class="resolved-text">
+                                            <i class="fa-solid fa-check-circle"></i>
+                                            No actions
+                                        </span>
                                         {% endif %}
                                     </div>
                                 </td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="8" class="empty-cell">No suspicious events found.</td>
+                                <td colspan="7" class="empty-cell">No suspicious events found.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -359,6 +371,7 @@
             endDate: "{{ end_date }}"
         };
     </script>
+
     <script src="{{ url_for('static', filename='admin_suspicious_behavior.js') }}"></script>
 </body>
 </html>
