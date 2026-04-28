@@ -83,6 +83,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function startPageTransition(targetHref) {
+        document.body.classList.add("page-exit");
+
+        setTimeout(() => {
+            window.location.href = targetHref;
+        }, 260);
+    }
+
     function isValidEmail(email) {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || "");
     }
@@ -509,6 +517,29 @@ document.addEventListener("DOMContentLoaded", function () {
             event.preventDefault();
         });
     }
+
+    document.querySelectorAll('a[href]').forEach((link) => {
+        link.addEventListener("click", function (event) {
+            const href = this.getAttribute("href");
+
+            if (!href || href.startsWith("#") || this.target === "_blank") {
+                return;
+            }
+
+            try {
+                const targetUrl = new URL(href, window.location.href);
+
+                if (targetUrl.origin !== window.location.origin) {
+                    return;
+                }
+            } catch (error) {
+                return;
+            }
+
+            event.preventDefault();
+            startPageTransition(href);
+        });
+    });
 
     updateStrengthUI("");
     clearInputState(emailInput, emailError);
