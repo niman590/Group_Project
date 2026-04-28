@@ -9,6 +9,7 @@ function setupApproveConfirmations() {
     approveForms.forEach((form) => {
         form.addEventListener("submit", function (event) {
             const deedNumber = form.dataset.deed || "this deed";
+
             const confirmed = window.confirm(
                 `Are you sure you want to approve the transaction request for deed ${deedNumber}?`
             );
