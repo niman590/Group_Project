@@ -221,6 +221,139 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    /* ================= CHATBOT FUNCTIONS ================= */
+
+    const chatbotButton = document.getElementById("chatbotButton");
+    const chatbotBox = document.getElementById("chatbotBox");
+    const chatbotCloseBtn = document.getElementById("chatbotCloseBtn");
+    const chatbotForm = document.getElementById("chatbotForm");
+    const chatMessages = document.getElementById("chatMessages");
+    const chatInput = document.getElementById("chatInput");
+    const chatSendBtn = document.getElementById("chatSendBtn");
+
+    function openChatbot() {
+        if (!chatbotBox) return;
+
+        chatbotBox.classList.add("open");
+
+        if (chatbotButton) {
+            chatbotButton.setAttribute("aria-expanded", "true");
+        }
+
+        if (chatInput) {
+            setTimeout(() => chatInput.focus(), 150);
+        }
+    }
+
+    function closeChatbot() {
+        if (!chatbotBox) return;
+
+        chatbotBox.classList.remove("open");
+
+        if (chatbotButton) {
+            chatbotButton.setAttribute("aria-expanded", "false");
+        }
+    }
+
+    function appendChatMessage(message, type) {
+        if (!chatMessages) return;
+
+        const messageElement = document.createElement("div");
+        messageElement.className = type === "user" ? "user-msg" : "bot-msg";
+        messageElement.textContent = message;
+
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function setChatLoading(isLoading) {
+        if (!chatSendBtn || !chatInput) return;
+
+        chatSendBtn.disabled = isLoading;
+        chatInput.disabled = isLoading;
+        chatSendBtn.textContent = isLoading ? "Sending..." : "Send";
+    }
+
+    async function sendChatMessage() {
+        if (!chatInput) return;
+
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        appendChatMessage(message, "user");
+        chatInput.value = "";
+        setChatLoading(true);
+
+        try {
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ message: message })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                appendChatMessage(data.reply || "Sorry, something went wrong. Please try again.", "bot");
+                return;
+            }
+
+            appendChatMessage(data.reply || "I could not find a response for that.", "bot");
+
+            if (data.action === "open_page" && data.target) {
+                setTimeout(() => {
+                    window.location.href = data.target;
+                }, 900);
+            }
+        } catch (error) {
+            appendChatMessage("Sorry, I could not connect to the assistant right now.", "bot");
+        } finally {
+            setChatLoading(false);
+            if (chatInput) chatInput.focus();
+        }
+    }
+
+    if (chatbotButton) {
+        chatbotButton.addEventListener("click", function () {
+            if (!chatbotBox) return;
+
+            if (chatbotBox.classList.contains("open")) {
+                closeChatbot();
+            } else {
+                openChatbot();
+            }
+        });
+    }
+
+    if (chatbotCloseBtn) {
+        chatbotCloseBtn.addEventListener("click", closeChatbot);
+    }
+
+    if (chatSendBtn) {
+        chatSendBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+            sendChatMessage();
+        });
+    }
+
+    if (chatbotForm) {
+        chatbotForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            sendChatMessage();
+        });
+    }
+
+    if (chatInput) {
+        chatInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        });
+    }
+
     /* ================= EVENT LISTENERS ================= */
 
     modalButtons.forEach((button) => {
@@ -256,6 +389,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (event.key === "Escape") {
             if (activeModal) {
                 closeAllModals();
+            } else if (chatbotBox && chatbotBox.classList.contains("open")) {
+                closeChatbot();
             } else if (primaryNav && primaryNav.classList.contains("open")) {
                 toggleMobileMenu(false);
             }
