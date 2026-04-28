@@ -5,15 +5,16 @@
     --text-main: #1c2f4a;
     --text-soft: #6d7a8c;
     --line: #dbe4f0;
-    --surface: #ffffff;
-    --page: #eef3f9;
 
     --green: #1d7d3c;
     --green-bg: #e9f8ef;
+
     --red: #b03030;
     --red-bg: #fdecec;
+
     --amber: #b97700;
     --amber-bg: #fff4dc;
+
     --purple: #6a2db8;
     --purple-bg: #f4ecff;
 
@@ -314,7 +315,7 @@ body {
     background: #fbfdff;
 }
 
-/* column widths */
+/* COLUMN WIDTHS */
 .request-table th:nth-child(1),
 .request-table td:nth-child(1) {
     width: 52px;
@@ -322,7 +323,7 @@ body {
 
 .request-table th:nth-child(2),
 .request-table td:nth-child(2) {
-    width: 160px;
+    width: 175px;
 }
 
 .request-table th:nth-child(3),
@@ -366,6 +367,7 @@ body {
     white-space: nowrap;
 }
 
+/* DEED */
 .deed-cell {
     display: flex;
     flex-direction: column;
@@ -402,9 +404,19 @@ body {
     color: #a76600;
 }
 
+.deed-kind.created {
+    background: #e9f8ef;
+    color: #1d7d3c;
+}
+
 .deed-kind.existing {
     background: #e9f8ef;
     color: #1d7d3c;
+}
+
+.deed-kind.rejected-kind {
+    background: #fdecec;
+    color: #b03030;
 }
 
 .deed-help {
@@ -413,6 +425,22 @@ body {
     line-height: 1.3;
 }
 
+.success-text {
+    color: #1d7d3c;
+    font-weight: 800;
+}
+
+.warning-text {
+    color: #a76600;
+    font-weight: 800;
+}
+
+.danger-text {
+    color: #b03030;
+    font-weight: 800;
+}
+
+/* OWNER */
 .owner-cell {
     display: flex;
     flex-direction: column;
@@ -503,14 +531,9 @@ body {
 }
 
 /* NOTES */
-.notes-cell {
-    width: 245px;
-}
-
 .note-card {
-    background: linear-gradient(180deg, #fbfdff 0%, #f4f8ff 100%);
+    background: #f8fbff;
     border: 1px solid #dfe8f5;
-    border-left: 4px solid var(--primary);
     border-radius: 12px;
     padding: 9px 10px;
     box-shadow: 0 6px 12px rgba(18, 63, 136, 0.04);
@@ -550,10 +573,6 @@ body {
 }
 
 /* ACTIONS */
-.actions-cell {
-    width: 205px;
-}
-
 .action-stack {
     display: grid;
     gap: 8px;
@@ -603,7 +622,6 @@ body {
 
 .reject-form textarea {
     width: 100%;
-    box-sizing: border-box;
     resize: vertical;
     min-height: 54px;
     max-height: 105px;

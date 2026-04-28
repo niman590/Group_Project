@@ -20,6 +20,7 @@
         {% include 'partials/admin_sidebar.html' %}
 
         <main class="main-content">
+
             <header class="transaction-hero">
                 <div class="hero-left">
                     <span class="page-kicker">Administration</span>
@@ -44,7 +45,8 @@
                         {% if category == 'success' %}fa-circle-check
                         {% elif category == 'warning' %}fa-triangle-exclamation
                         {% elif category == 'error' %}fa-circle-xmark
-                        {% else %}fa-circle-info{% endif %}"></i>
+                        {% else %}fa-circle-info{% endif %}">
+                    </i>
                     <span>{{ message }}</span>
                 </div>
                 {% endfor %}
@@ -79,7 +81,19 @@
                         </div>
                         <div class="stat-content">
                             <span>Pending Requests</span>
-                            <strong>{{ requests | selectattr('status', 'equalto', 'Pending') | list | length }}</strong>
+                            <strong>
+                                {{
+                                    requests
+                                    | selectattr('status', 'equalto', 'Pending')
+                                    | list
+                                    | length
+                                    +
+                                    requests
+                                    | selectattr('status', 'equalto', 'Pending New Deed Review')
+                                    | list
+                                    | length
+                                }}
+                            </strong>
                             <p>Requests still waiting for administrative review.</p>
                         </div>
                     </div>
@@ -128,7 +142,7 @@
                                 <th>Transaction Type</th>
                                 <th>Proof</th>
                                 <th>Status</th>
-                                <th class="notes-heading">Notes</th>
+                                <th>Notes</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -136,11 +150,23 @@
                         <tbody>
                             {% for req in requests %}
                             {% set raw_note = req['notes'] if req['notes'] else '' %}
-                            {% set is_new_deed_request = ('[NEW DEED NUMBER REQUEST]' in raw_note) or ('not currently in the system' in raw_note) %}
+                            {% set status_text = req['status'] if req['status'] else '' %}
+
+                            {% set is_new_deed_request =
+                                ('[NEW_DEED_REQUEST]' in raw_note)
+                                or ('[NEW DEED REQUEST]' in raw_note)
+                                or ('[NEW DEED NUMBER REQUEST]' in raw_note)
+                                or ('This deed number is not currently in the system.' in raw_note)
+                                or ('not currently in the system' in raw_note)
+                                or (status_text == 'Pending New Deed Review')
+                            %}
+
                             {% set clean_note = raw_note
-                                |replace('[NEW DEED NUMBER REQUEST]', '')
-                                |replace('This deed number is not currently in the system.', '')
-                                |trim
+                                | replace('[NEW_DEED_REQUEST]', '')
+                                | replace('[NEW DEED REQUEST]', '')
+                                | replace('[NEW DEED NUMBER REQUEST]', '')
+                                | replace('This deed number is not currently in the system.', '')
+                                | trim
                             %}
 
                             <tr>
@@ -151,17 +177,34 @@
                                         <span class="deed-badge">{{ req['deed_number'] }}</span>
 
                                         {% if is_new_deed_request %}
-                                        <span class="deed-kind new">
-                                            <i class="fa-solid fa-circle-plus"></i>
-                                            New deed number
-                                        </span>
-                                        <small class="deed-help">Not currently in the system</small>
+                                            {% if status_text == 'Approved' %}
+                                            <span class="deed-kind created">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                                New deed created
+                                            </span>
+                                            <small class="deed-help success-text">Now available in the system</small>
+
+                                            {% elif status_text == 'Rejected' %}
+                                            <span class="deed-kind rejected-kind">
+                                                <i class="fa-solid fa-circle-xmark"></i>
+                                                New deed rejected
+                                            </span>
+                                            <small class="deed-help danger-text">Not added to the system</small>
+
+                                            {% else %}
+                                            <span class="deed-kind new">
+                                                <i class="fa-solid fa-circle-plus"></i>
+                                                New deed number
+                                            </span>
+                                            <small class="deed-help warning-text">Waiting to be added</small>
+                                            {% endif %}
+
                                         {% else %}
-                                        <span class="deed-kind existing">
-                                            <i class="fa-solid fa-circle-check"></i>
-                                            Current deed number
-                                        </span>
-                                        <small class="deed-help">Existing system deed</small>
+                                            <span class="deed-kind existing">
+                                                <i class="fa-solid fa-circle-check"></i>
+                                                Current deed number
+                                            </span>
+                                            <small class="deed-help">Existing system deed</small>
                                         {% endif %}
                                     </div>
                                 </td>
@@ -195,14 +238,14 @@
                                 </td>
 
                                 <td>
-                                    {% if req['status'] == 'Pending' %}
+                                    {% if status_text == 'Pending' or status_text == 'Pending New Deed Review' %}
                                     <span class="status-badge pending">Pending</span>
-                                    {% elif req['status'] == 'Approved' %}
+                                    {% elif status_text == 'Approved' %}
                                     <span class="status-badge approved">Approved</span>
-                                    {% elif req['status'] == 'Rejected' %}
+                                    {% elif status_text == 'Rejected' %}
                                     <span class="status-badge rejected">Rejected</span>
                                     {% else %}
-                                    <span class="status-badge neutral">{{ req['status'] }}</span>
+                                    <span class="status-badge neutral">{{ status_text }}</span>
                                     {% endif %}
                                 </td>
 
@@ -221,7 +264,7 @@
                                 </td>
 
                                 <td class="actions-cell">
-                                    {% if req['status'] == 'Pending' %}
+                                    {% if status_text == 'Pending' or status_text == 'Pending New Deed Review' %}
                                     <div class="action-stack">
                                         <form
                                             action="{{ url_for('admin.approve_transaction_history_request', request_id=req['request_id']) }}"
@@ -277,6 +320,7 @@
                     </table>
                 </div>
             </section>
+
         </main>
     </div>
 </body>
