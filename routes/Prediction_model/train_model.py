@@ -96,8 +96,8 @@ def load_data():
     data = data[data["land_size"] >= 6]
     data = data[data["price"] > 0]
     data = data[data["distance_to_city"] >= 0]
-    data = data[data["access_road_size"].isin([10, 12, 15, 20, 25])]
-
+    data = data[data["access_road_size"] > 0]
+    
     data["electricity"] = data["electricity"].clip(0, 1).astype(int)
     data["water"] = data["water"].clip(0, 1).astype(int)
     data["flood_risk"] = data["flood_risk"].clip(0, 1).astype(int)

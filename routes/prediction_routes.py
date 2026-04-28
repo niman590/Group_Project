@@ -9,6 +9,12 @@ from reportlab.pdfbase.pdfmetrics import stringWidth
 
 from database.db_connection import get_connection
 from routes.Prediction_model.predict_value import predict_land_value
+from routes.Prediction_model.gis_utils import (
+    find_nearest_supported_city,
+    reverse_geocode_openstreetmap,
+    estimate_flood_risk_basic
+)
+
 
 prediction_bp = Blueprint("prediction", __name__)
 
@@ -24,20 +30,29 @@ def to_binary(value):
     return 0
 
 
-def validate_land_inputs(data):
+def validate_old_land_inputs(data):
     try:
+        publication_year = int(data.get("publication_year", datetime.now().year))
         land_size = float(data["land_size"])
-        access_road_size = int(data["access_road_size"])
+        access_road_size = float(data["access_road_size"])
         distance_to_city = float(data["distance_to_city"])
     except (KeyError, TypeError, ValueError):
         return None, jsonify({"error": "Invalid or missing numeric input values."}), 400
 
-    if land_size <= 0 or access_road_size <= 0 or distance_to_city < 0:
-        return None, jsonify({
-            "error": "Land size and access road size must be greater than 0, and distance cannot be negative."
-        }), 400
+    if publication_year < 2014 or publication_year > 2035:
+        return None, jsonify({"error": "Publication year must be between 2014 and 2035."}), 400
+
+    if land_size < 6:
+        return None, jsonify({"error": "Land size must be 6 perches or more."}), 400
+
+    if access_road_size <= 0:
+        return None, jsonify({"error": "Access road size must be greater than 0 feet."}), 400
+
+    if distance_to_city < 0:
+        return None, jsonify({"error": "Distance cannot be negative."}), 400
 
     cleaned_data = {
+        "publication_year": publication_year,
         "land_size": land_size,
         "access_road_size": access_road_size,
         "location": str(data.get("location", "")).strip(),
@@ -45,7 +60,10 @@ def validate_land_inputs(data):
         "zone_type": str(data.get("zone_type", "")).strip(),
         "electricity": to_binary(data.get("electricity", 0)),
         "water": to_binary(data.get("water", 0)),
-        "flood_risk": to_binary(data.get("flood_risk", 0))
+        "flood_risk": to_binary(data.get("flood_risk", 0)),
+        "latitude": data.get("latitude"),
+        "longitude": data.get("longitude"),
+        "address": data.get("address", "")
     }
 
     if not cleaned_data["location"]:
@@ -57,11 +75,68 @@ def validate_land_inputs(data):
     return cleaned_data, None, None
 
 
+def validate_gis_land_inputs(data):
+    try:
+        publication_year = datetime.now().year
+        land_size = float(data["land_size"])
+        access_road_size = float(data["access_road_size"])
+        latitude = float(data["latitude"])
+        longitude = float(data["longitude"])
+    except (KeyError, TypeError, ValueError):
+        return None, jsonify({"error": "Invalid or missing input values."}), 400
+
+    if land_size < 6:
+        return None, jsonify({"error": "Land size must be 6 perches or more."}), 400
+
+    if access_road_size <= 0:
+        return None, jsonify({"error": "Access road size must be greater than 0 feet."}), 400
+
+    zone_type = str(data.get("zone_type", "")).strip()
+    if not zone_type:
+        return None, jsonify({"error": "Zone type is required."}), 400
+
+    nearest_city_result = find_nearest_supported_city(latitude, longitude)
+
+    if not nearest_city_result.get("success"):
+        return None, jsonify({
+            "error": nearest_city_result.get("error", "Selected location is not supported."),
+            "nearest_supported_city": nearest_city_result.get("nearest_city"),
+            "distance_to_city_km": nearest_city_result.get("distance_to_city")
+        }), 400
+
+    location = nearest_city_result["nearest_city"]
+    distance_to_city = nearest_city_result["distance_to_city"]
+
+    if "flood_risk" in data and data.get("flood_risk") not in [None, ""]:
+        flood_risk = to_binary(data.get("flood_risk"))
+    else:
+        flood_risk = estimate_flood_risk_basic(latitude, longitude)
+
+    address_result = reverse_geocode_openstreetmap(latitude, longitude)
+
+    cleaned_data = {
+        "publication_year": publication_year,
+        "land_size": land_size,
+        "access_road_size": access_road_size,
+        "location": location,
+        "distance_to_city": distance_to_city,
+        "zone_type": zone_type,
+        "electricity": to_binary(data.get("electricity", 0)),
+        "water": to_binary(data.get("water", 0)),
+        "flood_risk": flood_risk,
+        "latitude": latitude,
+        "longitude": longitude,
+        "address": address_result.get("address") or ""
+    }
+
+    return cleaned_data, None, None
+
+
 def save_prediction_for_user(user_id, cleaned_data, result):
     conn = get_connection()
     cursor = conn.cursor()
 
-    property_address = cleaned_data["location"] if cleaned_data["location"] else "Unknown Location"
+    address = cleaned_data.get("address") or cleaned_data.get("location") or "Unknown Location"
     property_size = cleaned_data["land_size"]
     predicted_value = float(result["current_value"])
 
@@ -75,7 +150,7 @@ def save_prediction_for_user(user_id, cleaned_data, result):
         ORDER BY property_id DESC
         LIMIT 1
         """,
-        (user_id, property_address, property_size),
+        (user_id, address, property_size),
     )
     existing_property = cursor.fetchone()
 
@@ -101,7 +176,7 @@ def save_prediction_for_user(user_id, cleaned_data, result):
             )
             VALUES (?, ?, ?, ?)
             """,
-            (user_id, predicted_value, property_size, property_address),
+            (user_id, predicted_value, property_size, address),
         )
         property_id = cursor.lastrowid
 
@@ -122,6 +197,96 @@ def save_prediction_for_user(user_id, cleaned_data, result):
     return property_id
 
 
+@prediction_bp.route("/api/valuation/gis-check", methods=["POST"])
+def gis_check():
+    try:
+        data = request.get_json() or {}
+
+        latitude = float(data.get("latitude"))
+        longitude = float(data.get("longitude"))
+
+        nearest_city_result = find_nearest_supported_city(latitude, longitude)
+        address_result = reverse_geocode_openstreetmap(latitude, longitude)
+
+        if not nearest_city_result.get("success"):
+            return jsonify({
+                "success": False,
+                "error": nearest_city_result.get("error"),
+                "latitude": latitude,
+                "longitude": longitude,
+                "address": address_result.get("address"),
+                "nearest_supported_city": nearest_city_result.get("nearest_city"),
+                "distance_to_city_km": nearest_city_result.get("distance_to_city")
+            }), 400
+
+        return jsonify({
+            "success": True,
+            "latitude": latitude,
+            "longitude": longitude,
+            "address": address_result.get("address"),
+            "nearest_supported_city": nearest_city_result["nearest_city"],
+            "distance_to_city_km": nearest_city_result["distance_to_city"]
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@prediction_bp.route("/api/valuation/estimate", methods=["POST"])
+def estimate_land_value():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "You must be logged in to save land valuations."}), 401
+
+    data = request.get_json() or {}
+
+    cleaned_data, error_response, status_code = validate_gis_land_inputs(data)
+    if error_response:
+        return error_response, status_code
+
+    result = predict_land_value(
+        publication_year=cleaned_data["publication_year"],
+        land_size=cleaned_data["land_size"],
+        access_road_size=cleaned_data["access_road_size"],
+        location=cleaned_data["location"],
+        distance_to_city=cleaned_data["distance_to_city"],
+        zone_type=cleaned_data["zone_type"],
+        electricity=cleaned_data["electricity"],
+        water=cleaned_data["water"],
+        flood_risk=cleaned_data["flood_risk"]
+    )
+
+    if "error" in result:
+        return jsonify({
+            "success": False,
+            "error": result["error"]
+        }), 400
+
+    property_id = save_prediction_for_user(user_id, cleaned_data, result)
+
+    result["saved"] = True
+    result["property_id"] = property_id
+    result["message"] = "Land valuation saved successfully."
+
+    return jsonify({
+        "success": True,
+        "input_location": {
+            "latitude": cleaned_data["latitude"],
+            "longitude": cleaned_data["longitude"],
+            "address": cleaned_data["address"]
+        },
+        "gis_result": {
+            "nearest_supported_city": cleaned_data["location"],
+            "distance_to_city_km": cleaned_data["distance_to_city"],
+            "flood_risk": cleaned_data["flood_risk"]
+        },
+        "valuation": result
+    }), 200
+
+
 @prediction_bp.route("/predict-land-value", methods=["POST"])
 def predict_land():
     user_id = session.get("user_id")
@@ -130,14 +295,12 @@ def predict_land():
 
     data = request.get_json() or {}
 
-    cleaned_data, error_response, status_code = validate_land_inputs(data)
+    cleaned_data, error_response, status_code = validate_old_land_inputs(data)
     if error_response:
         return error_response, status_code
 
-    current_year = datetime.now().year
-
     result = predict_land_value(
-        publication_year=current_year,
+        publication_year=cleaned_data["publication_year"],
         land_size=cleaned_data["land_size"],
         access_road_size=cleaned_data["access_road_size"],
         location=cleaned_data["location"],
@@ -213,14 +376,16 @@ def draw_result_box(pdf, title, value, x, y, width, height, fill_color, text_col
 def download_land_valuation_pdf():
     data = request.get_json() or {}
 
-    cleaned_data, error_response, status_code = validate_land_inputs(data)
+    if data.get("latitude") not in [None, ""] and data.get("longitude") not in [None, ""]:
+        cleaned_data, error_response, status_code = validate_gis_land_inputs(data)
+    else:
+        cleaned_data, error_response, status_code = validate_old_land_inputs(data)
+
     if error_response:
         return error_response, status_code
 
-    current_year = datetime.now().year
-
     result = predict_land_value(
-        publication_year=current_year,
+        publication_year=cleaned_data["publication_year"],
         land_size=cleaned_data["land_size"],
         access_road_size=cleaned_data["access_road_size"],
         location=cleaned_data["location"],
@@ -271,7 +436,7 @@ def download_land_valuation_pdf():
     )
 
     card_y_top = height - 120
-    card_height = 60
+    card_height = 75
 
     pdf.setFillColor(colors.white)
     pdf.roundRect(margin, card_y_top - card_height, width - (2 * margin), card_height, 10, fill=1, stroke=0)
@@ -291,39 +456,56 @@ def download_land_valuation_pdf():
         f"Location: {cleaned_data['location']}   |   Zone: {cleaned_data['zone_type']}   |   Land Size: {cleaned_data['land_size']} perches"
     )
 
-    details_top = card_y_top - 90
+    if cleaned_data.get("address"):
+        draw_wrapped_text(
+            pdf,
+            f"Address: {cleaned_data['address']}",
+            margin + 16,
+            card_y_top - 58,
+            width - (2 * margin) - 32,
+            font_name="Helvetica",
+            font_size=8.5,
+            line_gap=11
+        )
+
+    details_top = card_y_top - 105
 
     pdf.setFillColor(primary_dark)
-    pdf.roundRect(margin, details_top - 255, width - (2 * margin), 255, 10, fill=0, stroke=0)
+    pdf.roundRect(margin, details_top - 285, width - (2 * margin), 285, 10, fill=0, stroke=0)
 
     pdf.setFillColor(section_bg)
-    pdf.roundRect(margin, details_top - 255, width - (2 * margin), 255, 10, fill=1, stroke=0)
+    pdf.roundRect(margin, details_top - 285, width - (2 * margin), 285, 10, fill=1, stroke=0)
 
     pdf.setStrokeColor(border_color)
-    pdf.roundRect(margin, details_top - 255, width - (2 * margin), 255, 10, fill=0, stroke=1)
+    pdf.roundRect(margin, details_top - 285, width - (2 * margin), 285, 10, fill=0, stroke=1)
 
     pdf.setFillColor(primary)
     pdf.setFont("Helvetica-Bold", 14)
     pdf.drawString(margin + 16, details_top - 22, "Land Details")
 
     left_x_label = margin + 18
-    left_x_value = margin + 180
+    left_x_value = margin + 200
     y = details_top - 52
 
     electricity_text = "Available" if cleaned_data["electricity"] == 1 else "Not Available"
     water_text = "Available" if cleaned_data["water"] == 1 else "Not Available"
     flood_text = "High" if cleaned_data["flood_risk"] == 1 else "Low"
 
+    y = draw_label_value_row(pdf, "Publication Year", cleaned_data["publication_year"], left_x_label, left_x_value, y)
     y = draw_label_value_row(pdf, "Land Size (Perches)", cleaned_data["land_size"], left_x_label, left_x_value, y)
     y = draw_label_value_row(pdf, "Access Road Size (ft)", cleaned_data["access_road_size"], left_x_label, left_x_value, y)
-    y = draw_label_value_row(pdf, "Location", cleaned_data["location"], left_x_label, left_x_value, y)
+    y = draw_label_value_row(pdf, "Nearest Supported City", cleaned_data["location"], left_x_label, left_x_value, y)
     y = draw_label_value_row(pdf, "Distance to Nearest City (km)", cleaned_data["distance_to_city"], left_x_label, left_x_value, y)
     y = draw_label_value_row(pdf, "Zone Type", cleaned_data["zone_type"], left_x_label, left_x_value, y)
     y = draw_label_value_row(pdf, "Electricity", electricity_text, left_x_label, left_x_value, y)
     y = draw_label_value_row(pdf, "Water", water_text, left_x_label, left_x_value, y)
     y = draw_label_value_row(pdf, "Flood Risk", flood_text, left_x_label, left_x_value, y)
 
-    results_top = details_top - 290
+    if cleaned_data.get("latitude") and cleaned_data.get("longitude"):
+        y = draw_label_value_row(pdf, "Latitude", cleaned_data["latitude"], left_x_label, left_x_value, y)
+        y = draw_label_value_row(pdf, "Longitude", cleaned_data["longitude"], left_x_label, left_x_value, y)
+
+    results_top = details_top - 320
 
     pdf.setFillColor(primary)
     pdf.setFont("Helvetica-Bold", 14)
@@ -381,9 +563,9 @@ def download_land_valuation_pdf():
 
     pdf.setFillColor(text_dark)
     note_text = (
-        "This valuation is an estimated result based on historical data and "
-        "location-specific growth trends. It does not replace an official "
-        "government valuation report."
+        "This valuation is an estimated result based on historical data, GIS location, "
+        "infrastructure details, and location-specific growth trends. It does not replace "
+        "an official government valuation report."
     )
 
     draw_wrapped_text(

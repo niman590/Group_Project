@@ -35,7 +35,7 @@ def predict_land_value(
     try:
         publication_year = int(publication_year)
         land_size = float(land_size)
-        access_road_size = int(access_road_size)
+        access_road_size = float(access_road_size)
         distance_to_city = float(distance_to_city)
         electricity = int(electricity)
         water = int(water)
@@ -52,8 +52,8 @@ def predict_land_value(
     if distance_to_city < 0:
         return {"error": "Distance cannot be negative."}
 
-    if access_road_size < 10:
-        return {"error": "Access road size must be at least 10 feet."}
+    if access_road_size <= 0:
+        return {"error": "Access road size must be greater than 0 feet."}
 
     if electricity not in [0, 1] or water not in [0, 1] or flood_risk not in [0, 1]:
         return {"error": "Electricity, water, and flood_risk must be 0 or 1."}
@@ -78,7 +78,6 @@ def predict_land_value(
     predicted_log_pp = model.predict(input_df)[0]
     predicted_price_per_perch = float(np.expm1(predicted_log_pp))
 
-    # Safety floor
     predicted_price_per_perch = max(predicted_price_per_perch, 100000)
 
     current_value = predicted_price_per_perch * land_size
