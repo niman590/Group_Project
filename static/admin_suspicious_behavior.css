@@ -96,6 +96,7 @@
         opacity: 0;
         transform: translateY(-10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -106,27 +107,56 @@
    Filter section
    ========================================================= */
 
+.security-filter-panel {
+    background: #f7faff;
+    border: 1px solid #d8e3f0;
+    border-radius: 22px;
+    padding: 1.4rem 1.5rem 1.35rem;
+    box-shadow: 0 6px 18px rgba(18, 53, 102, 0.05);
+}
+
+.security-filter-panel .section-head {
+    margin-bottom: 1rem;
+}
+
+.security-filter-panel .section-head h2 {
+    margin-bottom: 0.35rem;
+}
+
+.security-filter-panel .section-head p {
+    margin: 0;
+}
+
 .security-filter-form {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.15rem;
 }
 
 .filter-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 1.15rem 1.35rem;
+    align-items: start;
 }
 
 .filter-field {
     display: flex;
     flex-direction: column;
-    gap: 0.45rem;
+    gap: 0.5rem;
+}
+
+.filter-field:not(.date-field) {
+    grid-column: span 2;
+}
+
+.date-field {
+    grid-column: span 3;
 }
 
 .filter-field label {
     font-size: 0.92rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--cp-primary);
 }
 
@@ -155,11 +185,39 @@
     background: #fcfdff;
 }
 
+.date-select-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    width: 100%;
+    max-width: none;
+}
+
+.date-select-row select {
+    width: 100%;
+    min-height: 48px;
+    min-width: 0;
+    border: 1px solid var(--cp-border);
+    border-radius: 14px;
+    padding: 0 0.9rem;
+    font-size: 0.95rem;
+    color: var(--cp-primary);
+    background: #fff;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.date-select-row select:focus {
+    border-color: #9eb9e8;
+    box-shadow: 0 0 0 4px rgba(23, 63, 130, 0.08);
+    background: #fcfdff;
+}
+
 .filter-actions {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-top: 0.25rem;
+    margin-top: 0.1rem;
 }
 
 .btn-reset-link {
@@ -539,6 +597,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -549,6 +608,7 @@
         opacity: 0;
         transform: translateY(10px) scale(0.98);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -612,7 +672,15 @@
 
 @media (max-width: 1280px) {
     .filter-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .filter-field:not(.date-field) {
+        grid-column: span 2;
+    }
+
+    .date-field {
+        grid-column: span 3;
     }
 
     .security-layout {
@@ -636,6 +704,16 @@
         grid-template-columns: 1fr;
     }
 
+    .filter-field:not(.date-field),
+    .date-field {
+        grid-column: span 1;
+    }
+
+    .date-select-row {
+        grid-template-columns: 1fr;
+        max-width: none;
+    }
+
     .filter-actions {
         flex-direction: column;
         align-items: stretch;
@@ -657,8 +735,22 @@
 }
 
 @media (max-width: 768px) {
+    .security-filter-panel {
+        padding: 1rem;
+        border-radius: 18px;
+    }
+
     .filter-grid {
         grid-template-columns: 1fr;
+    }
+
+    .date-field {
+        grid-column: span 1;
+    }
+
+    .date-select-row {
+        grid-template-columns: 1fr;
+        max-width: none;
     }
 
     .flash-alert {
