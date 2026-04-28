@@ -948,17 +948,42 @@ def get_application_status_chart(cursor, start_date="", end_date=""):
     return build_chart_image(labels, values, "Planning Application Status", kind="pie")
 
 
-def get_land_valuation_area_options(cursor):
-    rows = safe_fetchall(
-        cursor,
-        """
-        SELECT DISTINCT TRIM(COALESCE(property_address, '')) AS area_name
-        FROM property
-        WHERE TRIM(COALESCE(property_address, '')) <> ''
-        ORDER BY area_name ASC
-        """,
-    )
-    return [row["area_name"] for row in rows]
+SUPPORTED_VALUATION_AREAS = [
+    "Ragama",
+    "Rajagiriya",
+    "Malabe",
+    "Ja-Ela",
+    "Kelaniya",
+    "Kadana",
+    "Kadawatha",
+    "Kaduwela",
+]
+
+
+def get_land_valuation_area_options(cursor=None):
+    """
+    Fixed valuation model areas only.
+    Do not use full saved property addresses in the dashboard dropdown.
+    """
+    return SUPPORTED_VALUATION_AREAS.copy()
+
+
+def get_land_valuation_area_case_expression(property_alias="p"):
+    address_expr = f"LOWER(TRIM(COALESCE({property_alias}.property_address, '')))"
+
+    return f"""
+        CASE
+            WHEN {address_expr} LIKE '%ragama%' THEN 'Ragama'
+            WHEN {address_expr} LIKE '%rajagiriya%' THEN 'Rajagiriya'
+            WHEN {address_expr} LIKE '%malabe%' THEN 'Malabe'
+            WHEN {address_expr} LIKE '%ja-ela%' OR {address_expr} LIKE '%ja ela%' THEN 'Ja-Ela'
+            WHEN {address_expr} LIKE '%kelaniya%' THEN 'Kelaniya'
+            WHEN {address_expr} LIKE '%kadana%' OR {address_expr} LIKE '%kandana%' THEN 'Kadana'
+            WHEN {address_expr} LIKE '%kadawatha%' THEN 'Kadawatha'
+            WHEN {address_expr} LIKE '%kaduwela%' THEN 'Kaduwela'
+            ELSE NULL
+        END
+    """
 
 
 def _format_land_valuation_label(period_start, granularity):
@@ -972,14 +997,23 @@ def _format_land_valuation_label(period_start, granularity):
 
 
 def get_land_valuation_trend_rows(cursor, granularity="monthly", area="all"):
+    if granularity not in {"weekly", "monthly"}:
+        granularity = "monthly"
+
+    if area not in SUPPORTED_VALUATION_AREAS and area != "all":
+        area = "all"
+
     date_column = "date(COALESCE(vp.prediction_date, p.created_at))"
 
     if granularity == "weekly":
         period_expression = (
-            f"date({date_column}, '-' || ((CAST(strftime('%w', {date_column}) AS INTEGER) + 6) % 7) || ' days')"
+            f"date({date_column}, '-' || "
+            f"((CAST(strftime('%w', {date_column}) AS INTEGER) + 6) % 7) || ' days')"
         )
     else:
         period_expression = f"date(strftime('%Y-%m-01', {date_column}))"
+
+    area_expression = get_land_valuation_area_case_expression("p")
 
     query = f"""
         SELECT
@@ -988,12 +1022,15 @@ def get_land_valuation_trend_rows(cursor, granularity="monthly", area="all"):
             COUNT(*) AS record_count
         FROM value_prediction vp
         JOIN property p ON p.property_id = vp.property_id
-        WHERE 1=1
+        WHERE {area_expression} IS NOT NULL
     """
 
     params = []
+
     if area and area != "all":
-        query += " AND TRIM(COALESCE(p.property_address, '')) = ?"
+        query += f"""
+            AND {area_expression} = ?
+        """
         params.append(area)
 
     query += f"""
@@ -1007,6 +1044,7 @@ def get_land_valuation_trend_rows(cursor, granularity="monthly", area="all"):
     for row in rows:
         period_start = row["period_start"]
         average_value = float(row["average_value"] or 0)
+
         formatted_rows.append({
             "period_start": period_start,
             "label": _format_land_valuation_label(period_start, granularity),
@@ -1019,12 +1057,14 @@ def get_land_valuation_trend_rows(cursor, granularity="monthly", area="all"):
 
 def _add_periods(period_start, granularity, steps):
     base_date = datetime.strptime(period_start, "%Y-%m-%d")
+
     if granularity == "weekly":
         return (base_date + timedelta(days=(7 * steps))).strftime("%Y-%m-%d")
 
     month_index = (base_date.month - 1) + steps
     year = base_date.year + (month_index // 12)
     month = (month_index % 12) + 1
+
     return f"{year:04d}-{month:02d}-01"
 
 
@@ -1049,26 +1089,36 @@ def build_land_valuation_forecast(trend_rows, granularity="monthly"):
         x_mean = sum(x_values) / n
         y_mean = sum(actual_values) / n
 
-        numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(x_values, actual_values))
+        numerator = sum(
+            (x - x_mean) * (y - y_mean)
+            for x, y in zip(x_values, actual_values)
+        )
         denominator = sum((x - x_mean) ** 2 for x in x_values)
+
         slope = (numerator / denominator) if denominator else 0
         intercept = y_mean - (slope * x_mean)
 
     forecast_steps = 4 if granularity == "weekly" else 3
     last_period = trend_rows[-1]["period_start"]
+
     forecast_labels = []
     forecast_values = []
 
     for step in range(1, forecast_steps + 1):
         future_period = _add_periods(last_period, granularity, step)
         forecast_labels.append(_format_land_valuation_label(future_period, granularity))
+
         projected_value = max(0, intercept + (slope * (n - 1 + step)))
         forecast_values.append(round(projected_value, 2))
 
     latest_value = actual_values[-1]
+
     latest_change_percent = None
     if len(actual_values) >= 2 and actual_values[-2] not in (0, None):
-        latest_change_percent = round(((actual_values[-1] - actual_values[-2]) / actual_values[-2]) * 100, 2)
+        latest_change_percent = round(
+            ((actual_values[-1] - actual_values[-2]) / actual_values[-2]) * 100,
+            2
+        )
 
     return {
         "forecast_labels": forecast_labels,
@@ -1080,30 +1130,41 @@ def build_land_valuation_forecast(trend_rows, granularity="monthly"):
 
 
 def get_land_valuation_chart_payload(cursor, granularity="monthly", area="all"):
+    if granularity not in {"weekly", "monthly"}:
+        granularity = "monthly"
+
+    if area not in SUPPORTED_VALUATION_AREAS and area != "all":
+        area = "all"
+
     trend_rows = get_land_valuation_trend_rows(cursor, granularity, area)
     forecast_bundle = build_land_valuation_forecast(trend_rows, granularity)
-    available_areas = get_land_valuation_area_options(cursor)
 
     labels = [row["label"] for row in trend_rows] + forecast_bundle["forecast_labels"]
     historical_series = [row["average_value"] for row in trend_rows]
-    forecast_series = []
 
+    forecast_series = []
     if trend_rows:
         forecast_series = [None] * max(len(historical_series) - 1, 0)
         forecast_series.append(historical_series[-1])
         forecast_series.extend(forecast_bundle["forecast_values"])
 
-    payload = {
+    return {
         "granularity": granularity,
         "selected_area": area,
-        "available_areas": available_areas,
+        "available_areas": get_land_valuation_area_options(cursor),
         "labels": labels,
         "historical_values": historical_series + ([None] * len(forecast_bundle["forecast_values"])),
         "forecast_values": forecast_series,
         "historical_points": trend_rows,
         "forecast_points": [
-            {"label": label, "average_value": value}
-            for label, value in zip(forecast_bundle["forecast_labels"], forecast_bundle["forecast_values"])
+            {
+                "label": label,
+                "average_value": value
+            }
+            for label, value in zip(
+                forecast_bundle["forecast_labels"],
+                forecast_bundle["forecast_values"]
+            )
         ],
         "latest_value": forecast_bundle["latest_value"],
         "latest_change_percent": forecast_bundle["latest_change_percent"],
@@ -1111,8 +1172,6 @@ def get_land_valuation_chart_payload(cursor, granularity="monthly", area="all"):
         "has_data": bool(trend_rows),
         "forecast_period_label": "weeks" if granularity == "weekly" else "months",
     }
-
-    return payload
 
 
 def get_security_overview(cursor, start_date="", end_date=""):
@@ -2139,6 +2198,127 @@ def toggle_user_status(user_id):
     return redirect(url_for("admin.admin_users"))
 
 
+NEW_DEED_NOTE_MARKERS = [
+    "[NEW_DEED_REQUEST]",
+    "[NEW DEED REQUEST]",
+    "[NEW DEED NUMBER REQUEST]",
+    "This deed number is not currently in the system.",
+    "not currently in the system",
+]
+
+
+def clean_request_note(raw_note):
+    note = (raw_note or "").strip()
+
+    replacements = [
+        "[NEW_DEED_REQUEST]",
+        "[NEW DEED REQUEST]",
+        "[NEW DEED NUMBER REQUEST]",
+        "This deed number is not currently in the system.",
+    ]
+
+    for text in replacements:
+        note = note.replace(text, "")
+
+    return note.strip()
+
+
+def is_new_deed_number_request(req):
+    status = (req["status"] or "").strip()
+    notes = (req["notes"] or "").strip()
+
+    if status == "Pending New Deed Review":
+        return True
+
+    lowered_notes = notes.lower()
+
+    for marker in NEW_DEED_NOTE_MARKERS:
+        if marker.lower() in lowered_notes:
+            return True
+
+    return False
+
+
+def get_next_ownership_order(cursor, land_id):
+    cursor.execute(
+        """
+        SELECT COALESCE(MAX(ownership_order), 0) AS max_order
+        FROM ownership_history
+        WHERE land_id = ?
+        """,
+        (land_id,),
+    )
+    row = cursor.fetchone()
+    return (row["max_order"] if row else 0) + 1
+
+
+def insert_ownership_history(
+    cursor,
+    land_id,
+    owner_name,
+    owner_nic,
+    owner_address,
+    owner_phone,
+    transfer_date,
+    transaction_type,
+    ownership_order,
+):
+    cursor.execute(
+        """
+        INSERT INTO ownership_history (
+            land_id,
+            owner_name,
+            owner_nic,
+            owner_address,
+            owner_phone,
+            transfer_date,
+            transaction_type,
+            ownership_order
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            land_id,
+            owner_name,
+            owner_nic,
+            owner_address,
+            owner_phone,
+            transfer_date,
+            transaction_type,
+            ownership_order,
+        ),
+    )
+
+
+def create_new_land_record_from_request(cursor, req):
+    deed_number = (req["deed_number"] or "").strip()
+    proposed_owner_name = (req["proposed_owner_name"] or "").strip()
+    proposed_owner_address = (req["proposed_owner_address"] or "").strip()
+
+    property_address = proposed_owner_address or "Address to be verified"
+    location = proposed_owner_address or "Location to be verified"
+
+    cursor.execute(
+        """
+        INSERT INTO land_record (
+            deed_number,
+            property_address,
+            location,
+            current_owner_name
+        )
+        VALUES (?, ?, ?, ?)
+        """,
+        (
+            deed_number,
+            property_address,
+            location,
+            proposed_owner_name,
+        ),
+    )
+
+    return cursor.lastrowid
+
+
 @admin_bp.route("/admin/transaction-history-requests")
 def admin_transaction_history_requests():
     admin_user, redirect_response = admin_required()
@@ -2180,7 +2360,8 @@ def approve_transaction_history_request(request_id):
         """
         SELECT *
         FROM transaction_history_update_request
-        WHERE request_id = ? AND status IN ('Pending', 'Pending New Deed Review')
+        WHERE request_id = ?
+          AND status IN ('Pending', 'Pending New Deed Review')
         """,
         (request_id,),
     )
@@ -2198,89 +2379,51 @@ def approve_transaction_history_request(request_id):
     proposed_owner_phone = (req["proposed_owner_phone"] or "").strip()
     proposed_transfer_date = (req["proposed_transfer_date"] or "").strip()
     proposed_transaction_type = (req["proposed_transaction_type"] or "").strip() or "Transfer"
-    notes = (req["notes"] or "").strip()
 
-    cursor.execute("SELECT land_id FROM land_record WHERE deed_number = ?", (deed_number,))
-    land = cursor.fetchone()
+    if not deed_number:
+        conn.close()
+        flash("Cannot approve request because deed number is missing.", "error")
+        return redirect(url_for("admin.admin_transaction_history_requests"))
+
+    if not proposed_owner_name:
+        conn.close()
+        flash("Cannot approve request because proposed owner name is missing.", "error")
+        return redirect(url_for("admin.admin_transaction_history_requests"))
+
+    if not proposed_transfer_date:
+        conn.close()
+        flash("Cannot approve request because transfer date is missing.", "error")
+        return redirect(url_for("admin.admin_transaction_history_requests"))
 
     reviewed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    is_new_deed_request = "[NEW_DEED_REQUEST]" in notes or req["status"] == "Pending New Deed Review"
+
+    cursor.execute(
+        """
+        SELECT land_id
+        FROM land_record
+        WHERE deed_number = ?
+        """,
+        (deed_number,),
+    )
+    existing_land = cursor.fetchone()
+
+    new_deed_request = is_new_deed_number_request(req)
 
     try:
-        if not land:
-            if not is_new_deed_request:
-                conn.close()
-                flash("No matching land record found for this request.", "error")
-                return redirect(url_for("admin.admin_transaction_history_requests"))
+        if existing_land:
+            land_id = existing_land["land_id"]
+            ownership_order = get_next_ownership_order(cursor, land_id)
 
-            cursor.execute(
-                """
-                INSERT INTO land_record (
-                    deed_number, property_address, location, current_owner_name
-                )
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    deed_number,
-                    proposed_owner_address or "Address to be verified",
-                    proposed_owner_address or "Location to be verified",
-                    proposed_owner_name,
-                ),
-            )
-            land_id = cursor.lastrowid
-
-            cursor.execute(
-                """
-                INSERT INTO ownership_history (
-                    land_id, owner_name, owner_nic, owner_address, owner_phone,
-                    transfer_date, transaction_type, ownership_order
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    land_id,
-                    proposed_owner_name,
-                    proposed_owner_nic,
-                    proposed_owner_address,
-                    proposed_owner_phone,
-                    proposed_transfer_date,
-                    proposed_transaction_type if proposed_transaction_type != "Transfer" else "New Registration",
-                    1,
-                ),
-            )
-
-        else:
-            land_id = land["land_id"]
-
-            cursor.execute(
-                """
-                SELECT COALESCE(MAX(ownership_order), 0) AS max_order
-                FROM ownership_history
-                WHERE land_id = ?
-                """,
-                (land_id,),
-            )
-            max_order_row = cursor.fetchone()
-            next_order = (max_order_row["max_order"] if max_order_row else 0) + 1
-
-            cursor.execute(
-                """
-                INSERT INTO ownership_history (
-                    land_id, owner_name, owner_nic, owner_address, owner_phone,
-                    transfer_date, transaction_type, ownership_order
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    land_id,
-                    proposed_owner_name,
-                    proposed_owner_nic,
-                    proposed_owner_address,
-                    proposed_owner_phone,
-                    proposed_transfer_date,
-                    proposed_transaction_type,
-                    next_order,
-                ),
+            insert_ownership_history(
+                cursor=cursor,
+                land_id=land_id,
+                owner_name=proposed_owner_name,
+                owner_nic=proposed_owner_nic,
+                owner_address=proposed_owner_address,
+                owner_phone=proposed_owner_phone,
+                transfer_date=proposed_transfer_date,
+                transaction_type=proposed_transaction_type,
+                ownership_order=ownership_order,
             )
 
             cursor.execute(
@@ -2290,6 +2433,40 @@ def approve_transaction_history_request(request_id):
                 WHERE land_id = ?
                 """,
                 (proposed_owner_name, land_id),
+            )
+
+            success_message = "Current deed transaction request approved successfully."
+
+        else:
+            if not new_deed_request:
+                conn.close()
+                flash(
+                    "No matching deed number was found. This request was not marked as a new deed number request.",
+                    "error",
+                )
+                return redirect(url_for("admin.admin_transaction_history_requests"))
+
+            land_id = create_new_land_record_from_request(cursor, req)
+
+            insert_ownership_history(
+                cursor=cursor,
+                land_id=land_id,
+                owner_name=proposed_owner_name,
+                owner_nic=proposed_owner_nic,
+                owner_address=proposed_owner_address,
+                owner_phone=proposed_owner_phone,
+                transfer_date=proposed_transfer_date,
+                transaction_type=(
+                    proposed_transaction_type
+                    if proposed_transaction_type and proposed_transaction_type != "Transfer"
+                    else "New Registration"
+                ),
+                ownership_order=1,
+            )
+
+            success_message = (
+                "New deed number approved successfully. "
+                "A new deed record was created and added to ownership history."
             )
 
         cursor.execute(
@@ -2310,7 +2487,7 @@ def approve_transaction_history_request(request_id):
         )
 
         conn.commit()
-        flash("Transaction history request approved successfully.", "success")
+        flash(success_message, "success")
 
     except Exception as e:
         conn.rollback()
@@ -2329,6 +2506,11 @@ def reject_transaction_history_request(request_id):
         return redirect_response
 
     admin_comment = (request.form.get("admin_comment") or "").strip()
+
+    if not admin_comment:
+        flash("Please enter a reason for rejection.", "error")
+        return redirect(url_for("admin.admin_transaction_history_requests"))
+
     conn = get_connection()
     cursor = conn.cursor()
     reviewed_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -2340,10 +2522,22 @@ def reject_transaction_history_request(request_id):
             reviewed_by = ?,
             reviewed_at = ?,
             admin_comment = ?
-        WHERE request_id = ? AND status IN ('Pending', 'Pending New Deed Review')
+        WHERE request_id = ?
+          AND status IN ('Pending', 'Pending New Deed Review')
         """,
-        (admin_user["user_id"], reviewed_at, admin_comment, request_id),
+        (
+            admin_user["user_id"],
+            reviewed_at,
+            admin_comment,
+            request_id,
+        ),
     )
+
+    if cursor.rowcount == 0:
+        conn.rollback()
+        conn.close()
+        flash("Request not found or already processed.", "error")
+        return redirect(url_for("admin.admin_transaction_history_requests"))
 
     conn.commit()
     conn.close()
@@ -2361,7 +2555,7 @@ def admin_add_deed_page():
     return render_template(
         "admin_add_deed.html",
         user=admin_user,
-        active_page="add_deed"
+        active_page="add_deed",
     )
 
 
@@ -2401,17 +2595,19 @@ def admin_add_deed():
         return redirect(url_for("admin.admin_add_deed_page"))
 
     total_rows = len(owner_names)
+
     if not (
-        len(owner_nics) == total_rows and
-        len(owner_addresses) == total_rows and
-        len(owner_phones) == total_rows and
-        len(transfer_dates) == total_rows and
-        len(transaction_types) == total_rows
+        len(owner_nics) == total_rows
+        and len(owner_addresses) == total_rows
+        and len(owner_phones) == total_rows
+        and len(transfer_dates) == total_rows
+        and len(transaction_types) == total_rows
     ):
         flash("Owner rows are incomplete. Please check all transaction rows.", "error")
         return redirect(url_for("admin.admin_add_deed_page"))
 
     cleaned_history = []
+
     for i in range(total_rows):
         if not owner_names[i]:
             flash(f"Owner name is required for row {i + 1}.", "error")
@@ -2421,24 +2617,35 @@ def admin_add_deed():
             flash(f"Transfer date is required for row {i + 1}.", "error")
             return redirect(url_for("admin.admin_add_deed_page"))
 
-        tx_type = transaction_types[i] or ("Original Registration" if i == 0 else "Transfer")
+        transaction_type = transaction_types[i] or (
+            "Original Registration" if i == 0 else "Transfer"
+        )
 
-        cleaned_history.append({
-            "owner_name": owner_names[i],
-            "owner_nic": owner_nics[i],
-            "owner_address": owner_addresses[i],
-            "owner_phone": owner_phones[i],
-            "transfer_date": transfer_dates[i],
-            "transaction_type": tx_type,
-            "ownership_order": i + 1
-        })
+        cleaned_history.append(
+            {
+                "owner_name": owner_names[i],
+                "owner_nic": owner_nics[i],
+                "owner_address": owner_addresses[i],
+                "owner_phone": owner_phones[i],
+                "transfer_date": transfer_dates[i],
+                "transaction_type": transaction_type,
+                "ownership_order": i + 1,
+            }
+        )
 
     current_owner_name = cleaned_history[-1]["owner_name"]
 
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT land_id FROM land_record WHERE deed_number = ?", (deed_number,))
+    cursor.execute(
+        """
+        SELECT land_id
+        FROM land_record
+        WHERE deed_number = ?
+        """,
+        (deed_number,),
+    )
     existing_land = cursor.fetchone()
 
     if existing_land:
@@ -2450,7 +2657,10 @@ def admin_add_deed():
         cursor.execute(
             """
             INSERT INTO land_record (
-                deed_number, property_address, location, current_owner_name
+                deed_number,
+                property_address,
+                location,
+                current_owner_name
             )
             VALUES (?, ?, ?, ?)
             """,
@@ -2458,31 +2668,23 @@ def admin_add_deed():
                 deed_number,
                 property_address,
                 location,
-                current_owner_name
+                current_owner_name,
             ),
         )
 
         land_id = cursor.lastrowid
 
         for row in cleaned_history:
-            cursor.execute(
-                """
-                INSERT INTO ownership_history (
-                    land_id, owner_name, owner_nic, owner_address,
-                    owner_phone, transfer_date, transaction_type, ownership_order
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    land_id,
-                    row["owner_name"],
-                    row["owner_nic"],
-                    row["owner_address"],
-                    row["owner_phone"],
-                    row["transfer_date"],
-                    row["transaction_type"],
-                    row["ownership_order"]
-                ),
+            insert_ownership_history(
+                cursor=cursor,
+                land_id=land_id,
+                owner_name=row["owner_name"],
+                owner_nic=row["owner_nic"],
+                owner_address=row["owner_address"],
+                owner_phone=row["owner_phone"],
+                transfer_date=row["transfer_date"],
+                transaction_type=row["transaction_type"],
+                ownership_order=row["ownership_order"],
             )
 
         conn.commit()
@@ -2496,6 +2698,8 @@ def admin_add_deed():
         conn.close()
 
     return redirect(url_for("admin.admin_add_deed_page"))
+
+
 @admin_bp.route("/admin/users/<int:user_id>/make-admin", methods=["POST"])
 def make_admin(user_id):
     admin_user, redirect_response = admin_required()
