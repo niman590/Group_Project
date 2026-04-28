@@ -1,4 +1,5 @@
 import smtplib
+import os
 from email.message import EmailMessage
 
 from flask import Blueprint, render_template, redirect, url_for, request, jsonify
@@ -62,8 +63,8 @@ def drop_question():
 
     # Use your existing Gmail app password here.
     # Recommended: move this value to .env later instead of keeping it in code.
-    sender_email = "planapprovalsystem@gmail.com"
-    sender_password = "fikz sauz rsmz zkee"
+    sender_email = os.getenv("SMTP_EMAIL")
+    sender_password = os.getenv("SMTP_PASSWORD")
 
     email_body = f"""
 New question submitted from Civic Plan dashboard.

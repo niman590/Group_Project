@@ -1,4 +1,4 @@
-from database.security_utils import track_failed_login
+from database.security_utils import track_failed_login, validate_password_policy
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.routing import BuildError
@@ -68,15 +68,6 @@ def is_protected_system_admin(user):
         and "nic" in user.keys()
         and user["email"] == SYSTEM_ADMIN_EMAIL
         and user["nic"] == SYSTEM_ADMIN_NIC
-    )
-
-
-def is_strong_password(password):
-    return bool(
-        re.fullmatch(
-            r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$",
-            password or "",
-        )
     )
 
 
@@ -338,11 +329,10 @@ def register_post():
         flash("Phone number must contain exactly 10 digits.", "error")
         return redirect(url_for("auth.register"))
 
-    if not is_strong_password(password):
-        flash(
-            "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.",
-            "error",
-        )
+    password_ok, password_error = validate_password_policy(password)
+
+    if not password_ok:
+        flash(password_error, "error")
         return redirect(url_for("auth.register"))
 
     if password != confirm_password:
@@ -528,9 +518,11 @@ def change_password():
             flash("New password must be different from your current password.", "error")
             return render_template("change_password.html", user=user)
 
-        if not is_strong_password(new_password):
+        password_ok, password_error = validate_password_policy(new_password)
+
+        if not password_ok:
             conn.close()
-            flash("Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.", "error")
+            flash(password_error, "error")
             return render_template("change_password.html", user=user)
 
         new_password_hash = generate_password_hash(new_password)

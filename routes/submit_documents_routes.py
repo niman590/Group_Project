@@ -54,8 +54,8 @@ os.makedirs(REQUESTED_DOCS_FOLDER, exist_ok=True)
 
 
 def send_planning_submission_email(to_email, first_name):
-    sender_email = "planapprovalsystem@gmail.com"
-    sender_password = "fikz sauz rsmz zkee"
+    sender_email = os.getenv("SMTP_EMAIL")
+    sender_password = os.getenv("SMTP_PASSWORD")
 
     msg = MIMEMultipart("alternative")
     msg["From"] = sender_email
