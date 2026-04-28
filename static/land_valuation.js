@@ -1,14 +1,26 @@
+let valuationMap = null;
+let propertyMarker = null;
+let selectedLatitude = null;
+let selectedLongitude = null;
+let lastValuationPayload = null;
+let lastValuationResult = null;
+
 function formatLKR(value) {
+    const numberValue = Number(value);
+
+    if (Number.isNaN(numberValue)) {
+        return "--";
+    }
+
     return new Intl.NumberFormat("en-LK", {
         style: "currency",
         currency: "LKR",
         maximumFractionDigits: 2
-    }).format(value);
+    }).format(numberValue);
 }
 
 function sanitizePositiveDecimalInput(value) {
     let cleaned = String(value || "");
-
     cleaned = cleaned.replace(/[^0-9.]/g, "");
 
     const firstDotIndex = cleaned.indexOf(".");
@@ -61,9 +73,7 @@ function attachPositiveDecimalValidation(fieldId) {
     const field = document.getElementById(fieldId);
     if (!field) return;
 
-    field.addEventListener("keydown", function (event) {
-        preventInvalidDecimalKey(event);
-    });
+    field.addEventListener("keydown", preventInvalidDecimalKey);
 
     field.addEventListener("input", function () {
         const cleanedValue = sanitizePositiveDecimalInput(this.value);
@@ -80,25 +90,8 @@ function attachPositiveDecimalValidation(fieldId) {
     field.addEventListener("paste", function () {
         setTimeout(() => {
             this.value = sanitizePositiveDecimalInput(this.value);
-            if (this.value !== "") {
-                setFieldError(fieldId, false);
-                clearValuationMessage();
-            }
         }, 0);
     });
-}
-
-function getLandValuationPayload() {
-    return {
-        land_size: parseFloat(document.getElementById("land_size").value),
-        access_road_size: parseFloat(document.getElementById("access_road_size").value),
-        location: document.getElementById("location").value,
-        distance_to_city: parseFloat(document.getElementById("distance_to_city").value),
-        zone_type: document.getElementById("zone_type").value,
-        electricity: parseInt(document.getElementById("electricity").value),
-        water: parseInt(document.getElementById("water").value),
-        flood_risk: parseInt(document.getElementById("flood_risk").value)
-    };
 }
 
 function showValuationMessage(message, type) {
@@ -125,6 +118,7 @@ function setFieldError(fieldId, hasError) {
 
     const wrap = field.closest(".input-wrap");
     field.classList.toggle("input-error", hasError);
+
     if (wrap) {
         wrap.classList.toggle("has-error", hasError);
     }
@@ -134,8 +128,6 @@ function clearAllFieldErrors() {
     [
         "land_size",
         "access_road_size",
-        "location",
-        "distance_to_city",
         "zone_type",
         "electricity",
         "water",
@@ -143,78 +135,13 @@ function clearAllFieldErrors() {
     ].forEach((fieldId) => setFieldError(fieldId, false));
 }
 
-function validatePayload(payload) {
-    clearAllFieldErrors();
-
-    if (isNaN(payload.land_size)) {
-        setFieldError("land_size", true);
-    }
-
-    if (isNaN(payload.access_road_size)) {
-        setFieldError("access_road_size", true);
-    }
-
-    if (isNaN(payload.distance_to_city)) {
-        setFieldError("distance_to_city", true);
-    }
-
-    if (
-        isNaN(payload.land_size) ||
-        isNaN(payload.access_road_size) ||
-        isNaN(payload.distance_to_city)
-    ) {
-        showValuationMessage("Please fill all numeric fields correctly.", "error");
-        return false;
-    }
-
-    if (payload.land_size < 0) {
-        setFieldError("land_size", true);
-    }
-
-    if (payload.access_road_size < 0) {
-        setFieldError("access_road_size", true);
-    }
-
-    if (payload.distance_to_city < 0) {
-        setFieldError("distance_to_city", true);
-    }
-
-    if (
-        payload.land_size < 0 ||
-        payload.access_road_size < 0 ||
-        payload.distance_to_city < 0
-    ) {
-        showValuationMessage("Values cannot be negative.", "error");
-        return false;
-    }
-
-    clearValuationMessage();
-    return true;
-}
-
-function updateResultSummary(payload) {
-    const summaryLocation = document.getElementById("summary_location");
-    const summaryZone = document.getElementById("summary_zone");
-    const summarySize = document.getElementById("summary_size");
-
-    if (summaryLocation) {
-        summaryLocation.textContent = payload.location || "—";
-    }
-
-    if (summaryZone) {
-        summaryZone.textContent = payload.zone_type || "—";
-    }
-
-    if (summarySize) {
-        summarySize.textContent = Number.isNaN(payload.land_size) ? "—" : `${payload.land_size} perches`;
-    }
-}
-
 function setButtonLoading(buttonId, loadingText) {
     const button = document.getElementById(buttonId);
     if (!button) return;
 
     button.classList.add("loading");
+    button.disabled = true;
+
     const textSpan = button.querySelector(".btn-text");
     if (textSpan) {
         textSpan.dataset.originalText = textSpan.textContent;
@@ -227,10 +154,246 @@ function clearButtonLoading(buttonId) {
     if (!button) return;
 
     button.classList.remove("loading");
+
+    if (buttonId === "download_pdf_btn" && !lastValuationResult) {
+        button.disabled = true;
+    } else {
+        button.disabled = false;
+    }
+
     const textSpan = button.querySelector(".btn-text");
     if (textSpan && textSpan.dataset.originalText) {
         textSpan.textContent = textSpan.dataset.originalText;
     }
+}
+
+function initValuationMap() {
+    const mapElement = document.getElementById("valuation_map");
+    if (!mapElement) return;
+
+    valuationMap = L.map("valuation_map").setView([6.9271, 79.8612], 11);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(valuationMap);
+
+    valuationMap.on("click", function (event) {
+        setSelectedLocation(event.latlng.lat, event.latlng.lng);
+    });
+}
+
+function setSelectedLocation(latitude, longitude) {
+    selectedLatitude = Number(latitude);
+    selectedLongitude = Number(longitude);
+
+    document.getElementById("selected_latitude").textContent = selectedLatitude.toFixed(6);
+    document.getElementById("selected_longitude").textContent = selectedLongitude.toFixed(6);
+
+    if (propertyMarker) {
+        propertyMarker.setLatLng([selectedLatitude, selectedLongitude]);
+    } else {
+        propertyMarker = L.marker([selectedLatitude, selectedLongitude]).addTo(valuationMap);
+    }
+
+    propertyMarker.bindPopup("Selected property location").openPopup();
+
+    lastValuationPayload = null;
+    lastValuationResult = null;
+
+    const pdfButton = document.getElementById("download_pdf_btn");
+    if (pdfButton) {
+        pdfButton.disabled = true;
+    }
+
+    clearValuationMessage();
+    resetResultValues();
+    getGisPreview();
+}
+
+async function searchMapLocation() {
+    const searchInput = document.getElementById("map_search");
+    const query = searchInput.value.trim();
+
+    if (!query) {
+        showValuationMessage("Please enter a location to search.", "error");
+        return;
+    }
+
+    try {
+        const searchButton = document.getElementById("map_search_btn");
+        searchButton.disabled = true;
+        searchButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching';
+
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
+
+        const response = await fetch(url, {
+            headers: {
+                "Accept": "application/json"
+            }
+        });
+
+        const results = await response.json();
+
+        if (!results || results.length === 0) {
+            showValuationMessage("Location not found. Try a more specific location.", "error");
+            return;
+        }
+
+        const latitude = parseFloat(results[0].lat);
+        const longitude = parseFloat(results[0].lon);
+
+        valuationMap.setView([latitude, longitude], 16);
+        setSelectedLocation(latitude, longitude);
+
+    } catch (error) {
+        console.error(error);
+        showValuationMessage("Unable to search location right now.", "error");
+    } finally {
+        const searchButton = document.getElementById("map_search_btn");
+        searchButton.disabled = false;
+        searchButton.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Search';
+    }
+}
+
+async function getGisPreview() {
+    if (selectedLatitude === null || selectedLongitude === null) {
+        return;
+    }
+
+    try {
+        const response = await fetch("/api/valuation/gis-check", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                latitude: selectedLatitude,
+                longitude: selectedLongitude
+            })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+            document.getElementById("nearest_city_display").textContent =
+                result.nearest_supported_city || "Unsupported";
+
+            document.getElementById("distance_display").textContent =
+                result.distance_to_city_km !== undefined && result.distance_to_city_km !== null
+                    ? `${result.distance_to_city_km} km`
+                    : "—";
+
+            showValuationMessage(
+                result.error || "This selected location is outside the supported valuation area.",
+                "error"
+            );
+
+            return;
+        }
+
+        document.getElementById("nearest_city_display").textContent = result.nearest_supported_city || "—";
+        document.getElementById("distance_display").textContent =
+            result.distance_to_city_km !== undefined ? `${result.distance_to_city_km} km` : "—";
+
+        clearValuationMessage();
+
+    } catch (error) {
+        console.error(error);
+        showValuationMessage("Unable to check GIS location right now.", "error");
+    }
+}
+
+function getLandValuationPayload() {
+    return {
+        land_size: parseFloat(document.getElementById("land_size").value),
+        access_road_size: parseFloat(document.getElementById("access_road_size").value),
+        latitude: selectedLatitude,
+        longitude: selectedLongitude,
+        zone_type: document.getElementById("zone_type").value,
+        electricity: parseInt(document.getElementById("electricity").value),
+        water: parseInt(document.getElementById("water").value),
+        flood_risk: parseInt(document.getElementById("flood_risk").value)
+    };
+}
+
+function validatePayload(payload) {
+    clearAllFieldErrors();
+
+    let isValid = true;
+
+    if (payload.latitude === null || payload.longitude === null) {
+        showValuationMessage("Please select the property location on the map.", "error");
+        return false;
+    }
+
+    if (Number.isNaN(payload.land_size)) {
+        setFieldError("land_size", true);
+        isValid = false;
+    }
+
+    if (Number.isNaN(payload.access_road_size)) {
+        setFieldError("access_road_size", true);
+        isValid = false;
+    }
+
+    if (!isValid) {
+        showValuationMessage("Please fill all required fields correctly.", "error");
+        return false;
+    }
+
+    if (payload.land_size < 6) {
+        setFieldError("land_size", true);
+        showValuationMessage("Land size must be 6 perches or more.", "error");
+        return false;
+    }
+
+    if (payload.access_road_size <= 0) {
+        setFieldError("access_road_size", true);
+        showValuationMessage("Access road size must be greater than 0 feet.", "error");
+        return false;
+    }
+
+    clearValuationMessage();
+    return true;
+}
+
+function resetResultValues() {
+    const fields = [
+        "current_value",
+        "predicted_1_year",
+        "predicted_5_year",
+        "price_per_perch",
+        "summary_location",
+        "summary_distance",
+        "summary_zone",
+        "summary_size",
+        "summary_address"
+    ];
+
+    fields.forEach((id) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = id.includes("summary") ? "—" : "--";
+        }
+    });
+}
+
+function updateResultSummaryFromResponse(responseData, payload) {
+    const gis = responseData.gis_result || {};
+    const inputLocation = responseData.input_location || {};
+
+    document.getElementById("summary_location").textContent = gis.nearest_supported_city || "—";
+    document.getElementById("summary_distance").textContent =
+        gis.distance_to_city_km !== undefined ? `${gis.distance_to_city_km} km` : "—";
+
+    document.getElementById("summary_zone").textContent = payload.zone_type || "—";
+    document.getElementById("summary_size").textContent = `${payload.land_size} perches`;
+    document.getElementById("summary_address").textContent = inputLocation.address || "Address unavailable";
+
+    document.getElementById("nearest_city_display").textContent = gis.nearest_supported_city || "—";
+    document.getElementById("distance_display").textContent =
+        gis.distance_to_city_km !== undefined ? `${gis.distance_to_city_km} km` : "—";
 }
 
 async function predictLandValue() {
@@ -242,7 +405,8 @@ async function predictLandValue() {
 
     try {
         setButtonLoading("predict_btn", "Estimating...");
-        const response = await fetch("/predict-land-value", {
+
+        const response = await fetch("/api/valuation/estimate", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -252,27 +416,33 @@ async function predictLandValue() {
 
         const result = await response.json();
 
-        if (!response.ok) {
+        if (!response.ok || !result.success) {
             showValuationMessage(result.error || "Something went wrong while predicting land value.", "error");
             return;
         }
 
-        if (result.error) {
-            showValuationMessage(result.error, "error");
-            return;
+        const valuation = result.valuation;
+
+        document.getElementById("current_value").textContent = formatLKR(valuation.current_value);
+        document.getElementById("predicted_1_year").textContent = formatLKR(valuation.predicted_1_year);
+        document.getElementById("predicted_5_year").textContent = formatLKR(valuation.predicted_5_year);
+        document.getElementById("price_per_perch").textContent = formatLKR(valuation.estimated_price_per_perch);
+
+        updateResultSummaryFromResponse(result, payload);
+
+        lastValuationPayload = payload;
+        lastValuationResult = result;
+
+        const pdfButton = document.getElementById("download_pdf_btn");
+        if (pdfButton) {
+            pdfButton.disabled = false;
         }
 
-        document.getElementById("current_value").innerText = formatLKR(result.current_value);
-        document.getElementById("predicted_1_year").innerText = formatLKR(result.predicted_1_year);
-        document.getElementById("predicted_5_year").innerText = formatLKR(result.predicted_5_year);
-
-        updateResultSummary(payload);
-        document.getElementById("download_pdf_btn").disabled = false;
         showValuationMessage("Land valuation estimated successfully.", "success");
 
     } catch (error) {
-        showValuationMessage("Something went wrong while predicting land value.", "error");
         console.error(error);
+        showValuationMessage("Something went wrong while predicting land value.", "error");
     } finally {
         clearButtonLoading("predict_btn");
     }
@@ -287,6 +457,7 @@ async function downloadLandValuationPDF() {
 
     try {
         setButtonLoading("download_pdf_btn", "Preparing PDF...");
+
         const response = await fetch("/download-land-valuation-pdf", {
             method: "POST",
             headers: {
@@ -296,8 +467,14 @@ async function downloadLandValuationPDF() {
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to generate PDF.");
+            let errorMessage = "Failed to generate PDF.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+                // Ignore JSON parse error
+            }
+            throw new Error(errorMessage);
         }
 
         const blob = await response.blob();
@@ -314,16 +491,20 @@ async function downloadLandValuationPDF() {
         showValuationMessage("PDF report downloaded successfully.", "success");
 
     } catch (error) {
-        showValuationMessage(error.message || "Something went wrong while downloading the PDF.", "error");
         console.error(error);
+        showValuationMessage(error.message || "Something went wrong while downloading the PDF.", "error");
     } finally {
         clearButtonLoading("download_pdf_btn");
+
+        const pdfButton = document.getElementById("download_pdf_btn");
+        if (pdfButton && !lastValuationResult) {
+            pdfButton.disabled = true;
+        }
     }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
     const revealItems = document.querySelectorAll(".reveal-up");
-    const numericFields = ["land_size", "access_road_size", "distance_to_city"];
 
     function revealOnScroll() {
         revealItems.forEach((item) => {
@@ -334,31 +515,21 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    numericFields.forEach((fieldId) => {
-        attachPositiveDecimalValidation(fieldId);
-    });
+    attachPositiveDecimalValidation("land_size");
+    attachPositiveDecimalValidation("access_road_size");
 
-    const selects = ["location", "zone_type", "electricity", "water", "flood_risk"];
-    selects.forEach((fieldId) => {
-        const field = document.getElementById(fieldId);
-        if (!field) return;
-
-        field.addEventListener("change", function () {
-            updateResultSummary(getLandValuationPayload());
+    const mapSearchInput = document.getElementById("map_search");
+    if (mapSearchInput) {
+        mapSearchInput.addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                searchMapLocation();
+            }
         });
-    });
+    }
 
-    document.addEventListener("keydown", function (event) {
-        const landSizeInput = document.getElementById("land_size");
-        const activeTag = document.activeElement ? document.activeElement.tagName : "";
+    initValuationMap();
 
-        if (event.key === "/" && landSizeInput && activeTag !== "INPUT" && activeTag !== "TEXTAREA" && activeTag !== "SELECT") {
-            event.preventDefault();
-            landSizeInput.focus();
-        }
-    });
-
-    updateResultSummary(getLandValuationPayload());
     window.addEventListener("scroll", revealOnScroll);
     revealOnScroll();
 });

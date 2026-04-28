@@ -239,43 +239,29 @@
 
                                         <input type="hidden" id="proposed_transfer_date" name="proposed_transfer_date" required>
 
-                                        <div class="custom-date-picker" id="customDatePicker">
-                                            <button type="button" class="custom-date-input" id="datePickerButton">
-                                                <span id="selectedDateText">Select transfer date</span>
-                                                <i class="fa-solid fa-calendar-days"></i>
-                                            </button>
+                                        <div class="date-select-row" id="customDatePicker">
+                                            <div class="date-select-wrap">
+                                                <select id="transferMonth" aria-label="Select transfer month">
+                                                    <option value="">Month</option>
+                                                </select>
+                                            </div>
 
-                                            <div class="date-popup hidden" id="datePopup">
-                                                <div class="date-popup-header">
-                                                    <button type="button" id="prevMonth">
-                                                        <i class="fa-solid fa-chevron-left"></i>
-                                                    </button>
+                                            <div class="date-select-wrap">
+                                                <select id="transferDay" aria-label="Select transfer day">
+                                                    <option value="">Day</option>
+                                                </select>
+                                            </div>
 
-                                                    <strong id="calendarMonthYear"></strong>
-
-                                                    <button type="button" id="nextMonth">
-                                                        <i class="fa-solid fa-chevron-right"></i>
-                                                    </button>
-                                                </div>
-
-                                                <div class="date-weekdays">
-                                                    <span>Sun</span>
-                                                    <span>Mon</span>
-                                                    <span>Tue</span>
-                                                    <span>Wed</span>
-                                                    <span>Thu</span>
-                                                    <span>Fri</span>
-                                                    <span>Sat</span>
-                                                </div>
-
-                                                <div class="date-days" id="calendarDays"></div>
-
-                                                <div class="date-popup-footer">
-                                                    <button type="button" id="clearDate">Clear</button>
-                                                    <button type="button" id="todayDate">Today</button>
-                                                </div>
+                                            <div class="date-select-wrap">
+                                                <select id="transferYear" aria-label="Select transfer year">
+                                                    <option value="">Year</option>
+                                                </select>
                                             </div>
                                         </div>
+
+                                        <small class="calendar-help" id="selectedDateText">
+                                            Select month, day, and year
+                                        </small>
                                     </div>
 
                                     <div class="form-group">

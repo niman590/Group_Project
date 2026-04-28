@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_reports.css') }}" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 </head>
 
 <body>
@@ -52,9 +51,7 @@
 
                 <div class="stats-grid reports-stats-grid">
                     <div class="stat-card report-stat-card total-users">
-                        <div class="stat-icon blue">
-                            <i class="fa-solid fa-users"></i>
-                        </div>
+                        <div class="stat-icon blue"><i class="fa-solid fa-users"></i></div>
                         <div class="stat-content">
                             <span class="stat-label">Total Users</span>
                             <h3>{{ total_users }}</h3>
@@ -63,9 +60,7 @@
                     </div>
 
                     <div class="stat-card report-stat-card total-admins">
-                        <div class="stat-icon indigo">
-                            <i class="fa-solid fa-user-shield"></i>
-                        </div>
+                        <div class="stat-icon indigo"><i class="fa-solid fa-user-shield"></i></div>
                         <div class="stat-content">
                             <span class="stat-label">Total Admins</span>
                             <h3>{{ total_admins }}</h3>
@@ -74,9 +69,7 @@
                     </div>
 
                     <div class="stat-card report-stat-card active-users">
-                        <div class="stat-icon green">
-                            <i class="fa-solid fa-user-check"></i>
-                        </div>
+                        <div class="stat-icon green"><i class="fa-solid fa-user-check"></i></div>
                         <div class="stat-content">
                             <span class="stat-label">Active Users</span>
                             <h3>{{ active_users }}</h3>
@@ -85,9 +78,7 @@
                     </div>
 
                     <div class="stat-card report-stat-card total-applications">
-                        <div class="stat-icon amber">
-                            <i class="fa-solid fa-file-signature"></i>
-                        </div>
+                        <div class="stat-icon amber"><i class="fa-solid fa-file-signature"></i></div>
                         <div class="stat-content">
                             <span class="stat-label">Total Applications</span>
                             <h3>{{ total_applications }}</h3>
@@ -109,17 +100,14 @@
                             <span>Approved</span>
                             <strong>{{ approved_applications }}</strong>
                         </div>
-
                         <div class="report-summary-item pending">
                             <span>Pending / Review</span>
                             <strong>{{ pending_applications }}</strong>
                         </div>
-
                         <div class="report-summary-item rejected">
                             <span>Rejected</span>
                             <strong>{{ rejected_applications }}</strong>
                         </div>
-
                         <div class="report-summary-item neutral">
                             <span>Total Applications</span>
                             <strong>{{ total_applications }}</strong>
@@ -127,10 +115,7 @@
                     </div>
 
                     <div class="report-details show" id="planning-report-details">
-                        <p>
-                            This report shows how many planning applications were approved,
-                            are pending or under review, and were rejected.
-                        </p>
+                        <p>This report shows how many planning applications were approved, are pending or under review, and were rejected.</p>
                     </div>
                 </div>
 
@@ -145,17 +130,14 @@
                             <span>Approved</span>
                             <strong>{{ approved_transactions }}</strong>
                         </div>
-
                         <div class="report-summary-item pending">
                             <span>Pending</span>
                             <strong>{{ pending_transactions }}</strong>
                         </div>
-
                         <div class="report-summary-item rejected">
                             <span>Rejected</span>
                             <strong>{{ rejected_transactions }}</strong>
                         </div>
-
                         <div class="report-summary-item neutral">
                             <span>Total Requests</span>
                             <strong>{{ transaction_requests }}</strong>
@@ -163,9 +145,7 @@
                     </div>
 
                     <div class="report-details show" id="transaction-report-details">
-                        <p>
-                            This report shows the status of land transaction update requests.
-                        </p>
+                        <p>This report shows the status of land transaction update requests.</p>
                     </div>
                 </div>
             </section>
@@ -184,28 +164,79 @@
                 </div>
 
                 <form class="inline-filter-form" method="GET" action="{{ url_for('admin_reports.admin_reports') }}">
-                    <input type="hidden" name="applicant_start_date"
-                        value="{{ applicant_start_date if applicant_start_date else '' }}">
-                    <input type="hidden" name="applicant_end_date"
-                        value="{{ applicant_end_date if applicant_end_date else '' }}">
+                    <input type="hidden" name="applicant_start_date" value="{{ applicant_start_date if applicant_start_date else '' }}">
+                    <input type="hidden" name="applicant_end_date" value="{{ applicant_end_date if applicant_end_date else '' }}">
 
-                    <div class="filter-field">
-                        <label for="user_start_date">Start Date</label>
-                        <div class="calendar-input-wrap">
-                            <i class="fa-regular fa-calendar"></i>
-                            <input type="text" id="user_start_date" name="user_start_date"
-                                class="friendly-date-input js-friendly-calendar" placeholder="Select start date"
-                                autocomplete="off" value="{{ user_start_date if user_start_date else '' }}">
+                    <input type="hidden" id="user_start_date" name="user_start_date" value="{{ user_start_date if user_start_date else '' }}">
+                    <input type="hidden" id="user_end_date" name="user_end_date" value="{{ user_end_date if user_end_date else '' }}">
+
+                    <div class="filter-field date-filter-field">
+                        <label>Start Date</label>
+                        <div class="report-date-select-row" data-date-target="user_start_date">
+                            <div class="report-select-wrap">
+                                <select id="user_start_month" class="report-date-select" data-date-part="month">
+                                    <option value="">Month</option>
+                                    {% for m in range(1, 13) %}
+                                    <option value="{{ '%02d'|format(m) }}">{{ '%02d'|format(m) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+
+                            <div class="report-select-wrap">
+                                <select id="user_start_day" class="report-date-select" data-date-part="day">
+                                    <option value="">Day</option>
+                                    {% for d in range(1, 32) %}
+                                    <option value="{{ '%02d'|format(d) }}">{{ '%02d'|format(d) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+
+                            <div class="report-select-wrap">
+                                <select id="user_start_year" class="report-date-select" data-date-part="year">
+                                    <option value="">Year</option>
+                                    {% for y in range(2026, 1999, -1) %}
+                                    <option value="{{ y }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="filter-field">
-                        <label for="user_end_date">End Date</label>
-                        <div class="calendar-input-wrap">
-                            <i class="fa-regular fa-calendar"></i>
-                            <input type="text" id="user_end_date" name="user_end_date"
-                                class="friendly-date-input js-friendly-calendar" placeholder="Select end date"
-                                autocomplete="off" value="{{ user_end_date if user_end_date else '' }}">
+                    <div class="filter-field date-filter-field">
+                        <label>End Date</label>
+                        <div class="report-date-select-row" data-date-target="user_end_date">
+                            <div class="report-select-wrap">
+                                <select id="user_end_month" class="report-date-select" data-date-part="month">
+                                    <option value="">Month</option>
+                                    {% for m in range(1, 13) %}
+                                    <option value="{{ '%02d'|format(m) }}">{{ '%02d'|format(m) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+
+                            <div class="report-select-wrap">
+                                <select id="user_end_day" class="report-date-select" data-date-part="day">
+                                    <option value="">Day</option>
+                                    {% for d in range(1, 32) %}
+                                    <option value="{{ '%02d'|format(d) }}">{{ '%02d'|format(d) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+
+                            <div class="report-select-wrap">
+                                <select id="user_end_year" class="report-date-select" data-date-part="year">
+                                    <option value="">Year</option>
+                                    {% for y in range(2026, 1999, -1) %}
+                                    <option value="{{ y }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
                         </div>
                     </div>
 
@@ -283,27 +314,79 @@
                 </div>
 
                 <form class="inline-filter-form" method="GET" action="{{ url_for('admin_reports.admin_reports') }}">
-                    <input type="hidden" name="user_start_date"
-                        value="{{ user_start_date if user_start_date else '' }}">
+                    <input type="hidden" name="user_start_date" value="{{ user_start_date if user_start_date else '' }}">
                     <input type="hidden" name="user_end_date" value="{{ user_end_date if user_end_date else '' }}">
 
-                    <div class="filter-field">
-                        <label for="applicant_start_date">Start Date</label>
-                        <div class="calendar-input-wrap">
-                            <i class="fa-regular fa-calendar"></i>
-                            <input type="text" id="applicant_start_date" name="applicant_start_date"
-                                class="friendly-date-input js-friendly-calendar" placeholder="Select start date"
-                                autocomplete="off" value="{{ applicant_start_date if applicant_start_date else '' }}">
+                    <input type="hidden" id="applicant_start_date" name="applicant_start_date" value="{{ applicant_start_date if applicant_start_date else '' }}">
+                    <input type="hidden" id="applicant_end_date" name="applicant_end_date" value="{{ applicant_end_date if applicant_end_date else '' }}">
+
+                    <div class="filter-field date-filter-field">
+                        <label>Start Date</label>
+                        <div class="report-date-select-row" data-date-target="applicant_start_date">
+                            <div class="report-select-wrap">
+                                <select id="applicant_start_month" class="report-date-select" data-date-part="month">
+                                    <option value="">Month</option>
+                                    {% for m in range(1, 13) %}
+                                    <option value="{{ '%02d'|format(m) }}">{{ '%02d'|format(m) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+
+                            <div class="report-select-wrap">
+                                <select id="applicant_start_day" class="report-date-select" data-date-part="day">
+                                    <option value="">Day</option>
+                                    {% for d in range(1, 32) %}
+                                    <option value="{{ '%02d'|format(d) }}">{{ '%02d'|format(d) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+
+                            <div class="report-select-wrap">
+                                <select id="applicant_start_year" class="report-date-select" data-date-part="year">
+                                    <option value="">Year</option>
+                                    {% for y in range(2026, 1999, -1) %}
+                                    <option value="{{ y }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="filter-field">
-                        <label for="applicant_end_date">End Date</label>
-                        <div class="calendar-input-wrap">
-                            <i class="fa-regular fa-calendar"></i>
-                            <input type="text" id="applicant_end_date" name="applicant_end_date"
-                                class="friendly-date-input js-friendly-calendar" placeholder="Select end date"
-                                autocomplete="off" value="{{ applicant_end_date if applicant_end_date else '' }}">
+                    <div class="filter-field date-filter-field">
+                        <label>End Date</label>
+                        <div class="report-date-select-row" data-date-target="applicant_end_date">
+                            <div class="report-select-wrap">
+                                <select id="applicant_end_month" class="report-date-select" data-date-part="month">
+                                    <option value="">Month</option>
+                                    {% for m in range(1, 13) %}
+                                    <option value="{{ '%02d'|format(m) }}">{{ '%02d'|format(m) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+
+                            <div class="report-select-wrap">
+                                <select id="applicant_end_day" class="report-date-select" data-date-part="day">
+                                    <option value="">Day</option>
+                                    {% for d in range(1, 32) %}
+                                    <option value="{{ '%02d'|format(d) }}">{{ '%02d'|format(d) }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+
+                            <div class="report-select-wrap">
+                                <select id="applicant_end_year" class="report-date-select" data-date-part="year">
+                                    <option value="">Year</option>
+                                    {% for y in range(2026, 1999, -1) %}
+                                    <option value="{{ y }}">{{ y }}</option>
+                                    {% endfor %}
+                                </select>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
                         </div>
                     </div>
 
@@ -379,7 +462,6 @@
         </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="{{ url_for('static', filename='admin_reports.js') }}"></script>
 </body>
 
