@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_talisman import Talisman
 from database.setup_database import init_db
 
 from routes.main_routes import main_bp
@@ -16,6 +17,14 @@ from routes.admin_reports_routes import admin_reports_bp
 
 
 app = Flask(__name__)
+
+Talisman(
+    app,
+    frame_options="DENY",
+    content_security_policy=None,
+    force_https=False
+)
+
 app.secret_key = "civic_plan_secret_key"
 
 init_db()
