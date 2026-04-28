@@ -1,7 +1,9 @@
 import base64
+import os
 from datetime import datetime, timedelta
 from io import BytesIO
 
+import joblib
 from flask import jsonify, render_template, request
 
 from database.db_connection import get_connection
@@ -18,6 +20,24 @@ SUPPORTED_VALUATION_AREAS = [
     "Kadawatha",
     "Kaduwela",
 ]
+
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PREDICTION_MODEL_DIR = os.path.join(BASE_DIR, "routes", "Prediction_model")
+GROWTH_RATES_PATH = os.path.join(PREDICTION_MODEL_DIR, "growth_rates.pkl")
+
+
+def load_growth_rates():
+    try:
+        if os.path.exists(GROWTH_RATES_PATH):
+            return joblib.load(GROWTH_RATES_PATH)
+    except Exception:
+        pass
+
+    return {}
+
+
+GROWTH_RATES = load_growth_rates()
 
 
 def safe_average(value):
@@ -248,6 +268,46 @@ def _add_periods(period_start, granularity, steps):
     return f"{year:04d}-{month:02d}-01"
 
 
+def get_growth_rate_for_area(area):
+    try:
+        if area and area != "all":
+            return float(GROWTH_RATES.get(area, 0.06))
+
+        available_rates = [
+            float(GROWTH_RATES.get(city, 0.06))
+            for city in SUPPORTED_VALUATION_AREAS
+        ]
+
+        if not available_rates:
+            return 0.06
+
+        return sum(available_rates) / len(available_rates)
+    except Exception:
+        return 0.06
+
+
+def convert_annual_growth_to_period_growth(annual_growth_rate, granularity):
+    """
+    Converts annual growth rate to weekly/monthly growth.
+
+    Example:
+    annual 6 percent monthly = about 0.49 percent per month.
+    annual 6 percent weekly = about 0.11 percent per week.
+    """
+    try:
+        annual_growth_rate = float(annual_growth_rate)
+    except Exception:
+        annual_growth_rate = 0.03
+
+    # Safety cap to stop unrealistic forecast jumps.
+    annual_growth_rate = max(-0.04, min(annual_growth_rate, 0.10))
+
+    if granularity == "weekly":
+        return (1 + annual_growth_rate) ** (1 / 52) - 1
+
+    return (1 + annual_growth_rate) ** (1 / 12) - 1
+
+
 def get_land_valuation_counts(cursor):
     area_expression = get_land_valuation_area_case_expression("p")
 
@@ -371,31 +431,109 @@ def get_land_valuation_trend_rows(cursor, granularity="monthly", area="all"):
     return formatted_rows
 
 
-def build_land_valuation_forecast(trend_rows, granularity="monthly"):
-    if not trend_rows:
-        return {
-            "forecast_available": False,
-            "forecast_reason": "No valuation records available for this selection.",
-            "forecast_labels": [],
-            "forecast_values": [],
-            "slope": 0,
-            "latest_value": None,
-            "latest_change_percent": None,
-        }
+def cap_forecast_change(previous_value, projected_value, granularity):
+    """
+    Prevents unrealistic chart spikes.
+    Monthly forecast max change = 8 percent per period.
+    Weekly forecast max change = 3 percent per period.
+    """
+    if previous_value <= 0:
+        return max(0, projected_value)
 
+    max_rate = 0.03 if granularity == "weekly" else 0.08
+    upper_limit = previous_value * (1 + max_rate)
+    lower_limit = previous_value * (1 - max_rate)
+
+    return round(min(max(projected_value, lower_limit), upper_limit), 2)
+
+
+def build_flat_baseline_forecast(trend_rows, granularity="monthly", area="all"):
+    """
+    Used only when there is too little data.
+    This avoids fake increases when there are only 1 or 2 records.
+    """
+    latest_value = float(trend_rows[-1]["average_value"] or 0)
+    forecast_steps = 4 if granularity == "weekly" else 3
+    last_period = trend_rows[-1]["period_start"]
+
+    forecast_labels = []
+    forecast_values = []
+
+    for step in range(1, forecast_steps + 1):
+        future_period = _add_periods(last_period, granularity, step)
+        forecast_labels.append(_format_land_valuation_label(future_period, granularity))
+        forecast_values.append(round(latest_value, 2))
+
+    return {
+        "forecast_available": True,
+        "forecast_method": "baseline",
+        "forecast_reason": (
+            "Only one historical period with very few records is available. "
+            "A flat baseline forecast is shown until more valuation history is collected."
+        ),
+        "forecast_labels": forecast_labels,
+        "forecast_values": forecast_values,
+        "slope": 0,
+        "latest_value": round(latest_value, 2),
+        "latest_change_percent": None,
+        "annual_growth_rate": round(get_growth_rate_for_area(area) * 100, 2),
+    }
+
+
+def build_single_period_growth_forecast(trend_rows, granularity="monthly", area="all"):
+    """
+    Used when many valuations exist, but all are inside one week/month.
+    Example: 19 valuations on the same day.
+
+    Since there is no time movement yet, this uses the saved city growth rate
+    to estimate future periods from the latest average value.
+    """
+    latest_row = trend_rows[-1]
+    latest_value = float(latest_row["average_value"] or 0)
+    record_count = int(latest_row.get("record_count", 0) or 0)
+
+    annual_growth_rate = get_growth_rate_for_area(area)
+    period_growth_rate = convert_annual_growth_to_period_growth(annual_growth_rate, granularity)
+
+    forecast_steps = 4 if granularity == "weekly" else 3
+    last_period = latest_row["period_start"]
+
+    forecast_labels = []
+    forecast_values = []
+
+    current_value = latest_value
+
+    for step in range(1, forecast_steps + 1):
+        future_period = _add_periods(last_period, granularity, step)
+        forecast_labels.append(_format_land_valuation_label(future_period, granularity))
+
+        projected_value = current_value * (1 + period_growth_rate)
+        projected_value = cap_forecast_change(current_value, projected_value, granularity)
+
+        forecast_values.append(round(projected_value, 2))
+        current_value = projected_value
+
+    period_word = "week" if granularity == "weekly" else "month"
+
+    return {
+        "forecast_available": True,
+        "forecast_method": "single_period_growth",
+        "forecast_reason": (
+            f"{record_count} valuation records were found in one {period_word}. "
+            "Because there is not enough multi-period history yet, the forecast uses the saved city growth rate."
+        ),
+        "forecast_labels": forecast_labels,
+        "forecast_values": forecast_values,
+        "slope": round(latest_value * period_growth_rate, 2),
+        "latest_value": round(latest_value, 2),
+        "latest_change_percent": None,
+        "annual_growth_rate": round(annual_growth_rate * 100, 2),
+    }
+
+
+def build_regression_forecast(trend_rows, granularity="monthly", area="all"):
     actual_values = [float(row["average_value"] or 0) for row in trend_rows]
     latest_value = actual_values[-1]
-
-    if len(actual_values) < 2:
-        return {
-            "forecast_available": False,
-            "forecast_reason": "At least two historical periods are required to generate a reliable forecast.",
-            "forecast_labels": [],
-            "forecast_values": [],
-            "slope": 0,
-            "latest_value": round(latest_value, 2),
-            "latest_change_percent": None,
-        }
 
     n = len(actual_values)
     x_values = list(range(n))
@@ -417,13 +555,18 @@ def build_land_valuation_forecast(trend_rows, granularity="monthly"):
     forecast_labels = []
     forecast_values = []
 
+    previous_projected_value = latest_value
+
     for step in range(1, forecast_steps + 1):
         future_period = _add_periods(last_period, granularity, step)
         forecast_labels.append(_format_land_valuation_label(future_period, granularity))
 
         projected_value = intercept + (slope * (n - 1 + step))
+        projected_value = cap_forecast_change(previous_projected_value, projected_value, granularity)
         projected_value = max(0, projected_value)
+
         forecast_values.append(round(projected_value, 2))
+        previous_projected_value = projected_value
 
     latest_change_percent = None
 
@@ -435,13 +578,40 @@ def build_land_valuation_forecast(trend_rows, granularity="monthly"):
 
     return {
         "forecast_available": True,
-        "forecast_reason": "Forecast generated from historical valuation trend.",
+        "forecast_method": "regression",
+        "forecast_reason": "Forecast generated from available historical valuation movement.",
         "forecast_labels": forecast_labels,
         "forecast_values": forecast_values,
         "slope": round(slope, 2),
         "latest_value": round(latest_value, 2),
         "latest_change_percent": latest_change_percent,
+        "annual_growth_rate": round(get_growth_rate_for_area(area) * 100, 2),
     }
+
+
+def build_land_valuation_forecast(trend_rows, granularity="monthly", area="all"):
+    if not trend_rows:
+        return {
+            "forecast_available": False,
+            "forecast_method": "none",
+            "forecast_reason": "No valuation records available for this selection.",
+            "forecast_labels": [],
+            "forecast_values": [],
+            "slope": 0,
+            "latest_value": None,
+            "latest_change_percent": None,
+            "annual_growth_rate": round(get_growth_rate_for_area(area) * 100, 2),
+        }
+
+    if len(trend_rows) == 1:
+        record_count = int(trend_rows[0].get("record_count", 0) or 0)
+
+        if record_count >= 3:
+            return build_single_period_growth_forecast(trend_rows, granularity, area)
+
+        return build_flat_baseline_forecast(trend_rows, granularity, area)
+
+    return build_regression_forecast(trend_rows, granularity, area)
 
 
 def get_selected_area_count(count_bundle, area):
@@ -464,12 +634,10 @@ def get_land_valuation_chart_payload(cursor, granularity="monthly", area="all"):
 
     count_bundle = get_land_valuation_counts(cursor)
     trend_rows = get_land_valuation_trend_rows(cursor, granularity, area)
-    forecast_bundle = build_land_valuation_forecast(trend_rows, granularity)
+    forecast_bundle = build_land_valuation_forecast(trend_rows, granularity, area)
 
     labels = [row["label"] for row in trend_rows] + forecast_bundle["forecast_labels"]
     historical_series = [row["average_value"] for row in trend_rows]
-
-    forecast_series = []
 
     if trend_rows and forecast_bundle["forecast_available"]:
         forecast_series = [None] * max(len(historical_series) - 1, 0)
@@ -496,6 +664,8 @@ def get_land_valuation_chart_payload(cursor, granularity="monthly", area="all"):
         "forecast_values": forecast_series,
 
         "historical_points": trend_rows,
+        "historical_period_count": len(trend_rows),
+        "historical_record_count": sum(int(row.get("record_count", 0) or 0) for row in trend_rows),
         "forecast_points": [
             {
                 "label": label,
@@ -512,7 +682,9 @@ def get_land_valuation_chart_payload(cursor, granularity="monthly", area="all"):
         "latest_change_percent": forecast_bundle["latest_change_percent"],
         "forecast_slope": forecast_bundle["slope"],
         "forecast_available": forecast_bundle["forecast_available"],
+        "forecast_method": forecast_bundle["forecast_method"],
         "forecast_reason": forecast_bundle["forecast_reason"],
+        "annual_growth_rate": forecast_bundle["annual_growth_rate"],
         "has_data": bool(trend_rows),
         "forecast_period_label": "weeks" if granularity == "weekly" else "months",
     }
