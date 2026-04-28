@@ -139,6 +139,31 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function syncDownloadFilters(downloadForm) {
+        if (!downloadForm) return;
+
+        updateHiddenDate("start_month", "start_day", "start_year", "start_date");
+        updateHiddenDate("end_month", "end_day", "end_year", "end_date");
+
+        const pageSeverity = document.getElementById("severity");
+        const pageStatus = document.getElementById("status");
+        const pageRuleName = document.getElementById("rule_name");
+        const pageStartDate = document.getElementById("start_date");
+        const pageEndDate = document.getElementById("end_date");
+
+        const downloadSeverity = downloadForm.querySelector("input[name='severity']");
+        const downloadStatus = downloadForm.querySelector("input[name='status']");
+        const downloadRuleName = downloadForm.querySelector("input[name='rule_name']");
+        const downloadStartDate = downloadForm.querySelector("input[name='start_date']");
+        const downloadEndDate = downloadForm.querySelector("input[name='end_date']");
+
+        if (downloadSeverity && pageSeverity) downloadSeverity.value = pageSeverity.value;
+        if (downloadStatus && pageStatus) downloadStatus.value = pageStatus.value;
+        if (downloadRuleName && pageRuleName) downloadRuleName.value = pageRuleName.value;
+        if (downloadStartDate && pageStartDate) downloadStartDate.value = pageStartDate.value;
+        if (downloadEndDate && pageEndDate) downloadEndDate.value = pageEndDate.value;
+    }
+
     const dates = window.securityFilterDates || {
         startDate: "",
         endDate: ""
@@ -169,6 +194,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (securityDownloadForm) {
         securityDownloadForm.addEventListener("submit", function () {
+            syncDownloadFilters(securityDownloadForm);
+
             const downloadButton = securityDownloadForm.querySelector("button[type='submit']");
             if (!downloadButton) return;
 
