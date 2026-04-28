@@ -5,10 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transaction History Requests</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_dashboard.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='admin_transaction_requests.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='admin_transaction_requests.css') }}">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <script defer src="{{ url_for('static', filename='admin_transaction_requests.js') }}"></script>
 </head>
 
 <body>
@@ -16,13 +20,18 @@
         {% include 'partials/admin_sidebar.html' %}
 
         <main class="main-content">
-            <header class="topbar glass-topbar">
-                <div class="topbar-content">
-                    <div class="page-heading">
-                        <span class="page-kicker">Administration</span>
-                        <h1>Transaction History Update Requests</h1>
-                        <p>Review, approve, reject, or create deed records directly from the admin side.</p>
-                    </div>
+            <header class="transaction-hero">
+                <div class="hero-left">
+                    <span class="page-kicker">Administration</span>
+                    <h1>Transaction History Update Requests</h1>
+                    <p>Review submitted deed history changes, validate supporting proof, and approve or reject each request safely.</p>
+                </div>
+
+                <div class="hero-action">
+                    <a href="{{ url_for('admin.admin_add_deed_page') }}" class="btn-primary-action">
+                        <i class="fa-solid fa-plus"></i>
+                        Add New Deed
+                    </a>
                 </div>
             </header>
 
@@ -31,7 +40,7 @@
             <section class="flash-wrap">
                 {% for category, message in messages %}
                 <div class="flash-msg {{ category }}">
-                    <i class="fa-solid 
+                    <i class="fa-solid
                         {% if category == 'success' %}fa-circle-check
                         {% elif category == 'warning' %}fa-triangle-exclamation
                         {% elif category == 'error' %}fa-circle-xmark
@@ -52,70 +61,64 @@
                     </div>
                 </div>
 
-                <div class="stats-grid reports-stats-grid modern-stats-grid">
-                    <div class="stat-card modern-stat-card total-users">
+                <div class="stats-grid">
+                    <div class="stat-card">
                         <div class="stat-icon blue">
                             <i class="fa-solid fa-folder-open"></i>
                         </div>
                         <div class="stat-content">
-                            <span class="stat-label">Total Requests</span>
-                            <h3>{{ requests|length }}</h3>
+                            <span>Total Requests</span>
+                            <strong>{{ requests|length }}</strong>
                             <p>All transaction history update requests currently recorded.</p>
                         </div>
                     </div>
 
-                    <div class="stat-card modern-stat-card total-applications">
+                    <div class="stat-card">
                         <div class="stat-icon amber">
                             <i class="fa-solid fa-hourglass-half"></i>
                         </div>
                         <div class="stat-content">
-                            <span class="stat-label">Pending Requests</span>
-                            <h3>{{ requests | selectattr('status', 'equalto', 'Pending') | list | length }}</h3>
-                            <p>Requests still waiting for an administrative review decision.</p>
+                            <span>Pending Requests</span>
+                            <strong>{{ requests | selectattr('status', 'equalto', 'Pending') | list | length }}</strong>
+                            <p>Requests still waiting for administrative review.</p>
                         </div>
                     </div>
 
-                    <div class="stat-card modern-stat-card active-users">
+                    <div class="stat-card">
                         <div class="stat-icon green">
                             <i class="fa-solid fa-circle-check"></i>
                         </div>
                         <div class="stat-content">
-                            <span class="stat-label">Approved Requests</span>
-                            <h3>{{ requests | selectattr('status', 'equalto', 'Approved') | list | length }}</h3>
-                            <p>Requests approved and applied to the ownership history records.</p>
+                            <span>Approved Requests</span>
+                            <strong>{{ requests | selectattr('status', 'equalto', 'Approved') | list | length }}</strong>
+                            <p>Requests approved and applied to ownership records.</p>
                         </div>
                     </div>
 
-                    <div class="stat-card modern-stat-card rejected-card">
+                    <div class="stat-card">
                         <div class="stat-icon red">
                             <i class="fa-solid fa-circle-xmark"></i>
                         </div>
                         <div class="stat-content">
-                            <span class="stat-label">Rejected Requests</span>
-                            <h3>{{ requests | selectattr('status', 'equalto', 'Rejected') | list | length }}</h3>
-                            <p>Requests declined after administrative review and validation.</p>
+                            <span>Rejected Requests</span>
+                            <strong>{{ requests | selectattr('status', 'equalto', 'Rejected') | list | length }}</strong>
+                            <p>Requests rejected after validation and review.</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section class="panel request-panel request-panel-modern">
-                <div class="panel-header panel-header-modern">
+            <section class="request-panel">
+                <div class="panel-header">
                     <div>
+                        <span class="section-kicker">Request Management</span>
                         <h2>Pending / Processed Requests</h2>
-                        <p class="panel-subtext">Monitor submitted deed history updates and take action when needed.</p>
-                    </div>
-
-                    <div class="header-actions">
-                        <a href="{{ url_for('admin.admin_add_deed_page') }}" class="btn-primary-action">
-                            <i class="fa-solid fa-plus"></i>
-                            Add New Deed
-                        </a>
+                        <p>Monitor submitted deed history updates and take action when needed.</p>
                     </div>
                 </div>
 
-                <div class="table-wrap custom-table-wrap modern-table-wrap">
-                    <table class="request-table modern-request-table">
+                <div class="table-wrap">
+                    <table class="request-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -125,17 +128,42 @@
                                 <th>Transaction Type</th>
                                 <th>Proof</th>
                                 <th>Status</th>
-                                <th>Notes</th>
+                                <th class="notes-heading">Notes</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             {% for req in requests %}
+                            {% set raw_note = req['notes'] if req['notes'] else '' %}
+                            {% set is_new_deed_request = ('[NEW DEED NUMBER REQUEST]' in raw_note) or ('not currently in the system' in raw_note) %}
+                            {% set clean_note = raw_note
+                                |replace('[NEW DEED NUMBER REQUEST]', '')
+                                |replace('This deed number is not currently in the system.', '')
+                                |trim
+                            %}
+
                             <tr>
                                 <td class="id-cell">#{{ req['request_id'] }}</td>
 
                                 <td>
-                                    <span class="deed-badge">{{ req['deed_number'] }}</span>
+                                    <div class="deed-cell">
+                                        <span class="deed-badge">{{ req['deed_number'] }}</span>
+
+                                        {% if is_new_deed_request %}
+                                        <span class="deed-kind new">
+                                            <i class="fa-solid fa-circle-plus"></i>
+                                            New deed number
+                                        </span>
+                                        <small class="deed-help">Not currently in the system</small>
+                                        {% else %}
+                                        <span class="deed-kind existing">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            Current deed number
+                                        </span>
+                                        <small class="deed-help">Existing system deed</small>
+                                        {% endif %}
+                                    </div>
                                 </td>
 
                                 <td>
@@ -147,7 +175,9 @@
                                     </div>
                                 </td>
 
-                                <td>{{ req['proposed_transfer_date'] }}</td>
+                                <td>
+                                    <span class="date-text">{{ req['proposed_transfer_date'] }}</span>
+                                </td>
 
                                 <td>
                                     <span class="type-badge">{{ req['proposed_transaction_type'] }}</span>
@@ -157,7 +187,7 @@
                                     {% if req['proof_document_path'] %}
                                     <a class="proof-link" href="/{{ req['proof_document_path'] }}" target="_blank">
                                         <i class="fa-solid fa-file-lines"></i>
-                                        <span>View Proof</span>
+                                        View Proof
                                     </a>
                                     {% else %}
                                     <span class="muted-text">No File</span>
@@ -172,26 +202,52 @@
                                     {% elif req['status'] == 'Rejected' %}
                                     <span class="status-badge rejected">Rejected</span>
                                     {% else %}
-                                    <span class="status-badge">{{ req['status'] }}</span>
+                                    <span class="status-badge neutral">{{ req['status'] }}</span>
                                     {% endif %}
                                 </td>
 
                                 <td class="notes-cell">
-                                    {{ req['notes'] if req['notes'] else '-' }}
+                                    {% if clean_note %}
+                                    <div class="note-card">
+                                        <div class="note-title">
+                                            <i class="fa-solid fa-note-sticky"></i>
+                                            User Note
+                                        </div>
+                                        <p>{{ clean_note }}</p>
+                                    </div>
+                                    {% else %}
+                                    <span class="empty-note">No notes provided</span>
+                                    {% endif %}
                                 </td>
 
-                                <td>
+                                <td class="actions-cell">
                                     {% if req['status'] == 'Pending' %}
                                     <div class="action-stack">
-                                        <form action="{{ url_for('admin.approve_transaction_history_request', request_id=req['request_id']) }}" method="POST">
+                                        <form
+                                            action="{{ url_for('admin.approve_transaction_history_request', request_id=req['request_id']) }}"
+                                            method="POST"
+                                            class="approve-form"
+                                            data-deed="{{ req['deed_number'] }}"
+                                        >
                                             <button type="submit" class="btn-approve">
                                                 <i class="fa-solid fa-check"></i>
                                                 Approve
                                             </button>
                                         </form>
 
-                                        <form action="{{ url_for('admin.reject_transaction_history_request', request_id=req['request_id']) }}" method="POST" class="reject-form">
-                                            <input type="text" name="admin_comment" placeholder="Reason for rejection" required>
+                                        <form
+                                            action="{{ url_for('admin.reject_transaction_history_request', request_id=req['request_id']) }}"
+                                            method="POST"
+                                            class="reject-form"
+                                            data-deed="{{ req['deed_number'] }}"
+                                        >
+                                            <textarea
+                                                name="admin_comment"
+                                                placeholder="Write rejection reason..."
+                                                rows="3"
+                                                required
+                                            ></textarea>
+
                                             <button type="submit" class="btn-reject">
                                                 <i class="fa-solid fa-xmark"></i>
                                                 Reject
@@ -199,14 +255,17 @@
                                         </form>
                                     </div>
                                     {% else %}
-                                    <span class="processed-label">Processed</span>
+                                    <span class="processed-label">
+                                        <i class="fa-solid fa-lock"></i>
+                                        Processed
+                                    </span>
                                     {% endif %}
                                 </td>
                             </tr>
                             {% else %}
                             <tr>
                                 <td colspan="9">
-                                    <div class="empty-state modern-empty-state">
+                                    <div class="empty-state">
                                         <i class="fa-solid fa-inbox"></i>
                                         <h3>No transaction requests found</h3>
                                         <p>New deed and ownership update requests will appear here.</p>
