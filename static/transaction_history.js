@@ -290,157 +290,120 @@ function setupFileUpload() {
     });
 }
 
-let customDatePickerState = {
-    currentDate: new Date(),
-    selectedDate: null
-};
-
 function setupCustomDatePicker() {
     const hiddenInput = document.getElementById("proposed_transfer_date");
-    const button = document.getElementById("datePickerButton");
-    const popup = document.getElementById("datePopup");
-    const selectedText = document.getElementById("selectedDateText");
-    const monthYear = document.getElementById("calendarMonthYear");
-    const daysContainer = document.getElementById("calendarDays");
-    const prevBtn = document.getElementById("prevMonth");
-    const nextBtn = document.getElementById("nextMonth");
-    const clearBtn = document.getElementById("clearDate");
-    const todayBtn = document.getElementById("todayDate");
-    const picker = document.getElementById("customDatePicker");
+    const monthSelect = document.getElementById("transferMonth");
+    const daySelect = document.getElementById("transferDay");
+    const yearSelect = document.getElementById("transferYear");
 
-    if (!hiddenInput || !button || !popup || !daysContainer || !picker) return;
+    if (!hiddenInput || !monthSelect || !daySelect || !yearSelect) return;
 
-    function formatDateForInput(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-    }
+    const monthNames = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+    ];
 
-    function formatDateForDisplay(date) {
-        return date.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "long",
-            day: "numeric"
+    function populateMonths() {
+        monthSelect.innerHTML = `<option value="">Month</option>`;
+
+        monthNames.forEach((month, index) => {
+            const option = document.createElement("option");
+            option.value = String(index + 1).padStart(2, "0");
+            option.textContent = month;
+            monthSelect.appendChild(option);
         });
     }
 
-    function isSameDate(dateOne, dateTwo) {
-        return (
-            dateOne &&
-            dateTwo &&
-            dateOne.getDate() === dateTwo.getDate() &&
-            dateOne.getMonth() === dateTwo.getMonth() &&
-            dateOne.getFullYear() === dateTwo.getFullYear()
-        );
-    }
+    function populateYears() {
+        const currentYear = new Date().getFullYear();
+        const startYear = currentYear - 100;
 
-    function renderCalendar() {
-        daysContainer.innerHTML = "";
+        yearSelect.innerHTML = `<option value="">Year</option>`;
 
-        const year = customDatePickerState.currentDate.getFullYear();
-        const month = customDatePickerState.currentDate.getMonth();
-
-        monthYear.textContent = customDatePickerState.currentDate.toLocaleDateString("en-US", {
-            month: "long",
-            year: "numeric"
-        });
-
-        const firstDay = new Date(year, month, 1).getDay();
-        const totalDays = new Date(year, month + 1, 0).getDate();
-        const today = new Date();
-
-        for (let i = 0; i < firstDay; i++) {
-            const empty = document.createElement("span");
-            empty.className = "date-empty";
-            daysContainer.appendChild(empty);
+        for (let year = currentYear; year >= startYear; year--) {
+            const option = document.createElement("option");
+            option.value = String(year);
+            option.textContent = String(year);
+            yearSelect.appendChild(option);
         }
+    }
+
+    function getDaysInMonth(month, year) {
+        if (!month || !year) return 31;
+        return new Date(Number(year), Number(month), 0).getDate();
+    }
+
+    function populateDays() {
+        const selectedDay = daySelect.value;
+        const selectedMonth = monthSelect.value;
+        const selectedYear = yearSelect.value;
+        const totalDays = getDaysInMonth(selectedMonth, selectedYear);
+
+        daySelect.innerHTML = `<option value="">Day</option>`;
 
         for (let day = 1; day <= totalDays; day++) {
-            const dayBtn = document.createElement("button");
-            dayBtn.type = "button";
-            dayBtn.textContent = day;
+            const option = document.createElement("option");
+            option.value = String(day).padStart(2, "0");
+            option.textContent = String(day);
+            daySelect.appendChild(option);
+        }
 
-            const dateObj = new Date(year, month, day);
-
-            if (isSameDate(dateObj, today)) {
-                dayBtn.classList.add("today");
-            }
-
-            if (isSameDate(dateObj, customDatePickerState.selectedDate)) {
-                dayBtn.classList.add("selected");
-            }
-
-            dayBtn.addEventListener("click", function () {
-                customDatePickerState.selectedDate = dateObj;
-                hiddenInput.value = formatDateForInput(dateObj);
-                selectedText.textContent = formatDateForDisplay(dateObj);
-                popup.classList.add("hidden");
-                button.classList.add("date-selected");
-                renderCalendar();
-            });
-
-            daysContainer.appendChild(dayBtn);
+        if (selectedDay && Number(selectedDay) <= totalDays) {
+            daySelect.value = selectedDay;
         }
     }
 
-    button.addEventListener("click", function () {
-        popup.classList.toggle("hidden");
-        renderCalendar();
-    });
+    function updateHiddenDate() {
+        const month = monthSelect.value;
+        const day = daySelect.value;
+        const year = yearSelect.value;
 
-    prevBtn.addEventListener("click", function () {
-        customDatePickerState.currentDate.setMonth(customDatePickerState.currentDate.getMonth() - 1);
-        renderCalendar();
-    });
-
-    nextBtn.addEventListener("click", function () {
-        customDatePickerState.currentDate.setMonth(customDatePickerState.currentDate.getMonth() + 1);
-        renderCalendar();
-    });
-
-    clearBtn.addEventListener("click", function () {
-        customDatePickerState.selectedDate = null;
-        hiddenInput.value = "";
-        selectedText.textContent = "Select transfer date";
-        button.classList.remove("date-selected");
-        popup.classList.add("hidden");
-        renderCalendar();
-    });
-
-    todayBtn.addEventListener("click", function () {
-        const today = new Date();
-        customDatePickerState.selectedDate = today;
-        customDatePickerState.currentDate = new Date(today.getFullYear(), today.getMonth(), 1);
-        hiddenInput.value = formatDateForInput(today);
-        selectedText.textContent = formatDateForDisplay(today);
-        button.classList.add("date-selected");
-        popup.classList.add("hidden");
-        renderCalendar();
-    });
-
-    document.addEventListener("click", function (event) {
-        if (!picker.contains(event.target)) {
-            popup.classList.add("hidden");
+        if (month && day && year) {
+            hiddenInput.value = `${year}-${month}-${day}`;
+        } else {
+            hiddenInput.value = "";
         }
+    }
+
+    populateMonths();
+    populateYears();
+    populateDays();
+
+    monthSelect.addEventListener("change", function () {
+        populateDays();
+        updateHiddenDate();
     });
 
-    renderCalendar();
+    daySelect.addEventListener("change", function () {
+        updateHiddenDate();
+    });
+
+    yearSelect.addEventListener("change", function () {
+        populateDays();
+        updateHiddenDate();
+    });
 }
 
 function resetCustomDatePicker() {
     const hiddenInput = document.getElementById("proposed_transfer_date");
-    const selectedText = document.getElementById("selectedDateText");
-    const button = document.getElementById("datePickerButton");
-    const popup = document.getElementById("datePopup");
-
-    customDatePickerState.currentDate = new Date();
-    customDatePickerState.selectedDate = null;
+    const monthSelect = document.getElementById("transferMonth");
+    const daySelect = document.getElementById("transferDay");
+    const yearSelect = document.getElementById("transferYear");
 
     if (hiddenInput) hiddenInput.value = "";
-    if (selectedText) selectedText.textContent = "Select transfer date";
-    if (button) button.classList.remove("date-selected");
-    if (popup) popup.classList.add("hidden");
+    if (monthSelect) monthSelect.value = "";
+    if (daySelect) daySelect.value = "";
+    if (yearSelect) yearSelect.value = "";
 }
 
 document.addEventListener("DOMContentLoaded", function () {

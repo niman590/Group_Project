@@ -665,135 +665,72 @@ body.transaction-history-page {
     word-break: break-word;
 }
 
-.transaction-history-page .custom-date-picker {
-    position: relative;
+.transaction-history-page .date-select-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
 }
 
-.transaction-history-page .custom-date-input {
+.transaction-history-page .date-select-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+}
+
+.transaction-history-page .date-select-wrap::after {
+    content: "";
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid #1f56af;
+    border-bottom: 2px solid #1f56af;
+    transform: translateY(-65%) rotate(45deg);
+    pointer-events: none;
+}
+
+.transaction-history-page .date-select-wrap select {
     width: 100%;
-    min-height: 50px;
-    padding: 14px 16px 14px 46px;
+    min-height: 56px;
+    padding: 0 44px 0 16px;
     border: 1px solid #cfdbeb;
-    border-radius: 15px;
-    background: #fbfdff;
-    color: #607086;
-    font-size: 14px;
-    text-align: left;
+    border-radius: 16px;
+    background: #ffffff;
+    color: #1f2f46;
+    font-size: 16px;
+    font-weight: 500;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
     cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    box-shadow: 0 8px 18px rgba(18, 63, 136, 0.03);
     transition: all 0.22s ease;
 }
 
-.transaction-history-page .custom-date-input:hover,
-.transaction-history-page .custom-date-input.date-selected {
+.transaction-history-page .date-select-wrap select:hover {
+    border-color: #a9c1e4;
+}
+
+.transaction-history-page .date-select-wrap select:focus {
+    outline: none;
     border-color: #2f6fd4;
-    background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(47, 111, 212, 0.10);
-    color: #16304d;
+    box-shadow: 0 0 0 4px rgba(47, 111, 212, 0.11);
 }
 
-.transaction-history-page .custom-date-input i {
-    color: #2f6fd4;
-}
-
-.transaction-history-page .date-popup {
-    position: absolute;
-    top: 58px;
-    left: 0;
-    width: 330px;
-    padding: 16px;
-    background: #ffffff;
-    border: 1px solid #d9e3f0;
-    border-radius: 22px;
-    box-shadow: 0 22px 50px rgba(18, 63, 136, 0.20);
-    z-index: 9999;
-    animation: fadeScale 0.2s ease both;
-}
-
-.transaction-history-page .date-popup-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-}
-
-.transaction-history-page .date-popup-header strong {
-    color: #123f88;
-    font-size: 16px;
-}
-
-.transaction-history-page .date-popup-header button,
-.transaction-history-page .date-popup-footer button {
-    border: none;
-    background: #edf4ff;
-    color: #123f88;
-    border-radius: 12px;
-    padding: 9px 12px;
-    cursor: pointer;
-    font-weight: 800;
-    transition: all 0.2s ease;
-}
-
-.transaction-history-page .date-popup-header button:hover,
-.transaction-history-page .date-popup-footer button:hover {
-    background: #123f88;
-    color: #ffffff;
-}
-
-.transaction-history-page .date-weekdays,
-.transaction-history-page .date-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 7px;
-}
-
-.transaction-history-page .date-weekdays span {
-    text-align: center;
-    color: #607086;
-    font-size: 12px;
-    font-weight: 800;
-    padding: 6px 0;
-}
-
-.transaction-history-page .date-days button,
-.transaction-history-page .date-empty {
-    height: 36px;
-    border-radius: 12px;
-}
-
-.transaction-history-page .date-days button {
-    border: none;
+.transaction-history-page .date-select-wrap select:disabled {
+    color: #8c9bb0;
     background: #f6f9ff;
-    color: #16304d;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all 0.18s ease;
+    cursor: not-allowed;
 }
 
-.transaction-history-page .date-days button:hover {
-    background: #dfeaff;
-    color: #123f88;
-    transform: translateY(-2px);
-}
-
-.transaction-history-page .date-days button.today {
-    border: 1px solid #2f6fd4;
-    color: #2f6fd4;
-    background: #eef5ff;
-}
-
-.transaction-history-page .date-days button.selected {
-    background: linear-gradient(135deg, #123f88 0%, #2f6fd4 100%);
-    color: #ffffff;
-    box-shadow: 0 10px 20px rgba(18, 63, 136, 0.25);
-}
-
-.transaction-history-page .date-popup-footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 14px;
+.transaction-history-page .calendar-help {
+    display: block;
+    margin-top: 8px;
+    color: #6a7c93;
+    font-size: 16px;
+    line-height: 1.45;
 }
 
 .transaction-history-page .custom-file-upload {
@@ -1028,7 +965,12 @@ body.transaction-history-page {
         flex-direction: column;
     }
 
-    .transaction-history-page .date-popup {
-        width: 100%;
+    .transaction-history-page .date-select-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .transaction-history-page .calendar-help {
+        font-size: 14px;
     }
 }
