@@ -80,7 +80,7 @@ body {
 .clickable-admin-chip:hover {
     background: #e4efff;
     transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(18, 63, 130, 0.10);
+    box-shadow: 0 10px 24px rgba(18, 63, 130, 0.1);
 }
 
 .clickable-admin-chip:active {
@@ -186,26 +186,19 @@ body {
     margin-bottom: 28px;
 }
 
-/* =====================================================
-   FINAL FIX - CLEAN & COMPACT STAT CARDS (ALL PAGES)
-   ===================================================== */
-
 .stat-card {
     position: relative;
     overflow: hidden;
+    isolation: isolate;
     display: flex;
     align-items: center;
     gap: 16px;
-
-    /* 🔥 FIXED SIZE */
     min-height: 120px;
-    padding: 20px 20px;
-
+    padding: 20px;
     border-radius: 18px;
     border: 1px solid #dbe5f2;
     background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
     box-shadow: 0 8px 20px rgba(18, 63, 130, 0.05);
-
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -214,38 +207,16 @@ body {
     box-shadow: 0 12px 24px rgba(18, 63, 130, 0.08);
 }
 
-/* ICON SMALLER */
-.stat-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    font-size: 1.2rem;
-}
-
-/* TEXT CLEAN */
-.stat-label {
-    font-size: 0.75rem;
-    letter-spacing: 0.06em;
-}
-
-/* NUMBER SMALLER */
-.stat-content h3 {
-    font-size: 2.2rem;
-}
-
-/* DESCRIPTION CLEAN */
-.stat-content p {
-    font-size: 0.88rem;
-    max-width: 220px;
-}
-
-/* BACKGROUND BUBBLE SMALLER */
 .stat-card::after {
+    content: "";
+    position: absolute;
     width: 80px;
     height: 80px;
     right: -20px;
     bottom: -20px;
+    border-radius: 50%;
     opacity: 0.12;
+    z-index: 0;
 }
 
 .stat-top-line {
@@ -254,17 +225,18 @@ body {
     left: 0;
     width: 100%;
     height: 5px;
-    border-radius: 24px 24px 0 0;
+    border-radius: 18px 18px 0 0;
 }
 
 .stat-icon {
-    width: 68px;
-    height: 68px;
-    border-radius: 20px;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.45rem;
+    font-size: 1.2rem;
     flex-shrink: 0;
     position: relative;
     z-index: 1;
@@ -274,7 +246,7 @@ body {
 .stat-content {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
     min-width: 0;
     position: relative;
     z-index: 1;
@@ -282,15 +254,15 @@ body {
 
 .stat-label {
     display: inline-block;
-    font-size: 0.82rem;
+    font-size: 0.75rem;
     font-weight: 800;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
     color: #6c7a92;
 }
 
 .stat-content h3 {
-    font-size: 3rem;
+    font-size: 2.2rem;
     line-height: 1;
     margin: 0;
     font-weight: 800;
@@ -300,15 +272,15 @@ body {
 }
 
 .stat-card:hover .stat-content h3 {
-    transform: scale(1.04);
+    transform: scale(1.03);
 }
 
 .stat-content p {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     color: #6c7a92;
-    line-height: 1.45;
-    max-width: 260px;
+    line-height: 1.4;
+    max-width: 220px;
 }
 
 /* Total */
@@ -477,6 +449,7 @@ body {
     flex-wrap: wrap;
 }
 
+/* Buttons */
 .btn {
     border: none;
     border-radius: 12px;
@@ -607,79 +580,6 @@ body {
     background: #f8fbff;
     text-align: center;
     padding: 20px;
-}
-
-/* Responsive */
-@media (max-width: 1300px) {
-    .stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .filter-layout,
-    .chart-grid,
-    .valuation-metrics-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 860px) {
-    .dashboard-shell {
-        flex-direction: column;
-    }
-
-    .main-content {
-        padding: 18px;
-    }
-
-    .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 22px;
-    }
-
-    .topbar h1 {
-        font-size: 1.8rem;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .custom-range-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .valuation-toolbar,
-    .valuation-chart-head,
-    .quick-filter-row,
-    .date-filter-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .quick-filter-btn,
-    .filter-btn-large {
-        width: 100%;
-    }
-
-    .stat-card {
-        min-height: auto;
-        padding: 22px 18px;
-    }
-
-    .stat-content h3 {
-        font-size: 2.5rem;
-    }
-
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 18px;
-    }
-
-    .clickable-admin-chip {
-        width: 100%;
-    }
 }
 
 /* Land valuation forecast */
@@ -837,4 +737,196 @@ body {
 
 .valuation-empty-state {
     min-height: 220px;
+}
+
+/* Reports page date selector */
+.report-date-select-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+}
+
+.report-select-wrap {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+}
+
+.report-select-wrap i {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #123f82;
+    font-size: 0.75rem;
+    pointer-events: none;
+}
+
+.report-date-select {
+    width: 100%;
+    height: 46px;
+    padding: 0 38px 0 14px;
+    border: 1px solid #c9d7ea;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #123f82;
+    font-size: 0.98rem;
+    font-weight: 500;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-date-select:focus {
+    border-color: #123f82;
+    box-shadow: 0 0 0 3px rgba(18, 63, 130, 0.12);
+}
+
+.report-date-select.invalid {
+    border-color: #d64545;
+    box-shadow: 0 0 0 3px rgba(214, 69, 69, 0.12);
+}
+
+/* Add New Deed date selector */
+.deed-date-select-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+}
+
+.deed-select-wrap {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+}
+
+.deed-select-wrap i {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #123f82;
+    font-size: 0.75rem;
+    pointer-events: none;
+}
+
+.deed-date-select {
+    width: 100%;
+    height: 46px;
+    padding: 0 38px 0 14px;
+    border: 1px solid #c9d7ea;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #123f82;
+    font-size: 0.98rem;
+    font-weight: 500;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.deed-date-select:focus {
+    border-color: #123f82;
+    box-shadow: 0 0 0 3px rgba(18, 63, 130, 0.12);
+}
+
+.deed-date-select.invalid {
+    border-color: #d64545;
+    box-shadow: 0 0 0 3px rgba(214, 69, 69, 0.12);
+}
+
+.field-help {
+    display: block;
+    margin-top: 7px;
+    color: #587098;
+    font-size: 0.78rem;
+    line-height: 1.35;
+}
+
+/* Responsive */
+@media (max-width: 1300px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .filter-layout,
+    .chart-grid,
+    .valuation-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 860px) {
+    .dashboard-shell {
+        flex-direction: column;
+    }
+
+    .main-content {
+        padding: 18px;
+    }
+
+    .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 22px;
+    }
+
+    .topbar h1 {
+        font-size: 1.8rem;
+    }
+
+    .stats-grid,
+    .custom-range-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .valuation-toolbar,
+    .valuation-chart-head,
+    .quick-filter-row,
+    .date-filter-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .quick-filter-btn,
+    .filter-btn-large {
+        width: 100%;
+    }
+
+    .stat-card {
+        min-height: auto;
+        padding: 18px;
+    }
+
+    .stat-content h3 {
+        font-size: 2rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        border-radius: 14px;
+    }
+
+    .clickable-admin-chip {
+        width: 100%;
+    }
+}
+
+@media (max-width: 700px) {
+    .report-date-select-row,
+    .deed-date-select-row {
+        grid-template-columns: 1fr;
+    }
 }
