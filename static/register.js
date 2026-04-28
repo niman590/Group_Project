@@ -69,6 +69,14 @@ document.addEventListener("DOMContentLoaded", function () {
     }, duration);
   }
 
+  function startPageTransition(targetHref) {
+    document.body.classList.add("page-exit");
+
+    setTimeout(() => {
+      window.location.href = targetHref;
+    }, 260);
+  }
+
   function validateRequired(input, message) {
     if (!input.value.trim()) {
       setError(input, message);
@@ -465,5 +473,28 @@ document.addEventListener("DOMContentLoaded", function () {
         firstName.focus();
       }
     }
+  });
+
+  document.querySelectorAll('a[href]').forEach((link) => {
+    link.addEventListener("click", function (event) {
+      const href = this.getAttribute("href");
+
+      if (!href || href.startsWith("#") || this.target === "_blank") {
+        return;
+      }
+
+      try {
+        const targetUrl = new URL(href, window.location.href);
+
+        if (targetUrl.origin !== window.location.origin) {
+          return;
+        }
+      } catch (error) {
+        return;
+      }
+
+      event.preventDefault();
+      startPageTransition(href);
+    });
   });
 });

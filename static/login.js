@@ -9,9 +9,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function hideFlash(flash, duration = 250) {
     if (!flash) return;
+
     flash.style.transition = `opacity ${duration}ms ease, transform ${duration}ms ease`;
     flash.style.opacity = "0";
     flash.style.transform = "translateY(-6px)";
+
     setTimeout(() => {
       if (flash.parentNode) {
         flash.remove();
@@ -19,9 +21,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }, duration);
   }
 
+  function startPageTransition(targetHref) {
+    document.body.classList.add("page-exit");
+
+    setTimeout(() => {
+      window.location.href = targetHref;
+    }, 260);
+  }
+
   if (passwordToggle && passwordInput) {
     passwordToggle.addEventListener("click", function () {
       const isPassword = passwordInput.type === "password";
+
       passwordInput.type = isPassword ? "text" : "password";
       this.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
 
@@ -39,6 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       loginSubmitBtn.classList.add("loading");
+
       const btnText = loginSubmitBtn.querySelector(".btn-text");
       if (btnText) {
         btnText.textContent = "Signing in...";
@@ -64,10 +76,34 @@ document.addEventListener("DOMContentLoaded", function () {
   document.addEventListener("keydown", function (event) {
     if (event.key === "/" && document.activeElement !== nicInput && nicInput) {
       const tag = document.activeElement ? document.activeElement.tagName : "";
+
       if (tag !== "INPUT" && tag !== "TEXTAREA") {
         event.preventDefault();
         nicInput.focus();
       }
     }
+  });
+
+  document.querySelectorAll('a[href]').forEach((link) => {
+    link.addEventListener("click", function (event) {
+      const href = this.getAttribute("href");
+
+      if (!href || href.startsWith("#") || this.target === "_blank") {
+        return;
+      }
+
+      try {
+        const targetUrl = new URL(href, window.location.href);
+
+        if (targetUrl.origin !== window.location.origin) {
+          return;
+        }
+      } catch (error) {
+        return;
+      }
+
+      event.preventDefault();
+      startPageTransition(href);
+    });
   });
 });
