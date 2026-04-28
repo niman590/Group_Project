@@ -564,17 +564,17 @@
 
 
     <!-- CHATBOT -->
-    <button class="chatbot-button" id="chatbotButton" type="button" aria-label="Open AI Assistant" aria-expanded="false">
+    <button class="chatbot-button" id="chatbotButton" aria-label="Open AI Assistant">
         <i class="fa-solid fa-comment-dots"></i>
     </button>
 
-    <div class="chatbot-box" id="chatbotBox" aria-live="polite">
+    <div class="chatbot-box" id="chatbotBox">
         <div class="chatbot-header">
             <div class="chatbot-title">
                 <i class="fa-solid fa-robot"></i>
                 <span>AI Assistant</span>
             </div>
-            <button type="button" class="chatbot-close" id="chatbotCloseBtn" aria-label="Close assistant">&times;</button>
+            <button type="button" class="chatbot-close" id="chatbotCloseBtn" aria-label="Close assistant">×</button>
         </div>
 
         <div class="chatbot-messages" id="chatMessages">
@@ -583,10 +583,10 @@
             </div>
         </div>
 
-        <form class="chatbot-input" id="chatbotForm">
-            <input type="text" id="chatInput" placeholder="Ask something..." autocomplete="off" />
-            <button type="submit" id="chatSendBtn">Send</button>
-        </form>
+        <div class="chatbot-input">
+            <input type="text" id="chatInput" placeholder="Ask something..." />
+            <button type="button" id="chatSendBtn">Send</button>
+        </div>
     </div>
 
     <button class="scroll-top-btn" id="scrollTopBtn" type="button" aria-label="Scroll to top">

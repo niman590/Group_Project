@@ -506,6 +506,85 @@ def handle_faq_intent(message):
     return None
 
 
+
+def handle_public_dashboard_faq_intent(message):
+    text = normalize_text(message)
+
+    if any(phrase in text for phrase in ["my application", "my applications", "application status", "my status", "my alerts", "my valuation", "my property", "my records"]):
+        return build_response(
+            "I can’t access personal dashboard details from the public dashboard. Please sign in and use your user dashboard to check application status, alerts, valuations, or records."
+        )
+
+    if any(phrase in text for phrase in ["open", "go to", "take me to", "navigate", "show me page", "view page"]):
+        return build_response(
+            "I can explain where to find things, but I can’t open pages from the public dashboard. Please use the navigation links or sign in to access user-only services."
+        )
+
+    public_faq_map = [
+        {
+            "keywords": ["how to register", "registration", "create an account", "sign up"],
+            "reply": "To register, use the Create account button on the public dashboard, then enter your personal details, NIC, email, and password."
+        },
+        {
+            "keywords": ["login", "log in", "sign in"],
+            "reply": "Use the Sign in button on the public dashboard to access your user dashboard and protected services."
+        },
+        {
+            "keywords": ["reset password", "forgot password", "password reset"],
+            "reply": "Use the password reset option on the sign-in page if you cannot access your account."
+        },
+        {
+            "keywords": ["required documents", "documents needed", "what documents"],
+            "reply": "Required documents depend on the service. For planning approvals, prepare identity details, property or land information, ownership records, and any supporting plans or files requested by the authority."
+        },
+        {
+            "keywords": ["planning approval", "submit planning approval", "planning application"],
+            "reply": "Planning approval services are available after signing in. The public dashboard gives general guidance, while the user dashboard is used for submissions and tracking."
+        },
+        {
+            "keywords": ["land value", "valuation", "land valuation"],
+            "reply": "Land value prediction is available through the portal after signing in. The public dashboard can only provide general information about the service."
+        },
+        {
+            "keywords": ["transaction history", "ownership history", "land records"],
+            "reply": "Land transaction history records can be checked through the portal after signing in. The public dashboard provides only general service information."
+        },
+        {
+            "keywords": ["support documents", "guidelines", "gazettes", "rules"],
+            "reply": "Support documents may include planning guidelines, document checklists, gazettes, rules, and user guidance. Sign in or use the portal links to view available resources."
+        },
+    ]
+
+    for item in public_faq_map:
+        if any(keyword in text for keyword in item["keywords"]):
+            return build_response(item["reply"])
+
+    return None
+
+
+def generate_public_dashboard_fallback(user_message):
+    client = get_gemini_client()
+    if client is None:
+        return None
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=(
+            f"{SYSTEM_PROMPT}\n\n"
+            "Context: The user is on the public dashboard, not the signed-in user dashboard. "
+            "Do not open pages, do not provide application status, do not access personal dashboard data, "
+            "and do not claim to submit applications or check live records. Give general Civic Plan guidance only. "
+            "If the user asks for a user-only function, tell them to sign in and use the user dashboard.\n\n"
+            f"User: {user_message}"
+        )
+    )
+
+    reply_text = getattr(response, "text", None)
+    if not reply_text:
+        reply_text = "Sorry, I could not generate a reply right now."
+
+    return reply_text
+
 def generate_gemini_fallback(user_message):
     client = get_gemini_client()
     if client is None:
@@ -559,6 +638,20 @@ def chat():
 
         if not user_message:
             return jsonify({"reply": "Please enter a message first."}), 400
+
+        page_context = (data.get("context") or data.get("page_context") or "").strip().lower()
+        if page_context == "public_dashboard":
+            public_faq_response = handle_public_dashboard_faq_intent(user_message)
+            if public_faq_response is not None:
+                return public_faq_response
+
+            public_fallback_reply = generate_public_dashboard_fallback(user_message)
+            if public_fallback_reply:
+                return build_response(public_fallback_reply)
+
+            return build_response(
+                "I can help with general Civic Plan information from the public dashboard. Please sign in to use user dashboard functions such as application status, page actions, submissions, and personal records."
+            )
 
         navigation_response = handle_navigation_intent(user_message)
         if navigation_response is not None:
