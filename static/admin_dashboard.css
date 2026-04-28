@@ -186,57 +186,66 @@ body {
     margin-bottom: 28px;
 }
 
+/* =====================================================
+   FINAL FIX - CLEAN & COMPACT STAT CARDS (ALL PAGES)
+   ===================================================== */
+
 .stat-card {
     position: relative;
     overflow: hidden;
-    isolation: isolate;
     display: flex;
     align-items: center;
-    gap: 18px;
-    min-height: 160px;
-    padding: 26px 22px;
-    border-radius: 24px;
+    gap: 16px;
+
+    /* 🔥 FIXED SIZE */
+    min-height: 120px;
+    padding: 20px 20px;
+
+    border-radius: 18px;
     border: 1px solid #dbe5f2;
     background: linear-gradient(145deg, #ffffff 0%, #f8fbff 100%);
-    box-shadow: 0 12px 30px rgba(18, 63, 130, 0.06);
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    box-shadow: 0 8px 20px rgba(18, 63, 130, 0.05);
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .stat-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 18px 36px rgba(18, 63, 130, 0.12);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(18, 63, 130, 0.08);
 }
 
-.stat-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        120deg,
-        rgba(255, 255, 255, 0) 20%,
-        rgba(255, 255, 255, 0.45) 45%,
-        rgba(255, 255, 255, 0) 70%
-    );
-    transform: translateX(-120%);
-    transition: transform 0.8s ease;
-    z-index: 0;
+/* ICON SMALLER */
+.stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    font-size: 1.2rem;
 }
 
-.stat-card:hover::before {
-    transform: translateX(120%);
+/* TEXT CLEAN */
+.stat-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
 }
 
+/* NUMBER SMALLER */
+.stat-content h3 {
+    font-size: 2.2rem;
+}
+
+/* DESCRIPTION CLEAN */
+.stat-content p {
+    font-size: 0.88rem;
+    max-width: 220px;
+}
+
+/* BACKGROUND BUBBLE SMALLER */
 .stat-card::after {
-    content: "";
-    position: absolute;
-    right: -30px;
-    bottom: -30px;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    opacity: 0.14;
-    pointer-events: none;
-    z-index: 0;
+    width: 80px;
+    height: 80px;
+    right: -20px;
+    bottom: -20px;
+    opacity: 0.12;
 }
 
 .stat-top-line {

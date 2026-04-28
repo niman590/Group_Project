@@ -427,3 +427,91 @@
         min-width: 100%;
     }
 }
+
+/* =========================================================
+   REPORT DATE SELECT FIX - MATCH REGISTRATION PAGE
+   ========================================================= */
+
+.inline-filter-form {
+    display: grid;
+    grid-template-columns: minmax(360px, 1fr) minmax(360px, 1fr) auto;
+    gap: 16px;
+    align-items: end;
+    margin-bottom: 14px;
+    padding: 16px;
+    background: #f7faff;
+    border: 1px solid #d8e3f3;
+    border-radius: 14px;
+}
+
+.date-filter-field {
+    min-width: 0;
+}
+
+.report-date-select-row {
+    display: grid;
+    grid-template-columns: 1fr 0.85fr 0.95fr;
+    gap: 10px;
+    width: 100%;
+}
+
+.report-select-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.report-select-wrap i {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #123f82;
+    font-size: 0.75rem;
+    pointer-events: none;
+}
+
+.report-date-select {
+    width: 100%;
+    height: 46px;
+    padding: 0 38px 0 14px;
+    border: 1px solid #c9d7ea;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #123f82;
+    font-size: 0.98rem;
+    font-weight: 500;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-date-select:focus {
+    border-color: #123f82;
+    box-shadow: 0 0 0 3px rgba(18, 63, 130, 0.12);
+}
+
+.report-date-select.invalid {
+    border-color: #d64545;
+    box-shadow: 0 0 0 3px rgba(214, 69, 69, 0.12);
+}
+
+.calendar-input-wrap,
+.friendly-date-input {
+    display: none;
+}
+
+@media (max-width: 1100px) {
+    .inline-filter-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .report-date-select-row {
+        grid-template-columns: 1fr;
+    }
+}
