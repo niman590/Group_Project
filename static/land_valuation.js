@@ -77,6 +77,7 @@ function attachPositiveDecimalValidation(fieldId) {
 
     field.addEventListener("input", function () {
         const cleanedValue = sanitizePositiveDecimalInput(this.value);
+
         if (this.value !== cleanedValue) {
             this.value = cleanedValue;
         }
@@ -117,6 +118,7 @@ function setFieldError(fieldId, hasError) {
     if (!field) return;
 
     const wrap = field.closest(".input-wrap");
+
     field.classList.toggle("input-error", hasError);
 
     if (wrap) {
@@ -144,8 +146,8 @@ function setButtonLoading(buttonId, loadingText) {
 
     const textSpan = button.querySelector(".btn-text");
     if (textSpan) {
-        textSpan.dataset.originalText = textSpan.textContent;
-        textSpan.textContent = loadingText;
+        textSpan.dataset.originalText = textSpan.innerHTML;
+        textSpan.innerHTML = loadingText;
     }
 }
 
@@ -163,7 +165,7 @@ function clearButtonLoading(buttonId) {
 
     const textSpan = button.querySelector(".btn-text");
     if (textSpan && textSpan.dataset.originalText) {
-        textSpan.textContent = textSpan.dataset.originalText;
+        textSpan.innerHTML = textSpan.dataset.originalText;
     }
 }
 
@@ -179,11 +181,15 @@ function initValuationMap() {
     }).addTo(valuationMap);
 
     valuationMap.on("click", function (event) {
-        setSelectedLocation(event.latlng.lat, event.latlng.lng);
+        setSelectedLocation(
+            event.latlng.lat,
+            event.latlng.lng,
+            "Selected property location"
+        );
     });
 }
 
-function setSelectedLocation(latitude, longitude) {
+function setSelectedLocation(latitude, longitude, popupText = "Selected property location") {
     selectedLatitude = Number(latitude);
     selectedLongitude = Number(longitude);
 
@@ -196,7 +202,7 @@ function setSelectedLocation(latitude, longitude) {
         propertyMarker = L.marker([selectedLatitude, selectedLongitude]).addTo(valuationMap);
     }
 
-    propertyMarker.bindPopup("Selected property location").openPopup();
+    propertyMarker.bindPopup(popupText).openPopup();
 
     lastValuationPayload = null;
     lastValuationResult = null;
@@ -220,10 +226,13 @@ async function searchMapLocation() {
         return;
     }
 
+    const searchButton = document.getElementById("map_search_btn");
+
     try {
-        const searchButton = document.getElementById("map_search_btn");
-        searchButton.disabled = true;
-        searchButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching';
+        if (searchButton) {
+            searchButton.disabled = true;
+            searchButton.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Searching';
+        }
 
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`;
 
@@ -244,15 +253,82 @@ async function searchMapLocation() {
         const longitude = parseFloat(results[0].lon);
 
         valuationMap.setView([latitude, longitude], 16);
-        setSelectedLocation(latitude, longitude);
+        setSelectedLocation(latitude, longitude, "Searched property location");
 
     } catch (error) {
         console.error(error);
         showValuationMessage("Unable to search location right now.", "error");
     } finally {
-        const searchButton = document.getElementById("map_search_btn");
-        searchButton.disabled = false;
-        searchButton.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Search';
+        if (searchButton) {
+            searchButton.disabled = false;
+            searchButton.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Search';
+        }
+    }
+}
+
+function getCurrentBrowserPosition() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error("Current location is not supported by this browser."));
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 12000,
+            maximumAge: 0
+        });
+    });
+}
+
+async function useCurrentLocation() {
+    const currentLocationButton = document.getElementById("current_location_btn");
+
+    try {
+        if (!valuationMap) {
+            showValuationMessage("Map is not ready yet. Please refresh the page.", "error");
+            return;
+        }
+
+        if (currentLocationButton) {
+            currentLocationButton.disabled = true;
+            currentLocationButton.innerHTML =
+                '<i class="fa-solid fa-spinner fa-spin"></i> Locating';
+        }
+
+        showValuationMessage("Finding your current location...", "warning");
+
+        const position = await getCurrentBrowserPosition();
+
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        valuationMap.setView([latitude, longitude], 16);
+        setSelectedLocation(latitude, longitude, "Your current location");
+
+    } catch (error) {
+        console.error(error);
+
+        let message = "Unable to get your current location.";
+
+        if (error.code === 1) {
+            message = "Location permission denied. Please allow location access in your browser.";
+        } else if (error.code === 2) {
+            message = "Your current location is unavailable right now.";
+        } else if (error.code === 3) {
+            message = "Getting your current location took too long. Please try again.";
+        } else if (error.message) {
+            message = error.message;
+        }
+
+        showValuationMessage(message, "error");
+
+    } finally {
+        if (currentLocationButton) {
+            currentLocationButton.disabled = false;
+            currentLocationButton.innerHTML =
+                '<i class="fa-solid fa-location-crosshairs"></i> Current Location';
+        }
     }
 }
 
@@ -292,9 +368,13 @@ async function getGisPreview() {
             return;
         }
 
-        document.getElementById("nearest_city_display").textContent = result.nearest_supported_city || "—";
+        document.getElementById("nearest_city_display").textContent =
+            result.nearest_supported_city || "—";
+
         document.getElementById("distance_display").textContent =
-            result.distance_to_city_km !== undefined ? `${result.distance_to_city_km} km` : "—";
+            result.distance_to_city_km !== undefined
+                ? `${result.distance_to_city_km} km`
+                : "—";
 
         clearValuationMessage();
 
@@ -334,6 +414,11 @@ function validatePayload(payload) {
 
     if (Number.isNaN(payload.access_road_size)) {
         setFieldError("access_road_size", true);
+        isValid = false;
+    }
+
+    if (!payload.zone_type) {
+        setFieldError("zone_type", true);
         isValid = false;
     }
 
@@ -383,17 +468,30 @@ function updateResultSummaryFromResponse(responseData, payload) {
     const gis = responseData.gis_result || {};
     const inputLocation = responseData.input_location || {};
 
-    document.getElementById("summary_location").textContent = gis.nearest_supported_city || "—";
+    document.getElementById("summary_location").textContent =
+        gis.nearest_supported_city || "—";
+
     document.getElementById("summary_distance").textContent =
-        gis.distance_to_city_km !== undefined ? `${gis.distance_to_city_km} km` : "—";
+        gis.distance_to_city_km !== undefined
+            ? `${gis.distance_to_city_km} km`
+            : "—";
 
-    document.getElementById("summary_zone").textContent = payload.zone_type || "—";
-    document.getElementById("summary_size").textContent = `${payload.land_size} perches`;
-    document.getElementById("summary_address").textContent = inputLocation.address || "Address unavailable";
+    document.getElementById("summary_zone").textContent =
+        payload.zone_type || "—";
 
-    document.getElementById("nearest_city_display").textContent = gis.nearest_supported_city || "—";
+    document.getElementById("summary_size").textContent =
+        `${payload.land_size} perches`;
+
+    document.getElementById("summary_address").textContent =
+        inputLocation.address || "Address unavailable";
+
+    document.getElementById("nearest_city_display").textContent =
+        gis.nearest_supported_city || "—";
+
     document.getElementById("distance_display").textContent =
-        gis.distance_to_city_km !== undefined ? `${gis.distance_to_city_km} km` : "—";
+        gis.distance_to_city_km !== undefined
+            ? `${gis.distance_to_city_km} km`
+            : "—";
 }
 
 async function predictLandValue() {
@@ -417,16 +515,26 @@ async function predictLandValue() {
         const result = await response.json();
 
         if (!response.ok || !result.success) {
-            showValuationMessage(result.error || "Something went wrong while predicting land value.", "error");
+            showValuationMessage(
+                result.error || "Something went wrong while predicting land value.",
+                "error"
+            );
             return;
         }
 
         const valuation = result.valuation;
 
-        document.getElementById("current_value").textContent = formatLKR(valuation.current_value);
-        document.getElementById("predicted_1_year").textContent = formatLKR(valuation.predicted_1_year);
-        document.getElementById("predicted_5_year").textContent = formatLKR(valuation.predicted_5_year);
-        document.getElementById("price_per_perch").textContent = formatLKR(valuation.estimated_price_per_perch);
+        document.getElementById("current_value").textContent =
+            formatLKR(valuation.current_value);
+
+        document.getElementById("predicted_1_year").textContent =
+            formatLKR(valuation.predicted_1_year);
+
+        document.getElementById("predicted_5_year").textContent =
+            formatLKR(valuation.predicted_5_year);
+
+        document.getElementById("price_per_perch").textContent =
+            formatLKR(valuation.estimated_price_per_perch);
 
         updateResultSummaryFromResponse(result, payload);
 
@@ -442,7 +550,10 @@ async function predictLandValue() {
 
     } catch (error) {
         console.error(error);
-        showValuationMessage("Something went wrong while predicting land value.", "error");
+        showValuationMessage(
+            "Something went wrong while predicting land value.",
+            "error"
+        );
     } finally {
         clearButtonLoading("predict_btn");
     }
@@ -468,12 +579,14 @@ async function downloadLandValuationPDF() {
 
         if (!response.ok) {
             let errorMessage = "Failed to generate PDF.";
+
             try {
                 const errorData = await response.json();
                 errorMessage = errorData.error || errorMessage;
             } catch (e) {
-                // Ignore JSON parse error
+                // Ignore JSON parsing error.
             }
+
             throw new Error(errorMessage);
         }
 
@@ -488,11 +601,15 @@ async function downloadLandValuationPDF() {
         a.remove();
 
         window.URL.revokeObjectURL(url);
+
         showValuationMessage("PDF report downloaded successfully.", "success");
 
     } catch (error) {
         console.error(error);
-        showValuationMessage(error.message || "Something went wrong while downloading the PDF.", "error");
+        showValuationMessage(
+            error.message || "Something went wrong while downloading the PDF.",
+            "error"
+        );
     } finally {
         clearButtonLoading("download_pdf_btn");
 
@@ -509,6 +626,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function revealOnScroll() {
         revealItems.forEach((item) => {
             const rect = item.getBoundingClientRect();
+
             if (rect.top < window.innerHeight - 70) {
                 item.classList.add("revealed");
             }
@@ -526,6 +644,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 searchMapLocation();
             }
         });
+    }
+
+    const currentLocationButton = document.getElementById("current_location_btn");
+    if (currentLocationButton) {
+        currentLocationButton.addEventListener("click", useCurrentLocation);
     }
 
     initValuationMap();
