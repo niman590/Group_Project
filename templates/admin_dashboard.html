@@ -132,6 +132,57 @@
                 </div>
             </section>
 
+
+            <section class="stats-section">
+                <div class="admin-notifications-card">
+                    <div class="admin-notifications-header">
+                        <div>
+                            <span class="section-kicker">Admin Alerts</span>
+                            <h2>Security Notifications</h2>
+                            <p>Latest high-priority account and security notifications.</p>
+                        </div>
+
+                        {% if admin_unread_notifications and admin_unread_notifications > 0 %}
+                        <a href="{{ latest_admin_notification_url }}" class="admin-notification-badge admin-notification-badge-link" title="Open latest security alert">
+                            <i class="fa-solid fa-bell"></i>
+                            <span>{{ admin_unread_notifications }} new</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    {% if admin_notifications %}
+                    <div class="admin-notification-list">
+                        {% for notification in admin_notifications %}
+                        <div class="admin-notification-item {{ notification['severity'] }}">
+                            <div class="admin-notification-top">
+                                <strong>{{ notification['title'] }}</strong>
+
+                                {% if notification['severity'] %}
+                                <span class="admin-notification-severity {{ notification['severity'] }}">
+                                    {{ notification['severity']|title }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <p class="admin-notification-message">
+                                {{ notification['message'] }}
+                            </p>
+
+                            <span class="admin-notification-time">
+                                {{ notification['created_at'] }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="admin-notification-empty">
+                        No admin security notifications yet.
+                    </p>
+                    {% endif %}
+                </div>
+            </section>
+
             <section class="filter-section">
                 <div class="section-head">
                     <div>

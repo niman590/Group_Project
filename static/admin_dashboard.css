@@ -1125,3 +1125,170 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* existing admin dashboard CSS above */
+
+/* Admin Security Notifications */
+.admin-notifications-card {
+    background: #ffffff;
+    border: 1px solid #e5eaf2;
+    border-radius: 18px;
+    padding: 20px;
+    margin-top: 24px;
+    box-shadow: 0 12px 28px rgba(10, 45, 99, 0.08);
+}
+
+.admin-notifications-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.admin-notifications-kicker {
+    margin: 0 0 4px;
+    color: #64748b;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.admin-notifications-header h3,
+.admin-notifications-header h2 {
+    margin: 0;
+    color: #0a2d63;
+    font-size: 1.1rem;
+}
+
+.admin-notification-badge {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 999px;
+    padding: 6px 11px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.admin-notification-list {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-notification-item {
+    background: #f8fafc;
+    border: 1px solid #e5eaf2;
+    border-left: 5px solid #64748b;
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.admin-notification-item.high {
+    background: #fff5f5;
+    border-left-color: #dc2626;
+}
+
+.admin-notification-item.medium {
+    background: #fffbeb;
+    border-left-color: #f59e0b;
+}
+
+.admin-notification-item.low,
+.admin-notification-item.info {
+    background: #eff6ff;
+    border-left-color: #2563eb;
+}
+
+.admin-notification-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.admin-notification-top strong {
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+.admin-notification-severity {
+    border-radius: 999px;
+    padding: 4px 9px;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.admin-notification-severity.high {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.admin-notification-severity.medium {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.admin-notification-severity.low,
+.admin-notification-severity.info {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.admin-notification-message {
+    margin: 0;
+    color: #475569;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    white-space: pre-line;
+}
+
+.admin-notification-time {
+    display: block;
+    margin-top: 8px;
+    color: #94a3b8;
+    font-size: 0.78rem;
+}
+
+.admin-notification-empty {
+    margin: 0;
+    color: #64748b;
+    font-size: 0.92rem;
+}
+
+.admin-notification-badge-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 8px 14px;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 999px;
+    background: #fff1f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    font-weight: 800;
+    box-shadow: 0 8px 18px rgba(220, 38, 38, 0.12);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-notification-badge-link i {
+    font-size: 0.78rem;
+}
+
+.admin-notification-badge-link:hover {
+    transform: translateY(-2px);
+    background: #fee2e2;
+    border-color: #fca5a5;
+    box-shadow: 0 14px 28px rgba(220, 38, 38, 0.22);
+}
+
+.admin-notification-badge-link:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 14px rgba(220, 38, 38, 0.16);
+}

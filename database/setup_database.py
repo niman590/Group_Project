@@ -53,6 +53,14 @@ def create_tables(cursor):
 
     add_column_if_missing(cursor, "users", "employee_id", "TEXT")
     add_column_if_missing(cursor, "users", "is_active", "BOOLEAN DEFAULT 1")
+    add_column_if_missing(cursor, "users", "failed_login_attempts", "INTEGER DEFAULT 0")
+    add_column_if_missing(cursor, "users", "account_locked_until", "TEXT")
+    add_column_if_missing(cursor, "users", "lockout_stage", "INTEGER DEFAULT 0")
+    add_column_if_missing(cursor, "users", "post_lock_failed_attempts", "INTEGER DEFAULT 0")
+    add_column_if_missing(cursor, "users", "failed_login_attempts", "INTEGER DEFAULT 0")
+    add_column_if_missing(cursor, "users", "account_locked_until", "TEXT")
+    add_column_if_missing(cursor, "users", "lockout_stage", "INTEGER DEFAULT 0")
+    add_column_if_missing(cursor, "users", "post_lock_failed_attempts", "INTEGER DEFAULT 0")
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS property (
@@ -470,6 +478,18 @@ def create_tables(cursor):
     );
     """)
 
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS admin_notifications (
+        notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        message TEXT NOT NULL,
+        severity TEXT DEFAULT 'info',
+        related_event_type TEXT,
+        is_read INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+    """)
+
 
 def create_indexes(cursor):
     cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique ON users(email)")
@@ -507,6 +527,9 @@ def create_indexes(cursor):
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_status ON suspicious_events(status)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_created_at ON suspicious_events(created_at)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_ip_address ON suspicious_events(ip_address)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_notifications_is_read ON admin_notifications(is_read)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_notifications_severity ON admin_notifications(severity)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_notifications_created_at ON admin_notifications(created_at)")
 
 def create_default_admin(cursor):
     cursor.execute("UPDATE users SET is_active = 1 WHERE is_active IS NULL")

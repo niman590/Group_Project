@@ -283,19 +283,56 @@ def toggle_user_status(user_id):
 
     new_status = 0 if target_user["is_active"] else 1
 
-    cursor.execute(
-        """
-        UPDATE users
-        SET is_active = ?
-        WHERE user_id = ?
-        """,
-        (new_status, user_id),
-    )
+    cursor.execute("PRAGMA table_info(users)")
+    columns = {row["name"] for row in cursor.fetchall()}
+
+    if new_status == 1:
+        # Admin is reactivating the account.
+        # Clear all temporary/permanent login lockout states.
+        update_fields = ["is_active = ?"]
+        params = [new_status]
+
+        if "failed_login_attempts" in columns:
+            update_fields.append("failed_login_attempts = 0")
+
+        if "account_locked_until" in columns:
+            update_fields.append("account_locked_until = NULL")
+
+        if "lockout_stage" in columns:
+            update_fields.append("lockout_stage = 0")
+
+        if "post_lock_failed_attempts" in columns:
+            update_fields.append("post_lock_failed_attempts = 0")
+
+        params.append(user_id)
+
+        cursor.execute(
+            f"""
+            UPDATE users
+            SET {", ".join(update_fields)}
+            WHERE user_id = ?
+            """,
+            tuple(params),
+        )
+
+        flash("User account reactivated and login security lock cleared successfully.", "success")
+
+    else:
+        # Admin is manually deactivating the account.
+        cursor.execute(
+            """
+            UPDATE users
+            SET is_active = ?
+            WHERE user_id = ?
+            """,
+            (new_status, user_id),
+        )
+
+        flash("User account deactivated successfully.", "success")
 
     conn.commit()
     conn.close()
 
-    flash("User account status updated successfully.", "success")
     return redirect(url_for("admin.admin_users"))
 
 

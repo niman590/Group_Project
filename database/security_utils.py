@@ -316,3 +316,273 @@ def validate_password_policy(password, check_breached=True):
 
 def generate_secure_otp():
     return f"{secrets.randbelow(900000) + 100000}"
+
+def create_admin_notification(
+    title,
+    message,
+    severity="info",
+    related_event_type="security",
+    target_url=None,
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admin_notifications (
+            notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            message TEXT NOT NULL,
+            severity TEXT DEFAULT 'info',
+            related_event_type TEXT,
+            target_url TEXT,
+            is_read INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    cursor.execute("PRAGMA table_info(admin_notifications)")
+    columns = {row["name"] for row in cursor.fetchall()}
+
+    if "target_url" not in columns:
+        cursor.execute("ALTER TABLE admin_notifications ADD COLUMN target_url TEXT")
+
+    cursor.execute(
+        """
+        INSERT INTO admin_notifications (
+            title,
+            message,
+            severity,
+            related_event_type,
+            target_url,
+            is_read
+        )
+        VALUES (?, ?, ?, ?, ?, 0)
+        """,
+        (
+            title,
+            message,
+            severity,
+            related_event_type,
+            target_url,
+        ),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def log_high_risk_login_lockout(
+    user_id=None,
+    identifier_label="unknown",
+    lockout_type="temporary",
+    description=None,
+):
+    meta = get_request_metadata()
+
+    if description is None:
+        description = (
+            f"High-risk login lockout triggered for identifier: {identifier_label}. "
+            f"Lockout type: {lockout_type}."
+        )
+
+    log_suspicious_event(
+        user_id=user_id,
+        rule_name="HIGH_RISK_LOGIN_LOCKOUT",
+        severity="high",
+        event_type="auth",
+        route=meta["route"],
+        ip_address=meta["ip_address"],
+        user_agent=meta["user_agent"],
+        event_count=1,
+        time_window_minutes=None,
+        description=description,
+    )
+
+    create_admin_notification(
+        title="High-risk login security alert",
+        message=(
+            f"{description}\n\n"
+            f"Identifier: {identifier_label}\n"
+            f"IP Address: {meta['ip_address']}\n"
+            f"User Agent: {meta['user_agent']}"
+        ),
+        severity="high",
+        related_event_type="auth",
+    )
+
+def create_admin_notification(
+    title,
+    message,
+    severity="info",
+    related_event_type="security",
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admin_notifications (
+            notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            message TEXT NOT NULL,
+            severity TEXT DEFAULT 'info',
+            related_event_type TEXT,
+            is_read INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    cursor.execute(
+        """
+        INSERT INTO admin_notifications (
+            title,
+            message,
+            severity,
+            related_event_type,
+            is_read
+        )
+        VALUES (?, ?, ?, ?, 0)
+        """,
+        (
+            title,
+            message,
+            severity,
+            related_event_type,
+        ),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def log_high_risk_login_lockout(
+    user_id=None,
+    identifier_label="unknown",
+    lockout_type="temporary",
+    description=None,
+):
+    meta = get_request_metadata()
+
+    if description is None:
+        description = (
+            f"High-risk login lockout triggered for identifier: {identifier_label}. "
+            f"Lockout type: {lockout_type}."
+        )
+
+    log_suspicious_event(
+        user_id=user_id,
+        rule_name="HIGH_RISK_LOGIN_LOCKOUT",
+        severity="high",
+        event_type="auth",
+        route=meta["route"],
+        ip_address=meta["ip_address"],
+        user_agent=meta["user_agent"],
+        event_count=1,
+        time_window_minutes=None,
+        description=description,
+    )
+
+    create_admin_notification(
+        title="High-risk login security alert",
+        message=(
+            f"{description}\n\n"
+            f"Identifier: {identifier_label}\n"
+            f"IP Address: {meta['ip_address']}\n"
+            f"User Agent: {meta['user_agent']}"
+        ),
+        severity="high",
+        related_event_type="auth",
+    )
+
+def create_admin_notification(
+    title,
+    message,
+    severity="info",
+    related_event_type="security",
+    target_url=None,
+):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admin_notifications (
+            notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            message TEXT NOT NULL,
+            severity TEXT DEFAULT 'info',
+            related_event_type TEXT,
+            target_url TEXT,
+            is_read INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    cursor.execute("PRAGMA table_info(admin_notifications)")
+    columns = {row["name"] for row in cursor.fetchall()}
+
+    if "target_url" not in columns:
+        cursor.execute("ALTER TABLE admin_notifications ADD COLUMN target_url TEXT")
+
+    cursor.execute(
+        """
+        INSERT INTO admin_notifications (
+            title,
+            message,
+            severity,
+            related_event_type,
+            target_url,
+            is_read
+        )
+        VALUES (?, ?, ?, ?, ?, 0)
+        """,
+        (
+            title,
+            message,
+            severity,
+            related_event_type,
+            target_url,
+        ),
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def log_high_risk_login_lockout(
+    user_id=None,
+    identifier_label="unknown",
+    lockout_type="temporary",
+    description=None,
+):
+    meta = get_request_metadata()
+
+    if description is None:
+        description = (
+            f"High-risk login lockout triggered for identifier: {identifier_label}. "
+            f"Lockout type: {lockout_type}."
+        )
+
+    log_suspicious_event(
+        user_id=user_id,
+        rule_name="HIGH_RISK_LOGIN_LOCKOUT",
+        severity="high",
+        event_type="auth",
+        route=meta["route"],
+        ip_address=meta["ip_address"],
+        user_agent=meta["user_agent"],
+        event_count=1,
+        time_window_minutes=None,
+        description=description,
+    )
+
+    create_admin_notification(
+        title="High-risk login security alert",
+        message=(
+            f"{description}\n\n"
+            f"Identifier: {identifier_label}\n"
+            f"IP Address: {meta['ip_address']}\n"
+            f"User Agent: {meta['user_agent']}"
+        ),
+        severity="high",
+        related_event_type="auth",
+        target_url="/admin/suspicious-behavior",
+    )

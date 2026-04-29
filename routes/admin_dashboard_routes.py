@@ -794,6 +794,150 @@ def admin_dashboard():
         "total",
     )
 
+    # Ensure admin_notifications table exists
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS admin_notifications (
+            notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            message TEXT NOT NULL,
+            severity TEXT DEFAULT 'info',
+            related_event_type TEXT,
+            target_url TEXT,
+            is_read INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # Safe upgrade for older databases without target_url
+    cursor.execute("PRAGMA table_info(admin_notifications)")
+    admin_notification_columns = {row["name"] for row in cursor.fetchall()}
+
+    if "target_url" not in admin_notification_columns:
+        cursor.execute("ALTER TABLE admin_notifications ADD COLUMN target_url TEXT")
+
+    # Latest normal admin notification
+    admin_notification_rows = cursor.execute(
+        """
+        SELECT
+            title,
+            message,
+            severity,
+            related_event_type,
+            target_url,
+            is_read,
+            created_at,
+            'admin_notification' AS source_type
+        FROM admin_notifications
+        ORDER BY created_at DESC
+        LIMIT 1
+        """
+    ).fetchall()
+
+    # Latest high-level suspicious behavior threat
+    high_threat_rows = cursor.execute(
+        """
+        SELECT
+            event_id,
+            rule_name,
+            severity,
+            event_type,
+            route,
+            ip_address,
+            user_agent,
+            event_count,
+            status,
+            description,
+            created_at
+        FROM suspicious_events
+        WHERE severity = 'high'
+        ORDER BY created_at DESC
+        LIMIT 1
+        """
+    ).fetchall()
+
+    admin_notifications = []
+
+    for row in admin_notification_rows:
+        admin_notifications.append({
+            "title": row["title"],
+            "message": row["message"],
+            "severity": row["severity"],
+            "related_event_type": row["related_event_type"],
+            "target_url": row["target_url"] or "/admin/suspicious-behavior",
+            "is_read": row["is_read"],
+            "created_at": row["created_at"],
+            "source_type": row["source_type"],
+        })
+
+    for threat in high_threat_rows:
+        message_parts = []
+
+        if threat["description"]:
+            message_parts.append(threat["description"])
+
+        message_parts.append(f"Rule: {threat['rule_name']}")
+
+        if threat["event_type"]:
+            message_parts.append(f"Event Type: {threat['event_type']}")
+
+        if threat["route"]:
+            message_parts.append(f"Route: {threat['route']}")
+
+        if threat["ip_address"]:
+            message_parts.append(f"IP Address: {threat['ip_address']}")
+
+        if threat["event_count"]:
+            message_parts.append(f"Event Count: {threat['event_count']}")
+
+        admin_notifications.append({
+            "title": "High-level suspicious behavior detected",
+            "message": "\n".join(message_parts),
+            "severity": threat["severity"],
+            "related_event_type": threat["event_type"] or "security",
+            "target_url": f"/admin/suspicious-behavior?focus_event={threat['event_id']}",
+            "is_read": 0 if threat["status"] == "new" else 1,
+            "created_at": threat["created_at"],
+            "source_type": "suspicious_event",
+        })
+
+    # Show only the latest alert in the dashboard card
+    admin_notifications = sorted(
+        admin_notifications,
+        key=lambda item: item["created_at"] or "",
+        reverse=True,
+    )[:1]
+
+    # Count all unread admin notifications + all new high-level suspicious threats
+    admin_unread_notifications = cursor.execute(
+        """
+        SELECT
+            (
+                SELECT COUNT(*)
+                FROM admin_notifications
+                WHERE is_read = 0
+            )
+            +
+            (
+                SELECT COUNT(*)
+                FROM suspicious_events
+                WHERE severity = 'high'
+                  AND status = 'new'
+            ) AS total
+        """
+    ).fetchone()["total"]
+
+    # Used by the clickable "new" badge in the dashboard
+    latest_admin_notification_url = None
+
+    for notification in admin_notifications:
+        if notification["is_read"] == 0:
+            latest_admin_notification_url = notification["target_url"]
+            break
+
+    if not latest_admin_notification_url:
+        latest_admin_notification_url = "/admin/suspicious-behavior"
+
+    conn.commit()
     conn.close()
 
     return render_template(
@@ -814,12 +958,14 @@ def admin_dashboard():
         security_total=security_total,
         security_new=security_new,
         security_high=security_high,
+        admin_notifications=admin_notifications,
+        admin_unread_notifications=admin_unread_notifications,
+        latest_admin_notification_url=latest_admin_notification_url,
         start_date=start_date,
         end_date=end_date,
         selected_range=selected_range,
         active_page="dashboard",
     )
-
 
 @admin_bp.route("/admin/dashboard/land-valuation-trends")
 def admin_land_valuation_trends():
