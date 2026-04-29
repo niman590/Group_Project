@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", function () {
             progressText.textContent = `Step ${step} of ${totalSteps}`;
         }
 
-        if (progressFill) {
+        if (progressFill && totalSteps > 0) {
             progressFill.style.width = `${(step / totalSteps) * 100}%`;
         }
 
@@ -51,8 +51,11 @@ document.addEventListener("DOMContentLoaded", function () {
     jumpButtons.forEach((btn) => {
         btn.addEventListener("click", function () {
             const targetStep = Number(this.dataset.jumpStep);
-            currentStep = targetStep;
-            showStep(currentStep);
+
+            if (!Number.isNaN(targetStep) && targetStep >= 1 && targetStep <= totalSteps) {
+                currentStep = targetStep;
+                showStep(currentStep);
+            }
         });
     });
 
@@ -86,5 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    showStep(currentStep);
+    if (totalSteps > 0) {
+        showStep(currentStep);
+    }
 });

@@ -1118,6 +1118,54 @@ def planning_approval(application_id):
         flash("Please log in first.", "error")
         return redirect(url_for("auth.login"))
 
+    def get_value(row, key, default=""):
+        try:
+            if row is not None and hasattr(row, "keys") and key in row.keys():
+                value = row[key]
+                return value if value is not None else default
+        except Exception:
+            pass
+        return default
+
+    def clean(value):
+        return (value or "").strip()
+
+    def add_note(notes, seen, title, stage, decision, message, created_at):
+        message = clean(message)
+        if not message or message == "-":
+            return
+
+        title = clean(title) or "Admin Comment"
+        stage = clean(stage) or "Application Review"
+        decision = clean(decision)
+
+        duplicate_key = (
+            title.lower(),
+            stage.lower(),
+            decision.lower(),
+            message.lower(),
+        )
+
+        if duplicate_key in seen:
+            return
+
+        seen.add(duplicate_key)
+
+        decision_class = "neutral"
+        if decision.lower() == "approved":
+            decision_class = "approved"
+        elif decision.lower() == "rejected":
+            decision_class = "rejected"
+
+        notes.append({
+            "title": title,
+            "stage": stage,
+            "decision": decision,
+            "decision_class": decision_class,
+            "message": message,
+            "created_at": created_at or "-",
+        })
+
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -1158,6 +1206,70 @@ def planning_approval(application_id):
     """, (application_id,))
     workflow_history = cursor.fetchall()
 
+    admin_notes = []
+    seen_notes = set()
+
+    first_officer_comment = clean(get_value(application, "first_officer_comment"))
+    planning_office_comment = clean(get_value(application, "planning_office_comment"))
+
+    add_note(
+        admin_notes,
+        seen_notes,
+        "First Officer / Planning Office Comment",
+        "First Officer Review",
+        get_value(application, "first_officer_decision") or get_value(application, "planning_office_decision"),
+        first_officer_comment or planning_office_comment,
+        get_value(application, "first_officer_at") or get_value(application, "updated_at") or get_value(application, "created_at"),
+    )
+
+    add_note(
+        admin_notes,
+        seen_notes,
+        "Deputy Director Comment",
+        "Deputy Director Review",
+        get_value(application, "deputy_director_decision"),
+        get_value(application, "deputy_director_comment"),
+        get_value(application, "deputy_director_at") or get_value(application, "updated_at") or get_value(application, "created_at"),
+    )
+
+    add_note(
+        admin_notes,
+        seen_notes,
+        "District Project Committee Comment",
+        "District Project Committee Review",
+        get_value(application, "committee_decision"),
+        get_value(application, "committee_comment"),
+        get_value(application, "committee_at") or get_value(application, "updated_at") or get_value(application, "created_at"),
+    )
+
+    admin_comment = clean(get_value(application, "admin_comment"))
+    committee_comment = clean(get_value(application, "committee_comment"))
+
+    if admin_comment and admin_comment != committee_comment:
+        add_note(
+            admin_notes,
+            seen_notes,
+            "General Admin Comment",
+            get_value(application, "workflow_stage") or "Application Review",
+            get_value(application, "status"),
+            admin_comment,
+            get_value(application, "reviewed_at") or get_value(application, "updated_at") or get_value(application, "created_at"),
+        )
+
+    for item in workflow_history:
+        history_comment = clean(get_value(item, "comment"))
+
+        if history_comment and history_comment != "-":
+            add_note(
+                admin_notes,
+                seen_notes,
+                get_value(item, "action_taken") or "Workflow Comment",
+                get_value(item, "stage_name") or "Workflow Activity",
+                "",
+                history_comment,
+                get_value(item, "acted_at"),
+            )
+
     cursor.execute("""
         SELECT *
         FROM user_notifications
@@ -1176,6 +1288,8 @@ def planning_approval(application_id):
 
     conn.close()
 
+    print("ADMIN NOTES FOR USER:", admin_notes)
+
     return render_template(
         "planning_approval.html",
         application=application,
@@ -1184,5 +1298,6 @@ def planning_approval(application_id):
         workflow_history=workflow_history,
         notifications=notifications,
         unread_notifications=unread_notifications,
+        admin_notes=admin_notes,
         active_page="my_applications",
     )

@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function revealOnScroll() {
         revealItems.forEach((item, index) => {
             const rect = item.getBoundingClientRect();
+
             if (rect.top < window.innerHeight - 70) {
                 item.style.transitionDelay = `${Math.min(index * 50, 250)}ms`;
                 item.classList.add("revealed");
@@ -15,7 +16,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     requestCards.forEach((card, index) => {
         const toggle = card.querySelector(".request-toggle");
-        if (!toggle) return;
+
+        if (!toggle) {
+            return;
+        }
 
         if (index === 0) {
             card.classList.add("open");

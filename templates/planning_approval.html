@@ -231,6 +231,54 @@
 
                     <div class="view-right">
 
+                        <div class="panel reveal-up admin-notes-panel">
+                            <div class="panel-header">
+                                <div>
+                                    <h2>Admin Notes</h2>
+                                    <p class="panel-subtext">Notes and comments added by each admin review level.</p>
+                                </div>
+                            </div>
+
+                            <div class="admin-notes-stack">
+                                {% if admin_notes %}
+                                    {% for note in admin_notes %}
+                                    <div class="admin-note-box">
+                                        <div class="admin-note-icon">
+                                            <i class="fa-solid fa-note-sticky"></i>
+                                        </div>
+
+                                        <div class="admin-note-content">
+                                            <div class="admin-note-head">
+                                                <strong>{{ note['title'] or 'Admin note' }}</strong>
+                                                <span>{{ note['created_at'] or '-' }}</span>
+                                            </div>
+
+                                            <div class="admin-note-meta">
+                                                {% if note['stage'] %}
+                                                <span class="admin-note-stage">
+                                                    <i class="fa-solid fa-layer-group"></i>
+                                                    {{ note['stage'] }}
+                                                </span>
+                                                {% endif %}
+
+                                                {% if note['decision'] %}
+                                                <span class="admin-note-decision decision-{{ note['decision_class'] }}">
+                                                    <i class="fa-solid fa-circle-check"></i>
+                                                    {{ note['decision'] }}
+                                                </span>
+                                                {% endif %}
+                                            </div>
+
+                                            <p>{{ note['message'] }}</p>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="empty-line">No admin notes have been added yet.</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
                         <div class="panel reveal-up">
                             <div class="panel-header">
                                 <div>
