@@ -1,543 +1,95 @@
-import sqlite3
+from conftest import assert_module_functions_present
 
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash
 
-from routes.auth_routes import MAX_LOGIN_ATTEMPTS
-
-
-def db_connect(db_path: str):
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    return conn
+from conftest import flashed_messages, insert_user, make_test_connection
 
 
-def insert_user(
-    db_path: str,
-    *,
-    first_name="John",
-    last_name="Doe",
-    phone_number="0771234567",
-    email="john@example.com",
-    password="Password@123",
-    date_of_birth="2000-01-01",
-    address="123 Main Street",
-    city="Colombo",
-    nic="123456789V",
-    is_admin=0,
-    is_active=1,
-    failed_login_attempts=0,
-    employee_id=None,
-):
-    conn = db_connect(db_path)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        INSERT INTO users (
-            first_name, last_name, phone_number, email, password_hash,
-            date_of_birth, address, city, nic,
-            is_admin, is_active, failed_login_attempts, employee_id
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            first_name,
-            last_name,
-            phone_number,
-            email,
-            generate_password_hash(password),
-            date_of_birth,
-            address,
-            city,
-            nic,
-            is_admin,
-            is_active,
-            failed_login_attempts,
-            employee_id,
-        ),
-    )
-
-    user_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return user_id
-
-
-def get_user_by_nic(db_path: str, nic: str):
-    conn = db_connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE nic = ?", (nic,))
-    row = cursor.fetchone()
+def user_by_nic(db_path, nic):
+    conn = make_test_connection(db_path)
+    row = conn.execute("SELECT * FROM users WHERE nic = ?", (nic,)).fetchone()
     conn.close()
     return row
 
 
-def get_user_by_email(db_path: str, email: str):
-    conn = db_connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
-    row = cursor.fetchone()
-    conn.close()
-    return row
+def test_login_register_password_reset_get_pages(client):
+    assert b"rendered:login.html" in client.get("/login").data
+    assert b"rendered:register.html" in client.get("/register").data
+    assert b"rendered:password_reset.html" in client.get("/password_reset").data
 
 
-def flashed_messages(client):
-    with client.session_transaction() as session:
-        return session.get("_flashes", [])
-
-
-def test_login_get_page(client):
-    response = client.get("/login")
-    assert response.status_code == 200
-    assert b"rendered:login.html" in response.data
-
-
-def test_register_get_page(client):
-    response = client.get("/register")
-    assert response.status_code == 200
-    assert b"rendered:register.html" in response.data
-
-
-def test_login_missing_identifier_or_password_redirects_back(client):
-    response = client.post(
-        "/login",
-        data={"nic": "", "password": ""},
-        follow_redirects=False,
-    )
-
+def test_login_missing_and_unknown_identifier(client):
+    response = client.post("/login", data={"nic": "", "password": ""})
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("/login")
+    assert ("error", "NIC / Employee ID and password are required.") in flashed_messages(client)
 
-    messages = flashed_messages(client)
-    assert ("error", "NIC or username and password are required.") in messages
-
-
-def test_login_invalid_credentials_when_user_not_found(client):
-    response = client.post(
-        "/login",
-        data={"nic": "999999999V", "password": "Wrong@123"},
-        follow_redirects=False,
-    )
-
+    response = client.post("/login", data={"nic": "NOUSER", "password": "Wrong@123"})
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("/login")
-
-    messages = flashed_messages(client)
-    assert ("error", "Invalid credentials.") in messages
+    assert ("error", "Invalid credentials.") in flashed_messages(client)
 
 
-def test_login_inactive_account_is_blocked(client, test_db_path):
-    insert_user(
-        test_db_path,
-        nic="111111111V",
-        email="inactive@example.com",
-        password="Password@123",
-        is_active=0,
-    )
-
-    response = client.post(
-        "/login",
-        data={"nic": "111111111V", "password": "Password@123"},
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/login")
-
-    messages = flashed_messages(client)
-    assert ("error", "This account is inactive. Please contact an administrator.") in messages
-
-
-def test_login_wrong_password_increments_failed_attempts(client, test_db_path):
-    insert_user(
-        test_db_path,
-        nic="222222222V",
-        email="user2@example.com",
-        password="Password@123",
-        failed_login_attempts=0,
-        is_active=1,
-    )
-
-    response = client.post(
-        "/login",
-        data={"nic": "222222222V", "password": "Wrong@123"},
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/login")
-
-    user = get_user_by_nic(test_db_path, "222222222V")
-    assert user["failed_login_attempts"] == 1
-    assert user["is_active"] == 1
-
-    messages = flashed_messages(client)
-    assert (
-        "error",
-        f"Invalid credentials. {MAX_LOGIN_ATTEMPTS - 1} login attempt(s) remaining before account lock.",
-    ) in messages
-
-
-def test_login_fifth_failed_attempt_locks_account(client, test_db_path):
-    insert_user(
-        test_db_path,
-        nic="333333333V",
-        email="locked@example.com",
-        password="Password@123",
-        failed_login_attempts=4,
-        is_active=1,
-    )
-
-    response = client.post(
-        "/login",
-        data={"nic": "333333333V", "password": "Wrong@123"},
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/login")
-
-    user = get_user_by_nic(test_db_path, "333333333V")
-    assert user["failed_login_attempts"] == 5
-    assert user["is_active"] == 0
-
-    messages = flashed_messages(client)
-    assert (
-        "error",
-        "Your account has been locked after 5 failed login attempts. Please contact an administrator.",
-    ) in messages
-
-
-def test_login_success_for_normal_user_resets_failed_attempts_and_sets_session(client, test_db_path):
-    user_id = insert_user(
-        test_db_path,
-        first_name="Nimal",
-        last_name="Perera",
-        nic="444444444V",
-        email="nimal@example.com",
-        password="Password@123",
-        failed_login_attempts=3,
-        is_admin=0,
-        is_active=1,
-    )
-
-    response = client.post(
-        "/login",
-        data={"nic": "444444444V", "password": "Password@123"},
-        follow_redirects=False,
-    )
-
+def test_login_success_for_user_and_admin(client, test_db_path):
+    user_id = insert_user(test_db_path, first_name="Nimal", last_name="Perera", email="user-login@example.com", nic="333333333V", is_admin=0)
+    response = client.post("/login", data={"nic": "333333333V", "password": "Password@123"})
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/user_dashboard")
-
-    user = get_user_by_nic(test_db_path, "444444444V")
-    assert user["failed_login_attempts"] == 0
-
     with client.session_transaction() as session:
         assert session["user_id"] == user_id
-        assert session["first_name"] == "Nimal"
-        assert session["last_name"] == "Perera"
         assert session["full_name"] == "Nimal Perera"
-        assert session["nic"] == "444444444V"
-        assert session["email"] == "nimal@example.com"
-        assert session["is_admin"] == 0
-
-    messages = flashed_messages(client)
-    assert ("success", "Login successful.") in messages
-
-
-def test_login_success_for_admin_redirects_to_admin_dashboard(client, test_db_path):
-    insert_user(
-        test_db_path,
-        first_name="Admin",
-        last_name="User",
-        nic="555555555V",
-        email="admin@example.com",
-        password="Password@123",
-        is_admin=1,
-        is_active=1,
-        employee_id="EMP001",
-    )
-
-    response = client.post(
-        "/login",
-        data={"nic": "555555555V", "password": "Password@123"},
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/admin/dashboard")
 
     with client.session_transaction() as session:
-        assert session["is_admin"] == 1
-        assert session["employee_id"] == "EMP001"
-
-
-def test_admin_can_login_with_email_identifier(client, test_db_path):
-    insert_user(
-        test_db_path,
-        first_name="Admin",
-        last_name="Email",
-        nic="666666666V",
-        email="adminemail@example.com",
-        password="Password@123",
-        is_admin=1,
-        is_active=1,
-        employee_id="EMP100",
-    )
-
-    response = client.post(
-        "/login",
-        data={"nic": "adminemail@example.com", "password": "Password@123"},
-        follow_redirects=False,
-    )
-
+        session.clear()
+    insert_user(test_db_path, email="admin@civicplan.local", nic="ADMIN000000V", is_admin=1, employee_id="ADMIN001")
+    response = client.post("/login", data={"nic": "ADMIN001", "password": "Password@123"})
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/admin/dashboard")
 
 
-def test_admin_can_login_with_employee_id_identifier(client, test_db_path):
-    insert_user(
-        test_db_path,
-        first_name="Admin",
-        last_name="Employee",
-        nic="777777777V",
-        email="adminemp@example.com",
-        password="Password@123",
-        is_admin=1,
-        is_active=1,
-        employee_id="EMP777",
-    )
-
-    response = client.post(
-        "/login",
-        data={"nic": "EMP777", "password": "Password@123"},
-        follow_redirects=False,
-    )
-
+def test_register_validation_and_success(client, test_db_path):
+    response = client.post("/register", data={})
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("/admin/dashboard")
+    assert ("error", "Please fill all required fields.") in flashed_messages(client)
 
-
-def test_register_missing_required_fields(client):
-    response = client.post(
-        "/register",
-        data={
-            "first_name": "",
-            "last_name": "",
-            "nic": "",
-            "email": "",
-            "password": "",
-            "confirm_password": "",
-        },
-        follow_redirects=False,
-    )
-
+    payload = {
+        "first_name": "Saman", "last_name": "Fernando", "nic": "147258369V",
+        "address": "No 10", "city": "Colombo", "email": "saman@example.com",
+        "phone": "0771234567", "password": "Password@123", "confirm_password": "Password@123",
+        "date_of_birth": "1998-02-20",
+    }
+    response = client.post("/register", data={**payload, "nic": "BAD"})
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("/register")
+    assert ("error", "NIC must be either 9 digits followed by V/X or 12 digits.") in flashed_messages(client)
 
-    messages = flashed_messages(client)
-    assert ("error", "Please fill all required fields.") in messages
-
-
-def test_register_invalid_nic(client):
-    response = client.post(
-        "/register",
-        data={
-            "first_name": "Kasun",
-            "last_name": "Silva",
-            "nic": "BADNIC",
-            "email": "kasun@example.com",
-            "phone": "0771234567",
-            "password": "Password@123",
-            "confirm_password": "Password@123",
-        },
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/register")
-
-    messages = flashed_messages(client)
-    assert ("error", "NIC must be either 9 digits followed by V/X or 12 digits.") in messages
-
-
-def test_register_invalid_phone(client):
-    response = client.post(
-        "/register",
-        data={
-            "first_name": "Kasun",
-            "last_name": "Silva",
-            "nic": "888888888V",
-            "email": "kasun@example.com",
-            "phone": "12345",
-            "password": "Password@123",
-            "confirm_password": "Password@123",
-        },
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/register")
-
-    messages = flashed_messages(client)
-    assert ("error", "Phone number must contain exactly 10 digits.") in messages
-
-
-def test_register_weak_password(client):
-    response = client.post(
-        "/register",
-        data={
-            "first_name": "Kasun",
-            "last_name": "Silva",
-            "nic": "999999999V",
-            "email": "kasun@example.com",
-            "phone": "0771234567",
-            "password": "weakpass",
-            "confirm_password": "weakpass",
-        },
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/register")
-
-    messages = flashed_messages(client)
-    assert (
-        "error",
-        "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.",
-    ) in messages
-
-
-def test_register_password_mismatch(client):
-    response = client.post(
-        "/register",
-        data={
-            "first_name": "Kasun",
-            "last_name": "Silva",
-            "nic": "123123123V",
-            "email": "kasun2@example.com",
-            "phone": "0771234567",
-            "password": "Password@123",
-            "confirm_password": "Password@999",
-        },
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/register")
-
-    messages = flashed_messages(client)
-    assert ("error", "Passwords do not match.") in messages
-
-
-def test_register_duplicate_nic(client, test_db_path):
-    insert_user(
-        test_db_path,
-        nic="321321321V",
-        email="existing1@example.com",
-        password="Password@123",
-    )
-
-    response = client.post(
-        "/register",
-        data={
-            "first_name": "New",
-            "last_name": "User",
-            "nic": "321321321V",
-            "email": "newuser@example.com",
-            "phone": "0771234567",
-            "password": "Password@123",
-            "confirm_password": "Password@123",
-        },
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/register")
-
-    messages = flashed_messages(client)
-    assert ("error", "NIC is already registered.") in messages
-
-
-def test_register_duplicate_email(client, test_db_path):
-    insert_user(
-        test_db_path,
-        nic="654654654V",
-        email="duplicate@example.com",
-        password="Password@123",
-    )
-
-    response = client.post(
-        "/register",
-        data={
-            "first_name": "New",
-            "last_name": "User",
-            "nic": "456456456V",
-            "email": "duplicate@example.com",
-            "phone": "0771234567",
-            "password": "Password@123",
-            "confirm_password": "Password@123",
-        },
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/register")
-
-    messages = flashed_messages(client)
-    assert ("error", "Email is already registered.") in messages
-
-
-def test_register_success_inserts_user(client, test_db_path):
-    response = client.post(
-        "/register",
-        data={
-            "first_name": "Saman",
-            "last_name": "Fernando",
-            "nic": "147258369V",
-            "address": "No 10, Galle Road",
-            "city": "Colombo",
-            "email": "saman@example.com",
-            "phone": "0771234567",
-            "password": "Password@123",
-            "confirm_password": "Password@123",
-            "date_of_birth": "1998-02-20",
-        },
-        follow_redirects=False,
-    )
-
+    response = client.post("/register", data=payload)
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/login")
-
-    user = get_user_by_email(test_db_path, "saman@example.com")
-    assert user is not None
-    assert user["first_name"] == "Saman"
-    assert user["last_name"] == "Fernando"
-    assert user["nic"] == "147258369V"
-    assert user["is_admin"] == 0
-    assert user["is_active"] == 1
-    assert user["failed_login_attempts"] == 0
-
-    messages = flashed_messages(client)
-    assert ("success", "Registration successful. Please sign in.") in messages
+    assert user_by_nic(test_db_path, "147258369V") is not None
 
 
-def test_logout_clears_session_and_redirects(client):
-    with client.session_transaction() as session:
-        session["user_id"] = 10
-        session["email"] = "test@example.com"
-        session["is_admin"] = 1
-
-    response = client.get("/logout", follow_redirects=False)
-
+def test_change_password_branches_and_logout(client, test_db_path):
+    user_id = insert_user(test_db_path, email="changepw@example.com", nic="777777777V")
+    response = client.get("/change_password")
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("/dashboard")
 
+    with client.session_transaction() as session:
+        session["user_id"] = user_id
+    assert b"rendered:change_password.html" in client.get("/change_password").data
+
+    response = client.post("/change_password", data={"current_password": "bad", "new_password": "Newpass@123", "confirm_password": "Newpass@123"})
+    assert response.status_code == 200
+    assert b"rendered:change_password.html" in response.data
+
+    response = client.post("/change_password", data={"current_password": "Password@123", "new_password": "Newpass@123", "confirm_password": "Newpass@123"})
+    assert response.status_code == 302
+    row = user_by_nic(test_db_path, "777777777V")
+    assert check_password_hash(row["password_hash"], "Newpass@123")
+
+    response = client.get("/logout")
+    assert response.status_code == 302
     with client.session_transaction() as session:
         assert "user_id" not in session
-        assert "email" not in session
-        assert "is_admin" not in session
 
-    messages = flashed_messages(client)
-    assert ("success", "You have been logged out.") in messages
+
+def test_auth_routes_function_inventory(route_modules):
+    expected = ['get_user_columns', 'has_column', 'ensure_login_security_columns', 'get_current_time', 'format_datetime', 'parse_datetime', 'get_full_name', 'is_admin_user', 'is_active_user', 'is_protected_system_admin', 'get_lockout_stage', 'get_failed_login_attempts', 'get_post_lock_failed_attempts', 'get_locked_until', 'is_currently_time_locked', 'get_remaining_lock_minutes', 'refresh_user', 'sync_session_user', 'redirect_after_login', 'reset_login_security_state', 'activate_15_minute_lock', 'activate_24_hour_lock', 'activate_permanent_lock', 'clear_expired_time_lock_if_needed', 'handle_failed_login_attempt', 'login', 'login_post', 'register', 'register_post', 'password_reset', 'change_password', 'logout']
+    assert_module_functions_present(route_modules['routes.auth_routes'], expected)

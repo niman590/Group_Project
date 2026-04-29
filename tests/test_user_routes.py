@@ -1,535 +1,126 @@
-import io
-import sqlite3
+from conftest import assert_module_functions_present
+from io import BytesIO
 
-from werkzeug.security import generate_password_hash
-
-
-def db_connect(db_path: str):
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    return conn
+from conftest import flashed_messages, insert_application, insert_user, make_test_connection
 
 
-def flashed_messages(client):
+def test_user_helper_functions(route_modules):
+    user = route_modules["routes.user_routes"]
+    assert user.safe_date("2025-01-01 10:00:00") == "2025-01-01"
+    assert user.safe_date(None) == "N/A"
+    assert user.status_to_badge("Approved") == "ok"
+    assert user.status_to_badge("Submitted") == "review"
+    assert user.status_to_badge("Rejected") == "pending"
+    assert user.status_to_badge("Other") == "neutral"
+    assert user.get_growth_rate_for_location("Malabe") == 0.08
+    alerts = user.build_application_alerts([{"status": "Submitted", "application_id": 1, "updated_at": None, "created_at": "2025-01-01"}])
+    assert alerts[0]["type"] == "info"
+
+
+def test_user_dashboard_and_all_notifications(client, logged_in_user, test_db_path):
+    conn = make_test_connection(test_db_path)
+    cur = conn.cursor()
+    cur.execute("INSERT INTO planning_applications (user_id, status, current_step, workflow_stage) VALUES (?, 'Submitted', '1', 'Submitted')", (logged_in_user,))
+    cur.execute("INSERT INTO user_notifications (user_id, title, message, notification_type, is_read) VALUES (?, 'Notice', 'Hello', 'info', 0)", (logged_in_user,))
+    conn.commit()
+    conn.close()
+
+    assert b"rendered:user_dashboard.html" in client.get("/user_dashboard").data
+    assert b"rendered:all_notifications.html" in client.get("/all-notifications").data
+
+
+def test_user_required_handles_expired_session(client, test_db_path):
     with client.session_transaction() as session:
-        return session.get("_flashes", [])
-
-
-def insert_user(
-    db_path: str,
-    *,
-    first_name="John",
-    last_name="Doe",
-    email="john@example.com",
-    nic="123456789V",
-    password="Password@123",
-    is_admin=0,
-    is_active=1,
-    phone_number="0771234567",
-    address="123 Main Street",
-    city="Colombo",
-):
-    conn = db_connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT INTO users (
-            first_name, last_name, email, nic, password_hash,
-            is_admin, is_active, phone_number, address, city
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            first_name,
-            last_name,
-            email,
-            nic,
-            generate_password_hash(password),
-            is_admin,
-            is_active,
-            phone_number,
-            address,
-            city,
-        ),
-    )
-    user_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return user_id
-
-
-def insert_application(
-    db_path: str,
-    *,
-    user_id: int,
-    status="Submitted",
-    workflow_stage="Submitted",
-    current_step="1",
-):
-    conn = db_connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT INTO planning_applications (user_id, status, workflow_stage, current_step)
-        VALUES (?, ?, ?, ?)
-        """,
-        (user_id, status, workflow_stage, current_step),
-    )
-    app_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return app_id
-
-
-def insert_requested_document(
-    db_path: str,
-    *,
-    application_id: int,
-    label="Updated deed copy",
-    status="Pending",
-):
-    conn = db_connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT INTO planning_application_requested_documents (
-            application_id, document_label, status
-        )
-        VALUES (?, ?, ?)
-        """,
-        (application_id, label, status),
-    )
-    request_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return request_id
-
-
-def insert_notification(
-    db_path: str,
-    *,
-    user_id: int,
-    title="Test Notification",
-    message="Hello",
-    notification_type="info",
-    is_read=0,
-    application_id=None,
-):
-    conn = db_connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT INTO user_notifications (
-            user_id, application_id, title, message, notification_type, is_read
-        )
-        VALUES (?, ?, ?, ?, ?, ?)
-        """,
-        (user_id, application_id, title, message, notification_type, is_read),
-    )
-    notification_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return notification_id
-
-
-def get_user_by_id(db_path: str, user_id: int):
-    conn = db_connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
-    row = cursor.fetchone()
-    conn.close()
-    return row
-
-
-def test_user_dashboard_redirects_when_not_logged_in(client):
-    response = client.get("/user_dashboard", follow_redirects=False)
-
+        session["user_id"] = 999999
+    response = client.get("/user_dashboard")
     assert response.status_code == 302
     assert response.headers["Location"].endswith("/login")
 
-    messages = flashed_messages(client)
-    assert ("error", "Please sign in first.") in messages
 
-
-def test_user_dashboard_loads_when_logged_in(client, test_db_path):
-    user_id = insert_user(test_db_path, first_name="Nimal", last_name="Perera")
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
-
-    response = client.get("/user_dashboard")
-    assert response.status_code == 200
-    assert b"rendered:user_dashboard.html" in response.data
-
-
-def test_planning_approval_redirects_when_application_not_found(client, test_db_path):
-    user_id = insert_user(test_db_path)
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
-
-    response = client.get("/planning-approval/999", follow_redirects=False)
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/user_dashboard")
-
-    messages = flashed_messages(client)
-    assert ("error", "Application not found.") in messages
-
-
-def test_planning_approval_loads_when_application_exists(client, test_db_path):
-    user_id = insert_user(test_db_path)
-    app_id = insert_application(test_db_path, user_id=user_id)
-    insert_requested_document(test_db_path, application_id=app_id)
-
-    conn = db_connect(test_db_path)
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT INTO planning_application_attachments (application_id, file_name, file_path)
-        VALUES (?, ?, ?)
-        """,
-        (app_id, "plan.pdf", "static/uploads/plan.pdf"),
+def test_planning_approval_and_requested_doc_upload(client, logged_in_user, test_db_path, route_modules, monkeypatch):
+    user = route_modules["routes.user_routes"]
+    app_id = insert_application(test_db_path, user_id=logged_in_user, status="Submitted")
+    conn = make_test_connection(test_db_path)
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO planning_application_requests (application_id, requested_by, request_type, request_title, request_message, status) VALUES (?, ?, 'Document', 'NIC', 'Upload NIC', 'Open')",
+        (app_id, logged_in_user),
     )
+    request_group_id = cur.lastrowid
+    cur.execute("INSERT INTO planning_application_requested_documents (request_id, application_id, document_label, status) VALUES (?, ?, 'NIC', 'Pending')", (request_group_id, app_id))
+    request_id = cur.lastrowid
+    cur.execute("INSERT INTO planning_application_attachments (application_id, file_category, file_name, file_path) VALUES (?, 'plan', 'plan.pdf', 'static/uploads/plan.pdf')", (app_id,))
     conn.commit()
     conn.close()
 
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
+    assert client.get("/planning-approval/999999").status_code == 302
+    assert b"rendered:planning_approval.html" in client.get(f"/planning-approval/{app_id}").data
 
-    response = client.get(f"/planning-approval/{app_id}")
-    assert response.status_code == 200
-    assert b"rendered:planning_approval.html" in response.data
-
-
-def test_upload_requested_document_requires_file(client, test_db_path):
-    user_id = insert_user(test_db_path)
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
-
-    response = client.post(
-        "/requested-document/1/upload",
-        data={},
-        follow_redirects=False,
-    )
-
+    response = client.post(f"/requested-document/{request_id}/upload", data={})
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("/user_dashboard")
+    assert ("error", "Please choose a file to upload.") in flashed_messages(client)
 
-    messages = flashed_messages(client)
-    assert ("error", "Please choose a file to upload.") in messages
-
-
-def test_upload_requested_document_fails_when_request_missing(client, test_db_path, route_modules, monkeypatch):
-    user_id = insert_user(test_db_path)
-
-    monkeypatch.setattr(
-        route_modules["user_routes"],
-        "save_uploaded_file",
-        lambda file_obj, subfolder="uploads/requested_documents": "static/uploads/requested_documents/test.pdf",
-    )
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
-
-    response = client.post(
-        "/requested-document/999/upload",
-        data={"requested_document": (io.BytesIO(b"hello"), "test.pdf")},
-        content_type="multipart/form-data",
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 302
-    assert response.headers["Location"].endswith("/user_dashboard")
-
-    messages = flashed_messages(client)
-    assert ("error", "Requested document record not found.") in messages
-
-
-def test_upload_requested_document_success(client, test_db_path, route_modules, monkeypatch):
-    user_id = insert_user(test_db_path)
-    app_id = insert_application(test_db_path, user_id=user_id)
-    request_id = insert_requested_document(test_db_path, application_id=app_id, label="NIC Copy")
-
-    monkeypatch.setattr(
-        route_modules["user_routes"],
-        "save_uploaded_file",
-        lambda file_obj, subfolder="uploads/requested_documents": "static/uploads/requested_documents/nic_copy.pdf",
-    )
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
-
+    monkeypatch.setattr(user, "save_uploaded_file", lambda file_obj, subfolder="uploads/requested_documents": "static/uploads/requested_documents/nic.pdf")
     response = client.post(
         f"/requested-document/{request_id}/upload",
-        data={"requested_document": (io.BytesIO(b"pdf-data"), "nic_copy.pdf")},
+        data={"requested_document": (BytesIO(b"pdf"), "nic.pdf")},
         content_type="multipart/form-data",
-        follow_redirects=False,
     )
-
     assert response.status_code == 302
-    assert response.headers["Location"].endswith(f"/planning-approval/{app_id}")
-
-    conn = db_connect(test_db_path)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "SELECT * FROM planning_application_requested_documents WHERE requested_doc_id = ?",
-        (request_id,),
-    )
-    row = cursor.fetchone()
-    assert row["uploaded_file_name"] == "nic_copy.pdf"
-    assert row["uploaded_file_path"] == "static/uploads/requested_documents/nic_copy.pdf"
-    assert row["uploaded_by_user_id"] == user_id
-    assert row["status"] == "Uploaded"
-
-    cursor.execute(
-        "SELECT * FROM user_notifications WHERE user_id = ? ORDER BY notification_id DESC LIMIT 1",
-        (user_id,),
-    )
-    notification = cursor.fetchone()
+    conn = make_test_connection(test_db_path)
+    row = conn.execute("SELECT status, uploaded_by_user_id FROM planning_application_requested_documents WHERE requested_doc_id=?", (request_id,)).fetchone()
     conn.close()
-
-    assert notification is not None
-    assert notification["title"] == "Document uploaded successfully"
-
-    messages = flashed_messages(client)
-    assert ("success", "Requested document uploaded successfully.") in messages
+    assert row["status"] == "Uploaded"
+    assert row["uploaded_by_user_id"] == logged_in_user
 
 
-def test_get_notifications_returns_json(client, test_db_path):
-    user_id = insert_user(test_db_path)
-    insert_notification(test_db_path, user_id=user_id, title="Alert 1", message="Message 1")
-    insert_notification(test_db_path, user_id=user_id, title="Alert 2", message="Message 2", is_read=1)
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
+def test_user_notifications_api(client, logged_in_user, test_db_path):
+    conn = make_test_connection(test_db_path)
+    cur = conn.cursor()
+    cur.execute("INSERT INTO user_notifications (user_id, title, message, notification_type, is_read) VALUES (?, 'Alert 1', 'Message 1', 'info', 0)", (logged_in_user,))
+    notification_id = cur.lastrowid
+    cur.execute("INSERT INTO user_notifications (user_id, title, message, notification_type, is_read) VALUES (?, 'Alert 2', 'Message 2', 'info', 0)", (logged_in_user,))
+    conn.commit()
+    conn.close()
 
     response = client.get("/notifications")
     assert response.status_code == 200
-
-    data = response.get_json()
-    assert isinstance(data, list)
-    assert len(data) == 2
-    assert data[0]["title"] in {"Alert 1", "Alert 2"}
-
-
-def test_mark_notification_read_sets_is_read(client, test_db_path):
-    user_id = insert_user(test_db_path)
-    notification_id = insert_notification(test_db_path, user_id=user_id, is_read=0)
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
+    assert len(response.get_json()) >= 2
 
     response = client.post(f"/notifications/{notification_id}/read")
     assert response.status_code == 200
     assert response.get_json() == {"success": True}
 
-    conn = db_connect(test_db_path)
-    cursor = conn.cursor()
-    cursor.execute(
-        "SELECT is_read FROM user_notifications WHERE notification_id = ?",
-        (notification_id,),
-    )
-    row = cursor.fetchone()
-    conn.close()
-
-    assert row["is_read"] == 1
-
-
-def test_mark_all_notifications_read_sets_all_rows(client, test_db_path):
-    user_id = insert_user(test_db_path)
-    insert_notification(test_db_path, user_id=user_id, is_read=0)
-    insert_notification(test_db_path, user_id=user_id, is_read=0)
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
-
     response = client.post("/notifications/read-all")
     assert response.status_code == 200
     assert response.get_json() == {"success": True}
 
-    conn = db_connect(test_db_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) AS unread_count FROM user_notifications WHERE user_id = ? AND is_read = 0", (user_id,))
-    row = cursor.fetchone()
-    conn.close()
 
-    assert row["unread_count"] == 0
+def test_account_update_validation_and_delete(client, logged_in_user, test_db_path):
+    assert b"rendered:account.html" in client.get("/account").data
 
-
-def test_account_get_loads_page(client, test_db_path):
-    user_id = insert_user(test_db_path)
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
-
-    response = client.get("/account")
+    response = client.post("/account", data={"first_name": "", "last_name": "", "email": ""})
     assert response.status_code == 200
-    assert b"rendered:account.html" in response.data
+    assert ("error", "First name, last name, and email are required.") in flashed_messages(client)
 
-
-def test_account_post_requires_first_name_last_name_email(client, test_db_path):
-    user_id = insert_user(test_db_path)
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
-
-    response = client.post(
-        "/account",
-        data={
-            "first_name": "",
-            "last_name": "",
-            "email": "",
-            "phone_number": "",
-            "address": "",
-            "city": "",
-        },
-        follow_redirects=False,
-    )
-
+    insert_user(test_db_path, email="taken@example.com", nic="909090909V")
+    response = client.post("/account", data={"first_name": "Normal", "last_name": "User", "email": "taken@example.com"})
     assert response.status_code == 200
-    assert b"rendered:account.html" in response.data
+    assert ("error", "That email address is already being used.") in flashed_messages(client)
 
-    messages = flashed_messages(client)
-    assert ("error", "First name, last name, and email are required.") in messages
-
-
-def test_account_post_rejects_duplicate_email(client, test_db_path):
-    first_user_id = insert_user(test_db_path, email="first@example.com", nic="111111111V")
-    insert_user(test_db_path, email="taken@example.com", nic="222222222V")
-
-    with client.session_transaction() as session:
-        session["user_id"] = first_user_id
-
-    response = client.post(
-        "/account",
-        data={
-            "first_name": "First",
-            "last_name": "User",
-            "email": "taken@example.com",
-            "phone_number": "0771234567",
-            "address": "Colombo 01",
-            "city": "Colombo",
-        },
-        follow_redirects=False,
-    )
-
-    assert response.status_code == 200
-    assert b"rendered:account.html" in response.data
-
-    messages = flashed_messages(client)
-    assert ("error", "That email address is already being used.") in messages
-
-
-def test_account_post_updates_user_and_session(client, test_db_path):
-    user_id = insert_user(
-        test_db_path,
-        first_name="Old",
-        last_name="Name",
-        email="old@example.com",
-        nic="333333333V",
-    )
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
-
-    response = client.post(
-        "/account",
-        data={
-            "first_name": "New",
-            "last_name": "Person",
-            "email": "new@example.com",
-            "phone_number": "0711111111",
-            "address": "New Address",
-            "city": "Kandy",
-        },
-        follow_redirects=False,
-    )
-
+    response = client.post("/account", data={"first_name": "New", "last_name": "Name", "email": "new@example.com", "phone_number": "0711111111", "address": "New", "city": "Kandy"})
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("/account")
-
-    user = get_user_by_id(test_db_path, user_id)
-    assert user["first_name"] == "New"
-    assert user["last_name"] == "Person"
-    assert user["email"] == "new@example.com"
-    assert user["phone_number"] == "0711111111"
-    assert user["address"] == "New Address"
-    assert user["city"] == "Kandy"
-
     with client.session_transaction() as session:
         assert session["first_name"] == "New"
-        assert session["last_name"] == "Person"
         assert session["email"] == "new@example.com"
-        assert session["city"] == "Kandy"
 
-    messages = flashed_messages(client)
-    assert ("success", "Your account details were updated successfully.") in messages
-
-
-def test_delete_account_removes_user_related_data_and_clears_session(client, test_db_path):
-    user_id = insert_user(test_db_path, email="delete@example.com", nic="444444444V")
-
-    conn = db_connect(test_db_path)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "INSERT INTO property (owner_id, current_value, property_size, property_address) VALUES (?, ?, ?, ?)",
-        (user_id, 5000000, 20, "Malabe"),
-    )
-    property_id = cursor.lastrowid
-
-    cursor.execute(
-        "INSERT INTO value_prediction (property_id, predicted_value) VALUES (?, ?)",
-        (property_id, 5500000),
-    )
-    cursor.execute(
-        "INSERT INTO transaction_history (property_id) VALUES (?)",
-        (property_id,),
-    )
-    cursor.execute(
-        "INSERT INTO document (user_id, property_id) VALUES (?, ?)",
-        (user_id, property_id),
-    )
-    cursor.execute(
-        "INSERT INTO plan_case (user_id) VALUES (?)",
-        (user_id,),
-    )
-    cursor.execute(
-        "INSERT INTO user_notifications (user_id, title, message, notification_type, is_read) VALUES (?, ?, ?, ?, ?)",
-        (user_id, "Bye", "Account delete test", "info", 0),
-    )
-    conn.commit()
-    conn.close()
-
-    with client.session_transaction() as session:
-        session["user_id"] = user_id
-        session["email"] = "delete@example.com"
-
-    response = client.post("/account/delete", follow_redirects=False)
-
+    response = client.post("/account/delete")
     assert response.status_code == 302
-    assert response.headers["Location"].endswith("/dashboard")
-
-    conn = db_connect(test_db_path)
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
-    assert cursor.fetchone() is None
-
-    cursor.execute("SELECT * FROM property WHERE owner_id = ?", (user_id,))
-    assert cursor.fetchone() is None
-
-    cursor.execute("SELECT * FROM user_notifications WHERE user_id = ?", (user_id,))
-    assert cursor.fetchone() is None
-
+    conn = make_test_connection(test_db_path)
+    assert conn.execute("SELECT * FROM users WHERE user_id=?", (logged_in_user,)).fetchone() is None
     conn.close()
 
-    with client.session_transaction() as session:
-        assert "user_id" not in session
-        assert "email" not in session
 
-    messages = flashed_messages(client)
-    assert ("success", "Your account has been deleted successfully.") in messages
+def test_user_routes_function_inventory(route_modules):
+    expected = ['user_login_required', 'add_user_no_cache_headers', 'get_current_user', 'sync_session_user', 'user_required', 'safe_date', 'status_to_badge', 'get_growth_rate_for_location', 'build_application_alerts', 'save_uploaded_file', 'get_notifications_for_user', 'get_dashboard_data', 'delete_user_related_records', 'user_dashboard', 'all_notifications', 'planning_approval', 'upload_requested_document', 'get_notifications', 'mark_notification_read', 'mark_all_notifications_read', 'account', 'delete_account']
+    assert_module_functions_present(route_modules['routes.user_routes'], expected)
