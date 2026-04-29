@@ -15,6 +15,20 @@ from database.db_connection import get_connection
 from routes.admin_routes import admin_bp, admin_required, safe_fetchall, safe_fetchone_value
 
 
+SECURITY_RULE_NAMES = (
+    "FAILED_LOGIN_EVENT",
+    "MULTIPLE_FAILED_LOGINS",
+    "UNAUTHORIZED_ACCESS_EVENT",
+    "REPEATED_UNAUTHORIZED_ACCESS",
+    "API_REQUEST_EVENT",
+    "API_REQUEST_BURST",
+    "HIGH_RISK_LOGIN_LOCKOUT",
+    "NEW_DEED_NUMBER_REQUEST",
+    "PASSWORD_RESET_UNKNOWN_EMAIL",
+    "UNKNOWN_RULE",
+)
+
+
 def normalize_date_input(value):
     if not value:
         return ""
@@ -41,6 +55,27 @@ def build_date_clause(column_name, start_date, end_date):
         return " AND " + " AND ".join(conditions), params
 
     return "", params
+
+
+def get_rule_name_options(cursor):
+    rows = safe_fetchall(
+        cursor,
+        """
+        SELECT DISTINCT rule_name
+        FROM suspicious_events
+        WHERE rule_name IS NOT NULL
+          AND TRIM(rule_name) != ''
+        ORDER BY rule_name ASC
+        """,
+        tuple(),
+    )
+
+    rule_names = set(SECURITY_RULE_NAMES)
+
+    for row in rows:
+        rule_names.add(row["rule_name"])
+
+    return sorted(rule_names, key=lambda value: value.replace("_", " ").lower())
 
 
 def get_security_overview(cursor, start_date="", end_date=""):
@@ -154,8 +189,8 @@ def get_suspicious_events(
         params.append(status)
 
     if rule_name:
-        conditions.append("se.rule_name LIKE ?")
-        params.append(f"%{rule_name}%")
+        conditions.append("se.rule_name = ?")
+        params.append(rule_name)
 
     date_clause, date_params = build_date_clause("se.created_at", start_date, end_date)
 
@@ -239,6 +274,8 @@ def admin_suspicious_behavior():
     conn = get_connection()
     cursor = conn.cursor()
 
+    rule_names = get_rule_name_options(cursor)
+
     overview = get_security_overview(cursor, start_date, end_date)
     events = get_suspicious_events(
         cursor,
@@ -258,6 +295,7 @@ def admin_suspicious_behavior():
         overview=overview,
         events=events,
         top_rules=top_rules,
+        rule_names=rule_names,
         severity=severity,
         status=status,
         rule_name=rule_name,
@@ -462,7 +500,7 @@ def download_suspicious_events_pdf():
         filter_parts.append(f"Status: {status.title()}")
 
     if rule_name:
-        filter_parts.append(f"Rule Name: {rule_name}")
+        filter_parts.append(f"Rule Name: {rule_name.replace('_', ' ').title()}")
 
     filters_label = ", ".join(filter_parts) if filter_parts else "All filters"
 

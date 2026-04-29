@@ -119,12 +119,14 @@
 
                             <div class="filter-field">
                                 <label for="rule_name">Rule Name</label>
-                                <input
-                                    type="text"
-                                    id="rule_name"
-                                    name="rule_name"
-                                    value="{{ rule_name }}"
-                                    placeholder="Search by rule name">
+                                <select id="rule_name" name="rule_name">
+                                    <option value="">No Rule Filter</option>
+                                    {% for option in rule_names %}
+                                    <option value="{{ option }}" {% if rule_name == option %}selected{% endif %}>
+                                        {{ option.replace('_', ' ').title() }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
                             </div>
 
                             <div class="filter-field date-field">

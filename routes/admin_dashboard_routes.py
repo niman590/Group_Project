@@ -54,6 +54,13 @@ def format_lkr(value):
         return "LKR 0.00"
 
 
+def format_rule_name(rule_name):
+    if not rule_name:
+        return "-"
+
+    return str(rule_name).replace("_", " ").title()
+
+
 def normalize_date_input(value):
     if not value:
         return ""
@@ -299,7 +306,6 @@ def convert_annual_growth_to_period_growth(annual_growth_rate, granularity):
     except Exception:
         annual_growth_rate = 0.03
 
-    # Safety cap to stop unrealistic forecast jumps.
     annual_growth_rate = max(-0.04, min(annual_growth_rate, 0.10))
 
     if granularity == "weekly":
@@ -794,7 +800,6 @@ def admin_dashboard():
         "total",
     )
 
-    # Ensure admin_notifications table exists
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS admin_notifications (
             notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -808,14 +813,12 @@ def admin_dashboard():
         )
     """)
 
-    # Safe upgrade for older databases without target_url
     cursor.execute("PRAGMA table_info(admin_notifications)")
     admin_notification_columns = {row["name"] for row in cursor.fetchall()}
 
     if "target_url" not in admin_notification_columns:
         cursor.execute("ALTER TABLE admin_notifications ADD COLUMN target_url TEXT")
 
-    # Latest normal admin notification
     admin_notification_rows = cursor.execute(
         """
         SELECT
@@ -833,7 +836,6 @@ def admin_dashboard():
         """
     ).fetchall()
 
-    # Latest high-level suspicious behavior threat
     high_threat_rows = cursor.execute(
         """
         SELECT
@@ -875,7 +877,7 @@ def admin_dashboard():
         if threat["description"]:
             message_parts.append(threat["description"])
 
-        message_parts.append(f"Rule: {threat['rule_name']}")
+        message_parts.append(f"Rule: {format_rule_name(threat['rule_name'])}")
 
         if threat["event_type"]:
             message_parts.append(f"Event Type: {threat['event_type']}")
@@ -900,14 +902,12 @@ def admin_dashboard():
             "source_type": "suspicious_event",
         })
 
-    # Show only the latest alert in the dashboard card
     admin_notifications = sorted(
         admin_notifications,
         key=lambda item: item["created_at"] or "",
         reverse=True,
     )[:1]
 
-    # Count all unread admin notifications + all new high-level suspicious threats
     admin_unread_notifications = cursor.execute(
         """
         SELECT
@@ -926,7 +926,6 @@ def admin_dashboard():
         """
     ).fetchone()["total"]
 
-    # Used by the clickable "new" badge in the dashboard
     latest_admin_notification_url = None
 
     for notification in admin_notifications:
@@ -966,6 +965,7 @@ def admin_dashboard():
         selected_range=selected_range,
         active_page="dashboard",
     )
+
 
 @admin_bp.route("/admin/dashboard/land-valuation-trends")
 def admin_land_valuation_trends():
