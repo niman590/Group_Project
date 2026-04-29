@@ -213,29 +213,33 @@ def admin_planning_applications():
         """
         SELECT pa.application_id, pa.status, pa.current_step, pa.created_at, pa.updated_at,
                pa.workflow_stage, pa.site_visit_status, pa.additional_docs_required,
-               pa.planning_office_decision, pa.planning_office_letter_path,
-               pa.first_officer_decision, pa.deputy_director_decision, pa.committee_decision,
+               pa.planning_office_decision, pa.planning_office_comment, pa.planning_office_letter_path,
+               pa.first_officer_decision, pa.first_officer_comment,
+               pa.deputy_director_decision, pa.deputy_director_comment,
+               pa.committee_decision, pa.committee_comment,
+               pa.admin_comment, pa.decision_pdf_path,
                u.first_name, u.last_name, u.email, u.nic
         FROM planning_applications pa
         JOIN users u ON pa.user_id = u.user_id
-        WHERE pa.status IN ('Submitted', 'Under Review', 'Approved', 'Rejected') OR pa.status IS NULL
+        WHERE LOWER(COALESCE(pa.status, 'submitted')) <> 'draft'
         ORDER BY
             CASE
                 WHEN pa.updated_at IS NULL THEN pa.created_at
                 ELSE pa.updated_at
-            END DESC
+            END DESC,
+            pa.application_id DESC
         """
     )
     applications = cursor.fetchall()
 
     conn.close()
+
     return render_template(
         "admin_planning_applications.html",
         user=admin_user,
         applications=applications,
         active_page="planning_applications",
     )
-
 
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>", endpoint="admin_planning_application_detail")
 @admin_planning_bp.route("/admin/planning/<int:application_id>", endpoint="review_planning_application")

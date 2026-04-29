@@ -1130,8 +1130,20 @@ def planning_approval(application_id):
     def clean(value):
         return (value or "").strip()
 
+    def decision_css(decision):
+        decision = clean(decision).lower()
+
+        if decision == "approved":
+            return "approved"
+
+        if decision == "rejected":
+            return "rejected"
+
+        return "neutral"
+
     def add_note(notes, seen, title, stage, decision, message, created_at):
         message = clean(message)
+
         if not message or message == "-":
             return
 
@@ -1139,29 +1151,23 @@ def planning_approval(application_id):
         stage = clean(stage) or "Application Review"
         decision = clean(decision)
 
-        duplicate_key = (
+        key = (
             title.lower(),
             stage.lower(),
             decision.lower(),
             message.lower(),
         )
 
-        if duplicate_key in seen:
+        if key in seen:
             return
 
-        seen.add(duplicate_key)
-
-        decision_class = "neutral"
-        if decision.lower() == "approved":
-            decision_class = "approved"
-        elif decision.lower() == "rejected":
-            decision_class = "rejected"
+        seen.add(key)
 
         notes.append({
             "title": title,
             "stage": stage,
             "decision": decision,
-            "decision_class": decision_class,
+            "decision_class": decision_css(decision),
             "message": message,
             "created_at": created_at or "-",
         })
@@ -1209,16 +1215,23 @@ def planning_approval(application_id):
     admin_notes = []
     seen_notes = set()
 
-    first_officer_comment = clean(get_value(application, "first_officer_comment"))
-    planning_office_comment = clean(get_value(application, "planning_office_comment"))
+    add_note(
+        admin_notes,
+        seen_notes,
+        "Planning Office Comment",
+        "Planning Office Review",
+        get_value(application, "planning_office_decision"),
+        get_value(application, "planning_office_comment"),
+        get_value(application, "first_officer_at") or get_value(application, "updated_at") or get_value(application, "created_at"),
+    )
 
     add_note(
         admin_notes,
         seen_notes,
-        "First Officer / Planning Office Comment",
+        "First Officer Comment",
         "First Officer Review",
-        get_value(application, "first_officer_decision") or get_value(application, "planning_office_decision"),
-        first_officer_comment or planning_office_comment,
+        get_value(application, "first_officer_decision"),
+        get_value(application, "first_officer_comment"),
         get_value(application, "first_officer_at") or get_value(application, "updated_at") or get_value(application, "created_at"),
     )
 
@@ -1288,8 +1301,6 @@ def planning_approval(application_id):
 
     conn.close()
 
-    print("ADMIN NOTES FOR USER:", admin_notes)
-
     return render_template(
         "planning_approval.html",
         application=application,
@@ -1301,3 +1312,4 @@ def planning_approval(application_id):
         admin_notes=admin_notes,
         active_page="my_applications",
     )
+

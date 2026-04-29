@@ -24,7 +24,7 @@
                     <h1>Planning Applications</h1>
                     <p>
                         Review submitted planning applications, inspect applicant details,
-                        monitor workflow progress, and move to the application review page.
+                        monitor workflow progress, and open every application even after final decision.
                     </p>
                 </div>
 
@@ -40,7 +40,7 @@
                 <div class="panel-header panel-header-split">
                     <div>
                         <h2>Application Directory</h2>
-                        <p>All submitted planning applications currently available for admin review.</p>
+                        <p>All submitted planning applications are shown here, including approved and rejected applications.</p>
                     </div>
 
                     <div class="header-tools">
@@ -49,7 +49,7 @@
                             <input
                                 type="text"
                                 id="applicationSearch"
-                                placeholder="Search by ID, applicant, email, status, or step">
+                                placeholder="Search by ID, applicant, email, status, or workflow">
                         </div>
                     </div>
                 </div>
@@ -66,19 +66,24 @@
                                 <th>Applicant</th>
                                 <th>Email</th>
                                 <th>Status</th>
+                                <th>Workflow</th>
                                 <th>Current Step</th>
                                 <th>Updated</th>
+                                <th>Final Decision</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
+
                         <tbody id="applicationsTableBody">
                             {% for app in applications %}
                             <tr class="application-row"
                                 data-id="{{ app['application_id'] }}"
-                                data-applicant="{{ (app['first_name'] ~ ' ' ~ app['last_name'])|lower }}"
-                                data-email="{{ app['email']|lower }}"
-                                data-status="{{ app['status']|lower }}"
-                                data-step="{{ app['current_step'] }}">
+                                data-applicant="{{ ((app['first_name'] or '') ~ ' ' ~ (app['last_name'] or ''))|lower }}"
+                                data-email="{{ (app['email'] or '')|lower }}"
+                                data-status="{{ (app['status'] or '')|lower }}"
+                                data-step="{{ app['current_step'] or '' }}"
+                                data-workflow="{{ (app['workflow_stage'] or '')|lower }}">
+
                                 <td>
                                     <div class="id-cell">
                                         <span class="id-badge">#</span>
@@ -89,46 +94,64 @@
                                 <td>
                                     <div class="applicant-cell">
                                         <div class="applicant-avatar">
-                                            {{ app['first_name'][0] | upper }}{{ app['last_name'][0] | upper }}
+                                            {{ (app['first_name'] or 'U')[0] | upper }}{{ (app['last_name'] or 'S')[0] | upper }}
                                         </div>
                                         <div class="applicant-meta">
-                                            <strong>{{ app['first_name'] }} {{ app['last_name'] }}</strong>
+                                            <strong>{{ app['first_name'] or '-' }} {{ app['last_name'] or '' }}</strong>
                                             <span>Applicant</span>
                                         </div>
                                     </div>
                                 </td>
 
-                                <td class="email-cell">{{ app['email'] }}</td>
+                                <td class="email-cell">{{ app['email'] or '-' }}</td>
 
                                 <td>
                                     <span class="status-pill
                                         {% if app['status'] == 'Approved' %}status-approved
                                         {% elif app['status'] == 'Submitted' %}status-submitted
                                         {% elif app['status'] == 'Rejected' %}status-rejected
+                                        {% elif app['status'] == 'Under Review' %}status-submitted
                                         {% else %}status-other{% endif %}">
-                                        {{ app['status'] }}
+                                        {{ app['status'] or 'Submitted' }}
                                     </span>
                                 </td>
 
                                 <td>
-                                    <span class="step-pill">Step {{ app['current_step'] }}</span>
+                                    <span class="step-pill">{{ app['workflow_stage'] or '-' }}</span>
                                 </td>
 
                                 <td>
-                                    <span class="date-text">{{ app['updated_at'] }}</span>
+                                    <span class="step-pill">Step {{ app['current_step'] or '-' }}</span>
+                                </td>
+
+                                <td>
+                                    <span class="date-text">{{ app['updated_at'] or app['created_at'] or '-' }}</span>
+                                </td>
+
+                                <td>
+                                    {% if app['committee_decision'] %}
+                                        <span class="status-pill
+                                            {% if app['committee_decision'] == 'Approved' %}status-approved
+                                            {% elif app['committee_decision'] == 'Rejected' %}status-rejected
+                                            {% else %}status-other{% endif %}">
+                                            {{ app['committee_decision'] }}
+                                        </span>
+                                    {% else %}
+                                        <span class="status-pill status-other">Pending</span>
+                                    {% endif %}
                                 </td>
 
                                 <td>
                                     <a class="btn review-btn"
                                         href="{{ url_for('admin_planning.admin_planning_application_detail', application_id=app['application_id']) }}">
                                         <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                        <span>Review</span>
+                                        <span>View / Review</span>
                                     </a>
                                 </td>
                             </tr>
                             {% else %}
                             <tr id="emptyRow">
-                                <td colspan="7" class="empty">
+                                <td colspan="9" class="empty">
                                     <div class="empty-state">
                                         <i class="fa-regular fa-folder-open"></i>
                                         <p>No planning applications found.</p>

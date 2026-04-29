@@ -110,27 +110,22 @@
                                     <span class="label">Application ID</span>
                                     <span class="value">#{{ application['application_id'] }}</span>
                                 </div>
-
                                 <div class="summary-item">
                                     <span class="label">Status</span>
                                     <span class="value">{{ application['status'] or 'Pending' }}</span>
                                 </div>
-
                                 <div class="summary-item">
                                     <span class="label">Workflow Stage</span>
                                     <span class="value">{{ application['workflow_stage'] or 'Not started' }}</span>
                                 </div>
-
                                 <div class="summary-item">
                                     <span class="label">Current Step</span>
                                     <span class="value">Step {{ application['current_step'] or '-' }}</span>
                                 </div>
-
                                 <div class="summary-item">
                                     <span class="label">Site Visit</span>
                                     <span class="value">{{ application['site_visit_status'] or 'Pending' }}</span>
                                 </div>
-
                                 <div class="summary-item">
                                     <span class="label">Additional Docs</span>
                                     <span class="value">
@@ -141,17 +136,14 @@
                                         {% endif %}
                                     </span>
                                 </div>
-
                                 <div class="summary-item">
                                     <span class="label">First Officer</span>
                                     <span class="value">{{ application['first_officer_decision'] or 'Pending' }}</span>
                                 </div>
-
                                 <div class="summary-item">
                                     <span class="label">Deputy Director</span>
                                     <span class="value">{{ application['deputy_director_decision'] or 'Pending' }}</span>
                                 </div>
-
                                 <div class="summary-item full-span">
                                     <span class="label">Committee Decision</span>
                                     <span class="value">{{ application['committee_decision'] or 'Pending' }}</span>
@@ -175,7 +167,6 @@
                                             <div class="request-icon">
                                                 <i class="fa-solid fa-file-circle-plus"></i>
                                             </div>
-
                                             <div>
                                                 <div class="request-title">{{ item['document_label'] }}</div>
                                                 <div class="request-sub">
@@ -203,7 +194,6 @@
                                                 <span>Uploaded File</span>
                                                 <strong>{{ item['uploaded_file_name'] }}</strong>
                                             </div>
-
                                             <div class="uploaded-meta-row">
                                                 <span>Uploaded At</span>
                                                 <strong>{{ item['uploaded_at'] or '-' }}</strong>
@@ -250,12 +240,8 @@
                             </div>
 
                             <div class="admin-notes-stack">
-                                {% set first_comment = application['first_officer_comment'] or application['planning_office_comment'] %}
-                                {% set has_notes = first_comment or application['deputy_director_comment'] or application['committee_comment'] or application['admin_comment'] %}
-
-                                {% if has_notes %}
-
-                                    {% if first_comment %}
+                                {% if admin_notes %}
+                                    {% for note in admin_notes %}
                                     <div class="admin-note-box">
                                         <div class="admin-note-icon">
                                             <i class="fa-solid fa-note-sticky"></i>
@@ -263,124 +249,30 @@
 
                                         <div class="admin-note-content">
                                             <div class="admin-note-head">
-                                                <strong>First Officer / Planning Office Comment</strong>
-                                                <span>{{ application['first_officer_at'] or application['updated_at'] or '-' }}</span>
+                                                <strong>{{ note['title'] or 'Admin note' }}</strong>
+                                                <span>{{ note['created_at'] or '-' }}</span>
                                             </div>
 
                                             <div class="admin-note-meta">
+                                                {% if note['stage'] %}
                                                 <span class="admin-note-stage">
                                                     <i class="fa-solid fa-layer-group"></i>
-                                                    First Officer Review
+                                                    {{ note['stage'] }}
                                                 </span>
+                                                {% endif %}
 
-                                                {% if application['first_officer_decision'] or application['planning_office_decision'] %}
-                                                <span class="admin-note-decision
-                                                    {% if (application['first_officer_decision'] or application['planning_office_decision']) == 'Approved' %}decision-approved
-                                                    {% elif (application['first_officer_decision'] or application['planning_office_decision']) == 'Rejected' %}decision-rejected
-                                                    {% else %}decision-neutral{% endif %}">
+                                                {% if note['decision'] %}
+                                                <span class="admin-note-decision decision-{{ note['decision_class'] }}">
                                                     <i class="fa-solid fa-circle-check"></i>
-                                                    {{ application['first_officer_decision'] or application['planning_office_decision'] }}
+                                                    {{ note['decision'] }}
                                                 </span>
                                                 {% endif %}
                                             </div>
 
-                                            <p>{{ first_comment }}</p>
+                                            <p>{{ note['message'] }}</p>
                                         </div>
                                     </div>
-                                    {% endif %}
-
-                                    {% if application['deputy_director_comment'] %}
-                                    <div class="admin-note-box">
-                                        <div class="admin-note-icon">
-                                            <i class="fa-solid fa-note-sticky"></i>
-                                        </div>
-
-                                        <div class="admin-note-content">
-                                            <div class="admin-note-head">
-                                                <strong>Deputy Director Comment</strong>
-                                                <span>{{ application['deputy_director_at'] or application['updated_at'] or '-' }}</span>
-                                            </div>
-
-                                            <div class="admin-note-meta">
-                                                <span class="admin-note-stage">
-                                                    <i class="fa-solid fa-layer-group"></i>
-                                                    Deputy Director Review
-                                                </span>
-
-                                                {% if application['deputy_director_decision'] %}
-                                                <span class="admin-note-decision
-                                                    {% if application['deputy_director_decision'] == 'Approved' %}decision-approved
-                                                    {% elif application['deputy_director_decision'] == 'Rejected' %}decision-rejected
-                                                    {% else %}decision-neutral{% endif %}">
-                                                    <i class="fa-solid fa-circle-check"></i>
-                                                    {{ application['deputy_director_decision'] }}
-                                                </span>
-                                                {% endif %}
-                                            </div>
-
-                                            <p>{{ application['deputy_director_comment'] }}</p>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-
-                                    {% if application['committee_comment'] %}
-                                    <div class="admin-note-box">
-                                        <div class="admin-note-icon">
-                                            <i class="fa-solid fa-note-sticky"></i>
-                                        </div>
-
-                                        <div class="admin-note-content">
-                                            <div class="admin-note-head">
-                                                <strong>District Project Committee Comment</strong>
-                                                <span>{{ application['committee_at'] or application['updated_at'] or '-' }}</span>
-                                            </div>
-
-                                            <div class="admin-note-meta">
-                                                <span class="admin-note-stage">
-                                                    <i class="fa-solid fa-layer-group"></i>
-                                                    District Project Committee Review
-                                                </span>
-
-                                                {% if application['committee_decision'] %}
-                                                <span class="admin-note-decision
-                                                    {% if application['committee_decision'] == 'Approved' %}decision-approved
-                                                    {% elif application['committee_decision'] == 'Rejected' %}decision-rejected
-                                                    {% else %}decision-neutral{% endif %}">
-                                                    <i class="fa-solid fa-circle-check"></i>
-                                                    {{ application['committee_decision'] }}
-                                                </span>
-                                                {% endif %}
-                                            </div>
-
-                                            <p>{{ application['committee_comment'] }}</p>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-
-                                    {% if application['admin_comment'] and application['admin_comment'] != application['committee_comment'] %}
-                                    <div class="admin-note-box">
-                                        <div class="admin-note-icon">
-                                            <i class="fa-solid fa-note-sticky"></i>
-                                        </div>
-
-                                        <div class="admin-note-content">
-                                            <div class="admin-note-head">
-                                                <strong>General Admin Comment</strong>
-                                                <span>{{ application['reviewed_at'] or application['updated_at'] or '-' }}</span>
-                                            </div>
-
-                                            <div class="admin-note-meta">
-                                                <span class="admin-note-stage">
-                                                    <i class="fa-solid fa-layer-group"></i>
-                                                    {{ application['workflow_stage'] or 'Application Review' }}
-                                                </span>
-                                            </div>
-
-                                            <p>{{ application['admin_comment'] }}</p>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-
+                                    {% endfor %}
                                 {% else %}
                                     <div class="empty-line">No admin notes have been added yet.</div>
                                 {% endif %}
