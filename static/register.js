@@ -19,18 +19,193 @@ document.addEventListener("DOMContentLoaded", function () {
   const passwordStrengthBox = document.getElementById("passwordStrengthBox");
   const passwordStrengthText = document.getElementById("passwordStrengthText");
   const passwordStrengthFill = document.getElementById("passwordStrengthFill");
+  const passwordPolicyError = document.getElementById("passwordPolicyError");
 
   const flashMessages = document.querySelectorAll("[data-flash]");
   const flashCloseButtons = document.querySelectorAll("[data-flash-close]");
   const passwordToggles = document.querySelectorAll(".password-toggle");
+
+  const defaultCommonRuleText = "Not common, personal, or breached";
+
+  const commonPasswords = new Set([
+    "password",
+    "password123",
+    "password@123",
+    "admin123",
+    "admin@123",
+    "123456",
+    "12345678",
+    "123456789",
+    "qwerty",
+    "qwerty123",
+    "letmein",
+    "welcome",
+    "welcome123",
+    "iloveyou",
+    "abc123",
+    "111111",
+    "000000",
+    "civicplan123",
+    "civicplan@123"
+  ]);
 
   const passwordRules = {
     length: document.getElementById("ruleLength"),
     upper: document.getElementById("ruleUpper"),
     lower: document.getElementById("ruleLower"),
     number: document.getElementById("ruleNumber"),
-    symbol: document.getElementById("ruleSymbol")
+    symbol: document.getElementById("ruleSymbol"),
+    common: document.getElementById("ruleCommon")
   };
+
+  function isCommonPassword(passwordValue) {
+    return commonPasswords.has((passwordValue || "").trim().toLowerCase());
+  }
+
+  function containsPersonalInfo(passwordValue) {
+    const normalizedPassword = (passwordValue || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[\s._-]/g, "");
+
+    if (!normalizedPassword) {
+      return false;
+    }
+
+    const personalValues = [
+      firstName ? firstName.value : "",
+      lastName ? lastName.value : "",
+      nic ? nic.value : "",
+      phone ? phone.value : "",
+      email ? email.value : "",
+      city ? city.value : ""
+    ];
+
+    for (const value of personalValues) {
+      if (!value) continue;
+
+      const normalizedValue = String(value)
+        .trim()
+        .toLowerCase();
+
+      if (!normalizedValue) continue;
+
+      const emailName = normalizedValue.includes("@")
+        ? normalizedValue.split("@")[0]
+        : normalizedValue;
+
+      const variants = [
+        normalizedValue,
+        emailName,
+        normalizedValue.replace(/[\s._-]/g, ""),
+        emailName.replace(/[\s._-]/g, "")
+      ];
+
+      for (const item of variants) {
+        if (item.length >= 3 && normalizedPassword.includes(item)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  function getPasswordPolicyMessage() {
+    const value = password.value;
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
+
+    if (!value) {
+      return "Password is required.";
+    }
+
+    if (!passwordPattern.test(value)) {
+      return "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.";
+    }
+
+    if (isCommonPassword(value)) {
+      return "This password is too common. Please choose a more secure password.";
+    }
+
+    if (containsPersonalInfo(value)) {
+      return "Password must not contain your name, email, NIC, phone number, or city.";
+    }
+
+    return "";
+  }
+
+  function getRuleTextElement(ruleElement) {
+    if (!ruleElement) {
+      return null;
+    }
+
+    return ruleElement.querySelector("span");
+  }
+
+  function setCommonRuleMessage(message) {
+    const ruleText = getRuleTextElement(passwordRules.common);
+
+    if (ruleText) {
+      ruleText.textContent = message || defaultCommonRuleText;
+    }
+  }
+
+  function setPasswordBoxWeakFromServerError() {
+    if (!passwordStrengthBox || !passwordStrengthText || !passwordStrengthFill) {
+      return;
+    }
+
+    passwordStrengthBox.classList.remove("fair", "good", "strong");
+    passwordStrengthBox.classList.add("active", "weak");
+
+    passwordStrengthText.textContent = "Weak";
+    passwordStrengthFill.style.width = "25%";
+  }
+
+  function applyServerPasswordPolicyError() {
+    const serverError = (window.serverPasswordPolicyError || "").trim();
+
+    if (!serverError || !passwordRules.common) {
+      return;
+    }
+
+    const lowerError = serverError.toLowerCase();
+
+    const shouldShowInCommonRule =
+      lowerError.includes("common") ||
+      lowerError.includes("breach") ||
+      lowerError.includes("breached") ||
+      lowerError.includes("name") ||
+      lowerError.includes("email") ||
+      lowerError.includes("nic") ||
+      lowerError.includes("phone") ||
+      lowerError.includes("city") ||
+      lowerError.includes("personal");
+
+    if (!shouldShowInCommonRule) {
+      return;
+    }
+
+    const icon = passwordRules.common.querySelector("i");
+
+    passwordRules.common.classList.remove("valid");
+
+    if (icon) {
+      icon.className = "fa-solid fa-xmark";
+    }
+
+    setCommonRuleMessage("Too common, personal, or breached");
+    setPasswordBoxWeakFromServerError();
+  }
+
+  function clearServerPasswordPolicyError() {
+    window.serverPasswordPolicyError = "";
+    setCommonRuleMessage(defaultCommonRuleText);
+
+    if (passwordPolicyError) {
+      passwordPolicyError.textContent = "";
+    }
+  }
 
   function getErrorElement(input) {
     return input.parentElement.parentElement.querySelector(".error-text") ||
@@ -156,21 +331,25 @@ document.addEventListener("DOMContentLoaded", function () {
     return true;
   }
 
-  function validatePassword() {
-    const value = password.value;
-    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
+  function validatePassword(showError = false) {
+    const message = getPasswordPolicyMessage();
 
-    if (!value) {
+    if (message) {
       clearError(password);
-      return false;
-    }
 
-    if (!passwordPattern.test(value)) {
-      clearError(password);
+      if (showError && passwordPolicyError) {
+        passwordPolicyError.textContent = message;
+      }
+
       return false;
     }
 
     clearError(password);
+
+    if (passwordPolicyError) {
+      passwordPolicyError.textContent = "";
+    }
+
     return true;
   }
 
@@ -192,12 +371,18 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function getPasswordChecks(passwordValue) {
+    const commonOk =
+      passwordValue.length > 0 &&
+      !isCommonPassword(passwordValue) &&
+      !containsPersonalInfo(passwordValue);
+
     return {
       length: passwordValue.length >= 8,
       upper: /[A-Z]/.test(passwordValue),
       lower: /[a-z]/.test(passwordValue),
       number: /\d/.test(passwordValue),
-      symbol: /[^\w\s]/.test(passwordValue)
+      symbol: /[^\w\s]/.test(passwordValue),
+      common: commonOk
     };
   }
 
@@ -232,11 +417,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const checks = getPasswordChecks(passwordValue);
     const score = Object.values(checks).filter(Boolean).length;
 
+    setCommonRuleMessage(defaultCommonRuleText);
+
     updatePasswordRule(passwordRules.length, checks.length);
     updatePasswordRule(passwordRules.upper, checks.upper);
     updatePasswordRule(passwordRules.lower, checks.lower);
     updatePasswordRule(passwordRules.number, checks.number);
     updatePasswordRule(passwordRules.symbol, checks.symbol);
+    updatePasswordRule(passwordRules.common, checks.common);
 
     passwordStrengthBox.classList.remove("active", "weak", "fair", "good", "strong");
 
@@ -260,6 +448,10 @@ document.addEventListener("DOMContentLoaded", function () {
       passwordStrengthBox.classList.add("good");
       passwordStrengthText.textContent = "Good";
       passwordStrengthFill.style.width = "75%";
+    } else if (score === 5) {
+      passwordStrengthBox.classList.add("good");
+      passwordStrengthText.textContent = "Good";
+      passwordStrengthFill.style.width = "90%";
     } else {
       passwordStrengthBox.classList.add("strong");
       passwordStrengthText.textContent = "Strong";
@@ -297,6 +489,25 @@ document.addEventListener("DOMContentLoaded", function () {
       option.textContent = year;
       dobYear.appendChild(option);
     }
+  }
+
+  function restoreDOBFromHiddenField() {
+    const savedDate = dateOfBirth.value || window.prefilledDateOfBirth || "";
+
+    if (!savedDate || !/^\d{4}-\d{2}-\d{2}$/.test(savedDate)) {
+      return;
+    }
+
+    const parts = savedDate.split("-");
+    const year = parts[0];
+    const month = parts[1];
+    const day = parts[2];
+
+    dobYear.value = year;
+    dobMonth.value = month;
+    updateDayOptions();
+    dobDay.value = day;
+    syncDOBHiddenField();
   }
 
   function updateDayOptions() {
@@ -411,7 +622,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   populateDOBFields();
   updateDayOptions();
+  restoreDOBFromHiddenField();
   updatePasswordStrength();
+  applyServerPasswordPolicyError();
 
   flashMessages.forEach((flash) => {
     setTimeout(() => {
@@ -473,6 +686,17 @@ document.addEventListener("DOMContentLoaded", function () {
     validatePhone();
   });
 
+  [firstName, lastName, nic, phone, email, city].forEach((input) => {
+    if (!input) return;
+
+    input.addEventListener("input", function () {
+      if (password.value) {
+        validatePassword();
+        updatePasswordStrength();
+      }
+    });
+  });
+
   firstName.addEventListener("blur", function () {
     validateRequired(firstName, "First name is required.");
   });
@@ -496,6 +720,7 @@ document.addEventListener("DOMContentLoaded", function () {
   dobYear.addEventListener("blur", validateDOB);
 
   password.addEventListener("input", function () {
+    clearServerPasswordPolicyError();
     validatePassword();
     updatePasswordStrength();
 
@@ -514,7 +739,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const isNICValid = validateNIC();
     const isPhoneValid = validatePhone();
     const isEmailValid = validateEmail();
-    const isPasswordValid = validatePassword();
+    const isPasswordValid = validatePassword(true);
     const isConfirmPasswordValid = validateConfirmPassword();
     const isDOBValid = validateDOB();
 

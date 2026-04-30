@@ -96,7 +96,12 @@
                   <label for="first_name">First Name</label>
                   <div class="input-wrap">
                     <span class="input-icon"><i class="fa-regular fa-user"></i></span>
-                    <input type="text" id="first_name" name="first_name" required />
+                    <input
+                      type="text"
+                      id="first_name"
+                      name="first_name"
+                      value="{{ form_values.first_name if form_values is defined else '' }}"
+                      required />
                   </div>
                   <small class="error-text"></small>
                 </div>
@@ -105,7 +110,12 @@
                   <label for="last_name">Last Name</label>
                   <div class="input-wrap">
                     <span class="input-icon"><i class="fa-regular fa-user"></i></span>
-                    <input type="text" id="last_name" name="last_name" required />
+                    <input
+                      type="text"
+                      id="last_name"
+                      name="last_name"
+                      value="{{ form_values.last_name if form_values is defined else '' }}"
+                      required />
                   </div>
                   <small class="error-text"></small>
                 </div>
@@ -120,6 +130,7 @@
                       type="text"
                       id="nic"
                       name="nic"
+                      value="{{ form_values.nic if form_values is defined else '' }}"
                       required
                       maxlength="12"
                       autocomplete="off" />
@@ -136,6 +147,7 @@
                       type="text"
                       id="phone"
                       name="phone"
+                      value="{{ form_values.phone_number if form_values is defined else '' }}"
                       inputmode="numeric"
                       maxlength="10"
                       autocomplete="off" />
@@ -149,7 +161,7 @@
                 <label for="address">Residential Address</label>
                 <div class="input-wrap textarea-wrap">
                   <span class="input-icon textarea-icon"><i class="fa-solid fa-location-dot"></i></span>
-                  <textarea id="address" name="address"></textarea>
+                  <textarea id="address" name="address">{{ form_values.address if form_values is defined else '' }}</textarea>
                 </div>
                 <small class="error-text"></small>
               </div>
@@ -159,7 +171,11 @@
                   <label for="city">City</label>
                   <div class="input-wrap">
                     <span class="input-icon"><i class="fa-solid fa-city"></i></span>
-                    <input type="text" id="city" name="city" />
+                    <input
+                      type="text"
+                      id="city"
+                      name="city"
+                      value="{{ form_values.city if form_values is defined else '' }}" />
                   </div>
                   <small class="error-text"></small>
                 </div>
@@ -181,7 +197,11 @@
                     </select>
                   </div>
 
-                  <input type="hidden" id="date_of_birth" name="date_of_birth" />
+                  <input
+                    type="hidden"
+                    id="date_of_birth"
+                    name="date_of_birth"
+                    value="{{ form_values.date_of_birth if form_values is defined else '' }}" />
                   <small class="hint-text">Select month, day, and year</small>
                   <small class="error-text"></small>
                 </div>
@@ -192,7 +212,12 @@
                   <label for="email">Email Address</label>
                   <div class="input-wrap">
                     <span class="input-icon"><i class="fa-regular fa-envelope"></i></span>
-                    <input type="email" id="email" name="email" required />
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      value="{{ form_values.email if form_values is defined else '' }}"
+                      required />
                   </div>
                   <small class="error-text"></small>
                 </div>
@@ -208,7 +233,13 @@
                       <i class="fa-regular fa-eye"></i>
                     </button>
                   </div>
-                  <small class="hint-text">Minimum 8 characters with uppercase, lowercase, number, and symbol</small>
+                  <small class="hint-text">
+                    Minimum 8 characters with uppercase, lowercase, number, symbol, and not a common password
+                  </small>
+
+                  <small class="error-text" id="passwordPolicyError">
+                    {{ password_policy_error if password_policy_error is defined else '' }}
+                  </small>
                 </div>
 
                 <div class="form-group">
@@ -259,6 +290,11 @@
                     <i class="fa-solid fa-xmark"></i>
                     <span>One symbol</span>
                   </div>
+
+                  <div class="password-rule" id="ruleCommon">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span>Not common, personal, or breached</span>
+                  </div>
                 </div>
               </div>
 
@@ -280,6 +316,10 @@
     </div>
   </div>
 
+  <script>
+    window.prefilledDateOfBirth = "{{ form_values.date_of_birth if form_values is defined else '' }}";
+    window.serverPasswordPolicyError = "{{ password_policy_error if password_policy_error is defined else '' }}";
+  </script>
   <script src="{{ url_for('static', filename='register.js') }}"></script>
 </body>
 

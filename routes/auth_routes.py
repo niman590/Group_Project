@@ -13,9 +13,9 @@ import re
 auth_bp = Blueprint("auth", __name__)
 
 INITIAL_MAX_LOGIN_ATTEMPTS = 5
-INITIAL_LOCK_MINUTES =1
+INITIAL_LOCK_MINUTES = 1
 POST_LOCK_MAX_ATTEMPTS = 2
-SECOND_LOCK_HOURS =1
+SECOND_LOCK_HOURS = 1
 
 LOCK_STAGE_NORMAL = 0
 LOCK_STAGE_AFTER_15_MIN_LOCK = 1
@@ -612,7 +612,10 @@ def login_post():
 
 @auth_bp.route("/register", methods=["GET"])
 def register():
-    return render_template("register.html")
+    return render_template(
+        "register.html",
+        password_policy_error="",
+    )
 
 
 @auth_bp.route("/register", methods=["POST"])
@@ -630,28 +633,58 @@ def register_post():
     confirm_password = request.form.get("confirm_password", "").strip()
     date_of_birth = request.form.get("date_of_birth", "").strip()
 
+    form_values = {
+        "first_name": first_name,
+        "last_name": last_name,
+        "nic": nic,
+        "address": address,
+        "city": city,
+        "email": email,
+        "phone_number": phone_number,
+        "date_of_birth": date_of_birth,
+    }
+
     if not first_name or not last_name or not nic or not email or not password:
         flash("Please fill all required fields.", "error")
-        return redirect(url_for("auth.register"))
+        return render_template(
+            "register.html",
+            password_policy_error="",
+            form_values=form_values,
+        )
 
     nic_pattern = r"^(?:\d{9}[VvXx]|\d{12})$"
     if not re.fullmatch(nic_pattern, nic):
         flash("NIC must be either 9 digits followed by V/X or 12 digits.", "error")
-        return redirect(url_for("auth.register"))
+        return render_template(
+            "register.html",
+            password_policy_error="",
+            form_values=form_values,
+        )
 
     if phone_number and not re.fullmatch(r"^\d{10}$", phone_number):
         flash("Phone number must contain exactly 10 digits.", "error")
-        return redirect(url_for("auth.register"))
+        return render_template(
+            "register.html",
+            password_policy_error="",
+            form_values=form_values,
+        )
 
     password_ok, password_error = validate_password_policy(password)
 
     if not password_ok:
-        flash(password_error, "error")
-        return redirect(url_for("auth.register"))
+        return render_template(
+            "register.html",
+            password_policy_error=password_error,
+            form_values=form_values,
+        )
 
     if password != confirm_password:
         flash("Passwords do not match.", "error")
-        return redirect(url_for("auth.register"))
+        return render_template(
+            "register.html",
+            password_policy_error="",
+            form_values=form_values,
+        )
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -663,7 +696,11 @@ def register_post():
     if existing_nic:
         conn.close()
         flash("NIC is already registered.", "error")
-        return redirect(url_for("auth.register"))
+        return render_template(
+            "register.html",
+            password_policy_error="",
+            form_values=form_values,
+        )
 
     cursor.execute("SELECT user_id FROM users WHERE email = ?", (email,))
     existing_email = cursor.fetchone()
@@ -671,7 +708,11 @@ def register_post():
     if existing_email:
         conn.close()
         flash("Email is already registered.", "error")
-        return redirect(url_for("auth.register"))
+        return render_template(
+            "register.html",
+            password_policy_error="",
+            form_values=form_values,
+        )
 
     password_hash = generate_password_hash(password)
 
@@ -830,6 +871,13 @@ def register_post():
 
 @auth_bp.route("/password_reset", methods=["GET"])
 def password_reset():
+    source = request.args.get("source", "").strip().lower()
+
+    if source == "account":
+        session["password_reset_return_to"] = "account"
+    else:
+        session["password_reset_return_to"] = "login"
+
     return render_template("password_reset.html")
 
 
@@ -868,29 +916,48 @@ def change_password():
         if not current_password or not new_password or not confirm_password:
             conn.close()
             flash("All password fields are required.", "error")
-            return render_template("change_password.html", user=user)
+            return render_template(
+                "change_password.html",
+                user=user,
+                password_policy_error="",
+            )
 
         if not check_password_hash(user["password_hash"], current_password):
             conn.close()
             flash("Current password is incorrect.", "error")
-            return render_template("change_password.html", user=user)
+            return render_template(
+                "change_password.html",
+                user=user,
+                password_policy_error="",
+            )
 
         if new_password != confirm_password:
             conn.close()
             flash("New password and confirm password do not match.", "error")
-            return render_template("change_password.html", user=user)
+            return render_template(
+                "change_password.html",
+                user=user,
+                password_policy_error="",
+            )
 
         if current_password == new_password:
             conn.close()
             flash("New password must be different from your current password.", "error")
-            return render_template("change_password.html", user=user)
+            return render_template(
+                "change_password.html",
+                user=user,
+                password_policy_error="",
+            )
 
         password_ok, password_error = validate_password_policy(new_password)
 
         if not password_ok:
             conn.close()
-            flash(password_error, "error")
-            return render_template("change_password.html", user=user)
+            return render_template(
+                "change_password.html",
+                user=user,
+                password_policy_error=password_error,
+            )
 
         new_password_hash = generate_password_hash(new_password)
 
@@ -922,7 +989,11 @@ def change_password():
         return redirect(url_for("user.account"))
 
     conn.close()
-    return render_template("change_password.html", user=user)
+    return render_template(
+        "change_password.html",
+        user=user,
+        password_policy_error="",
+    )
 
 
 @auth_bp.route("/logout")

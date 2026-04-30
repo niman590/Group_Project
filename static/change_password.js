@@ -15,12 +15,35 @@ document.addEventListener("DOMContentLoaded", function () {
     const newPasswordError = document.getElementById("newPasswordError");
     const confirmPasswordError = document.getElementById("confirmPasswordError");
 
+    const commonPasswords = new Set([
+        "password",
+        "password123",
+        "password@123",
+        "admin123",
+        "admin@123",
+        "123456",
+        "12345678",
+        "123456789",
+        "qwerty",
+        "qwerty123",
+        "letmein",
+        "welcome",
+        "welcome123",
+        "iloveyou",
+        "abc123",
+        "111111",
+        "000000",
+        "civicplan123",
+        "civicplan@123"
+    ]);
+
     const passwordRules = {
         length: document.getElementById("ruleLength"),
         upper: document.getElementById("ruleUpper"),
         lower: document.getElementById("ruleLower"),
         number: document.getElementById("ruleNumber"),
-        symbol: document.getElementById("ruleSymbol")
+        symbol: document.getElementById("ruleSymbol"),
+        common: document.getElementById("ruleCommon")
     };
 
     let touched = {
@@ -28,6 +51,67 @@ document.addEventListener("DOMContentLoaded", function () {
         new_password: false,
         confirm_password: false
     };
+
+    function isCommonPassword(password) {
+        return commonPasswords.has((password || "").trim().toLowerCase());
+    }
+
+    function containsPersonalInfo(passwordValue) {
+        const normalizedPassword = (passwordValue || "")
+            .trim()
+            .toLowerCase()
+            .replace(/[\s._-]/g, "");
+
+        if (!normalizedPassword) {
+            return false;
+        }
+
+        const profile = window.currentUserPasswordProfile || {};
+
+        const personalValues = [
+            profile.firstName || "",
+            profile.lastName || "",
+            profile.email || "",
+            profile.nic || "",
+            profile.phone || "",
+            profile.city || ""
+        ];
+
+        for (const value of personalValues) {
+            if (!value) continue;
+
+            const normalizedValue = String(value).trim().toLowerCase();
+
+            if (!normalizedValue) continue;
+
+            const emailName = normalizedValue.includes("@")
+                ? normalizedValue.split("@")[0]
+                : normalizedValue;
+
+            const variants = [
+                normalizedValue,
+                emailName,
+                normalizedValue.replace(/[\s._-]/g, ""),
+                emailName.replace(/[\s._-]/g, "")
+            ];
+
+            for (const item of variants) {
+                if (item.length >= 3 && normalizedPassword.includes(item)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    function clearServerPasswordPolicyError() {
+        const serverError = document.querySelector(".password-policy-server-error");
+
+        if (serverError) {
+            serverError.textContent = "";
+        }
+    }
 
     function setInputState(input, errorElement, message) {
         if (!input) return;
@@ -53,7 +137,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function isStrongPassword(password) {
-        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/.test(password || "");
+        return (
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/.test(password || "") &&
+            !isCommonPassword(password) &&
+            !containsPersonalInfo(password)
+        );
     }
 
     function getPasswordChecks(password) {
@@ -62,7 +150,10 @@ document.addEventListener("DOMContentLoaded", function () {
             upper: /[A-Z]/.test(password),
             lower: /[a-z]/.test(password),
             number: /\d/.test(password),
-            symbol: /[^\w\s]/.test(password)
+            symbol: /[^\w\s]/.test(password),
+            common: password.length > 0 &&
+                    !isCommonPassword(password) &&
+                    !containsPersonalInfo(password)
         };
     }
 
@@ -91,7 +182,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        const checks = getPasswordChecks(password);
+        const checks = getPasswordChecks(password || "");
         const score = Object.values(checks).filter(Boolean).length;
 
         updatePasswordRule(passwordRules.length, checks.length);
@@ -99,6 +190,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updatePasswordRule(passwordRules.lower, checks.lower);
         updatePasswordRule(passwordRules.number, checks.number);
         updatePasswordRule(passwordRules.symbol, checks.symbol);
+        updatePasswordRule(passwordRules.common, checks.common);
 
         strengthBox.classList.remove("active", "weak", "fair", "good", "strong");
 
@@ -122,6 +214,10 @@ document.addEventListener("DOMContentLoaded", function () {
             strengthBox.classList.add("good");
             strengthText.textContent = "Good";
             strengthFill.style.width = "75%";
+        } else if (score === 5) {
+            strengthBox.classList.add("good");
+            strengthText.textContent = "Good";
+            strengthFill.style.width = "90%";
         } else {
             strengthBox.classList.add("strong");
             strengthText.textContent = "Strong";
@@ -129,7 +225,36 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function getNewPasswordPolicyMessage() {
+        if (!newPasswordInput) {
+            return "New password is required.";
+        }
+
+        const value = newPasswordInput.value.trim();
+        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
+
+        if (!value) {
+            return "New password is required.";
+        }
+
+        if (!passwordPattern.test(value)) {
+            return "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.";
+        }
+
+        if (isCommonPassword(value)) {
+            return "This password is too common. Please choose a more secure password.";
+        }
+
+        if (containsPersonalInfo(value)) {
+            return "Password must not contain your name, email, NIC, phone number, or city.";
+        }
+
+        return "";
+    }
+
     function validateCurrentPassword(showError = false) {
+        if (!currentPasswordInput) return false;
+
         const value = currentPasswordInput.value.trim();
 
         if (!value) {
@@ -147,16 +272,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function validateNewPassword(showError = false) {
+        if (!newPasswordInput || !currentPasswordInput) return false;
+
         const currentValue = currentPasswordInput.value.trim();
         const newValue = newPasswordInput.value.trim();
 
-        if (!newValue) {
-            clearInputState(newPasswordInput, newPasswordError);
-            return false;
-        }
+        const policyMessage = getNewPasswordPolicyMessage();
 
-        if (!isStrongPassword(newValue)) {
-            clearInputState(newPasswordInput, newPasswordError);
+        if (policyMessage) {
+            if (showError) {
+                setInputState(newPasswordInput, newPasswordError, policyMessage);
+            } else {
+                clearInputState(newPasswordInput, newPasswordError);
+            }
+
             return false;
         }
 
@@ -179,6 +308,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function validateConfirmPassword(showError = false) {
+        if (!newPasswordInput || !confirmPasswordInput) return false;
+
         const newValue = newPasswordInput.value.trim();
         const confirmValue = confirmPasswordInput.value.trim();
 
@@ -244,6 +375,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const value = this.value.trim();
             touched.new_password = value.length > 0;
 
+            clearServerPasswordPolicyError();
             updateStrengthUI(value);
             validateNewPassword(touched.new_password);
 
@@ -315,11 +447,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 event.preventDefault();
                 updateSubmitState();
 
-                if (!newOk) {
+                if (!newOk && newPasswordInput) {
                     newPasswordInput.focus();
+                } else if (!currentOk && currentPasswordInput) {
+                    currentPasswordInput.focus();
+                } else if (!confirmOk && confirmPasswordInput) {
+                    confirmPasswordInput.focus();
                 }
-
-                return;
             }
         });
     }

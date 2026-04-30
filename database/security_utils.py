@@ -5,6 +5,7 @@ import re
 import secrets
 import requests
 
+
 def log_suspicious_event(
     user_id=None,
     rule_name="UNKNOWN_RULE",
@@ -66,8 +67,9 @@ def get_request_metadata():
         "ip_address": ip_address,
         "user_agent": user_agent,
         "route": route,
-        "method": method, 
+        "method": method,
     }
+
 
 def count_recent_events(rule_name, minutes=10, user_id=None, ip_address=None):
     conn = get_connection()
@@ -95,6 +97,7 @@ def count_recent_events(rule_name, minutes=10, user_id=None, ip_address=None):
 
     return row["total"] if row else 0
 
+
 def track_failed_login(identifier_label="unknown"):
     meta = get_request_metadata()
 
@@ -116,9 +119,9 @@ def track_failed_login(identifier_label="unknown"):
     )
 
     existing_high = count_recent_events(
-    rule_name="MULTIPLE_FAILED_LOGINS",
-    minutes=10,
-    ip_address=meta["ip_address"],
+        rule_name="MULTIPLE_FAILED_LOGINS",
+        minutes=10,
+        ip_address=meta["ip_address"],
     )
 
     if recent_count >= 5 and existing_high == 0:
@@ -157,10 +160,10 @@ def track_unauthorized_access():
     )
 
     existing_high = count_recent_events(
-    rule_name="REPEATED_UNAUTHORIZED_ACCESS",
-    minutes=10,
-    ip_address=meta["ip_address"],
-)
+        rule_name="REPEATED_UNAUTHORIZED_ACCESS",
+        minutes=10,
+        ip_address=meta["ip_address"],
+    )
 
     if recent_count >= 5 and existing_high == 0:
         log_suspicious_event(
@@ -182,7 +185,6 @@ def track_api_request_burst(limit=10, minutes=1):
 
     readable_action = f"{meta['method']} request to {meta['route']}"
 
-    # Always log normal request (low severity)
     log_suspicious_event(
         user_id=None,
         rule_name="API_REQUEST_EVENT",
@@ -194,21 +196,18 @@ def track_api_request_burst(limit=10, minutes=1):
         description=f"{readable_action} recorded for burst monitoring.",
     )
 
-    # Count how many requests in last X minutes
     recent_count = count_recent_events(
         rule_name="API_REQUEST_EVENT",
         minutes=minutes,
         ip_address=meta["ip_address"],
     )
 
-    # Check if burst already triggered recently
     existing_burst = count_recent_events(
         rule_name="API_REQUEST_BURST",
         minutes=minutes,
         ip_address=meta["ip_address"],
     )
 
-    # Only trigger if threshold reached and not already triggered
     if recent_count >= limit and existing_burst == 0:
         log_suspicious_event(
             user_id=None,
@@ -220,6 +219,7 @@ def track_api_request_burst(limit=10, minutes=1):
             user_agent=meta["user_agent"],
             description=f"Burst detected: {recent_count} requests to {meta['route']} within {minutes} minute(s).",
         )
+
 
 COMMON_PASSWORDS = {
     "password",
@@ -258,6 +258,68 @@ def is_common_password(password):
     return normalized in COMMON_PASSWORDS
 
 
+def normalize_personal_value(value):
+    if not value:
+        return ""
+
+    return str(value).strip().lower()
+
+
+def contains_personal_info(password, personal_values=None):
+    """
+    Blocks passwords that contain easy-to-guess personal data.
+
+    Examples blocked when matching values are provided:
+        first name + @123
+        last name + @123
+        email username + @123
+        city + @123
+        NIC + @123
+        phone number + @123
+    """
+    if not password or not personal_values:
+        return False
+
+    normalized_password = str(password).strip().lower()
+
+    password_variants = {
+        normalized_password,
+        normalized_password.replace(" ", ""),
+        normalized_password.replace("-", ""),
+        normalized_password.replace("_", ""),
+        normalized_password.replace(".", ""),
+    }
+
+    for value in personal_values:
+        normalized_value = normalize_personal_value(value)
+
+        if not normalized_value:
+            continue
+
+        email_name = normalized_value.split("@")[0] if "@" in normalized_value else normalized_value
+
+        value_variants = {
+            normalized_value,
+            email_name,
+            normalized_value.replace(" ", ""),
+            normalized_value.replace("-", ""),
+            normalized_value.replace("_", ""),
+            normalized_value.replace(".", ""),
+            email_name.replace(" ", ""),
+            email_name.replace("-", ""),
+            email_name.replace("_", ""),
+            email_name.replace(".", ""),
+        }
+
+        for item in value_variants:
+            if len(item) >= 3:
+                for password_variant in password_variants:
+                    if item in password_variant:
+                        return True
+
+    return False
+
+
 def is_breached_password(password):
     """
     Checks password against the Have I Been Pwned Pwned Passwords API.
@@ -282,18 +344,18 @@ def is_breached_password(password):
         )
         response.raise_for_status()
     except requests.RequestException:
-        # Do not block user only because the external API is unavailable.
         return False
 
     for line in response.text.splitlines():
         returned_suffix = line.split(":")[0]
+
         if returned_suffix == suffix:
             return True
 
     return False
 
 
-def validate_password_policy(password, check_breached=True):
+def validate_password_policy(password, check_breached=True, personal_values=None):
     """
     Returns:
         (True, None) if password is acceptable.
@@ -308,6 +370,9 @@ def validate_password_policy(password, check_breached=True):
     if is_common_password(password):
         return False, "This password is too common. Please choose a more secure password."
 
+    if contains_personal_info(password, personal_values):
+        return False, "Password must not contain your name, email, NIC, phone number, or city."
+
     if check_breached and is_breached_password(password):
         return False, "This password has appeared in a known data breach. Please choose a different password."
 
@@ -317,181 +382,6 @@ def validate_password_policy(password, check_breached=True):
 def generate_secure_otp():
     return f"{secrets.randbelow(900000) + 100000}"
 
-def create_admin_notification(
-    title,
-    message,
-    severity="info",
-    related_event_type="security",
-    target_url=None,
-):
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS admin_notifications (
-            notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            message TEXT NOT NULL,
-            severity TEXT DEFAULT 'info',
-            related_event_type TEXT,
-            target_url TEXT,
-            is_read INTEGER DEFAULT 0,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
-    cursor.execute("PRAGMA table_info(admin_notifications)")
-    columns = {row["name"] for row in cursor.fetchall()}
-
-    if "target_url" not in columns:
-        cursor.execute("ALTER TABLE admin_notifications ADD COLUMN target_url TEXT")
-
-    cursor.execute(
-        """
-        INSERT INTO admin_notifications (
-            title,
-            message,
-            severity,
-            related_event_type,
-            target_url,
-            is_read
-        )
-        VALUES (?, ?, ?, ?, ?, 0)
-        """,
-        (
-            title,
-            message,
-            severity,
-            related_event_type,
-            target_url,
-        ),
-    )
-
-    conn.commit()
-    conn.close()
-
-
-def log_high_risk_login_lockout(
-    user_id=None,
-    identifier_label="unknown",
-    lockout_type="temporary",
-    description=None,
-):
-    meta = get_request_metadata()
-
-    if description is None:
-        description = (
-            f"High-risk login lockout triggered for identifier: {identifier_label}. "
-            f"Lockout type: {lockout_type}."
-        )
-
-    log_suspicious_event(
-        user_id=user_id,
-        rule_name="HIGH_RISK_LOGIN_LOCKOUT",
-        severity="high",
-        event_type="auth",
-        route=meta["route"],
-        ip_address=meta["ip_address"],
-        user_agent=meta["user_agent"],
-        event_count=1,
-        time_window_minutes=None,
-        description=description,
-    )
-
-    create_admin_notification(
-        title="High-risk login security alert",
-        message=(
-            f"{description}\n\n"
-            f"Identifier: {identifier_label}\n"
-            f"IP Address: {meta['ip_address']}\n"
-            f"User Agent: {meta['user_agent']}"
-        ),
-        severity="high",
-        related_event_type="auth",
-    )
-
-def create_admin_notification(
-    title,
-    message,
-    severity="info",
-    related_event_type="security",
-):
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS admin_notifications (
-            notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            message TEXT NOT NULL,
-            severity TEXT DEFAULT 'info',
-            related_event_type TEXT,
-            is_read INTEGER DEFAULT 0,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
-    cursor.execute(
-        """
-        INSERT INTO admin_notifications (
-            title,
-            message,
-            severity,
-            related_event_type,
-            is_read
-        )
-        VALUES (?, ?, ?, ?, 0)
-        """,
-        (
-            title,
-            message,
-            severity,
-            related_event_type,
-        ),
-    )
-
-    conn.commit()
-    conn.close()
-
-
-def log_high_risk_login_lockout(
-    user_id=None,
-    identifier_label="unknown",
-    lockout_type="temporary",
-    description=None,
-):
-    meta = get_request_metadata()
-
-    if description is None:
-        description = (
-            f"High-risk login lockout triggered for identifier: {identifier_label}. "
-            f"Lockout type: {lockout_type}."
-        )
-
-    log_suspicious_event(
-        user_id=user_id,
-        rule_name="HIGH_RISK_LOGIN_LOCKOUT",
-        severity="high",
-        event_type="auth",
-        route=meta["route"],
-        ip_address=meta["ip_address"],
-        user_agent=meta["user_agent"],
-        event_count=1,
-        time_window_minutes=None,
-        description=description,
-    )
-
-    create_admin_notification(
-        title="High-risk login security alert",
-        message=(
-            f"{description}\n\n"
-            f"Identifier: {identifier_label}\n"
-            f"IP Address: {meta['ip_address']}\n"
-            f"User Agent: {meta['user_agent']}"
-        ),
-        severity="high",
-        related_event_type="auth",
-    )
 
 def create_admin_notification(
     title,
@@ -503,7 +393,8 @@ def create_admin_notification(
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS admin_notifications (
             notification_id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -514,7 +405,8 @@ def create_admin_notification(
             is_read INTEGER DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
-    """)
+        """
+    )
 
     cursor.execute("PRAGMA table_info(admin_notifications)")
     columns = {row["name"] for row in cursor.fetchall()}

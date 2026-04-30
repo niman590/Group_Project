@@ -21,12 +21,42 @@ document.addEventListener("DOMContentLoaded", function () {
     const newPasswordError = document.getElementById("newPasswordError");
     const confirmPasswordError = document.getElementById("confirmPasswordError");
 
+    const commonPasswords = new Set([
+        "password",
+        "password123",
+        "password@123",
+        "admin",
+        "admin123",
+        "admin@123",
+        "user123",
+        "user@123",
+        "123456",
+        "12345678",
+        "123456789",
+        "qwerty",
+        "qwerty123",
+        "letmein",
+        "welcome",
+        "welcome123",
+        "iloveyou",
+        "abc123",
+        "111111",
+        "000000",
+        "civicplan",
+        "civicplan123",
+        "civicplan@123",
+        "planapproval",
+        "planapproval123",
+        "planapproval@123"
+    ]);
+
     const passwordRules = {
         length: document.getElementById("ruleLength"),
         upper: document.getElementById("ruleUpper"),
         lower: document.getElementById("ruleLower"),
         number: document.getElementById("ruleNumber"),
-        symbol: document.getElementById("ruleSymbol")
+        symbol: document.getElementById("ruleSymbol"),
+        common: document.getElementById("ruleCommon")
     };
 
     let touched = {
@@ -37,6 +67,104 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     let otpVerified = false;
+
+    window.resetPasswordProfile = window.resetPasswordProfile || {};
+
+    function normalizeValue(value) {
+        return String(value || "")
+            .trim()
+            .toLowerCase()
+            .replace(/[\s._-]/g, "");
+    }
+
+    function getEmailParts(emailValue) {
+        const emailName = emailValue.includes("@") ? emailValue.split("@")[0] : emailValue;
+
+        const basicParts = emailName
+            .replace(/\d+/g, " ")
+            .split(/[\s._-]+/)
+            .map(part => part.trim().toLowerCase())
+            .filter(part => part.length >= 3);
+
+        const letterGroups = emailName
+            .toLowerCase()
+            .replace(/[^a-z]/g, " ")
+            .split(/\s+/)
+            .filter(part => part.length >= 3);
+
+        return Array.from(new Set([emailName, ...basicParts, ...letterGroups]));
+    }
+
+    function isCommonPassword(password) {
+        return commonPasswords.has((password || "").trim().toLowerCase());
+    }
+
+    function containsPersonalInfo(passwordValue) {
+        const normalizedPassword = normalizeValue(passwordValue);
+
+        if (!normalizedPassword) {
+            return false;
+        }
+
+        const emailValue = emailInput ? emailInput.value.trim().toLowerCase() : "";
+        const emailName = emailValue.includes("@") ? emailValue.split("@")[0] : emailValue;
+        const emailParts = getEmailParts(emailValue);
+
+        const profile = window.currentUserPasswordProfile || window.resetPasswordProfile || {};
+
+        const personalValues = [
+            emailValue,
+            emailName,
+            ...emailParts,
+
+            profile.firstName || "",
+            profile.first_name || "",
+            profile.lastName || "",
+            profile.last_name || "",
+            profile.fullName || "",
+            profile.full_name || "",
+            profile.name || "",
+            profile.email || "",
+            profile.nic || "",
+            profile.phone || "",
+            profile.mobile || "",
+            profile.city || "",
+            profile.address || ""
+        ];
+
+        for (const value of personalValues) {
+            if (!value) continue;
+
+            const rawValue = String(value).trim().toLowerCase();
+            if (!rawValue) continue;
+
+            const valueEmailName = rawValue.includes("@") ? rawValue.split("@")[0] : rawValue;
+
+            const valueParts = rawValue
+                .replace(/\d+/g, " ")
+                .split(/[\s._@-]+/)
+                .map(part => part.trim().toLowerCase())
+                .filter(part => part.length >= 3);
+
+            const variants = [
+                rawValue,
+                valueEmailName,
+                normalizeValue(rawValue),
+                normalizeValue(valueEmailName),
+                ...valueParts
+            ];
+
+            for (const item of variants) {
+                const normalizedItem = normalizeValue(item);
+
+                if (normalizedItem.length >= 3 && normalizedPassword.includes(normalizedItem)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     function setInputState(input, errorElement, message) {
         if (!input) return;
@@ -111,17 +239,17 @@ document.addEventListener("DOMContentLoaded", function () {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || "");
     }
 
-    function isStrongPassword(password) {
-        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/.test(password || "");
-    }
-
     function getPasswordChecks(password) {
         return {
             length: password.length >= 8,
             lower: /[a-z]/.test(password),
             upper: /[A-Z]/.test(password),
             number: /\d/.test(password),
-            symbol: /[^\w\s]/.test(password)
+            symbol: /[^\w\s]/.test(password),
+            common:
+                password.length > 0 &&
+                !isCommonPassword(password) &&
+                !containsPersonalInfo(password)
         };
     }
 
@@ -158,6 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
         updatePasswordRule(passwordRules.lower, checks.lower);
         updatePasswordRule(passwordRules.number, checks.number);
         updatePasswordRule(passwordRules.symbol, checks.symbol);
+        updatePasswordRule(passwordRules.common, checks.common);
 
         strengthBox.classList.remove("active", "weak", "fair", "good", "strong");
 
@@ -181,11 +310,38 @@ document.addEventListener("DOMContentLoaded", function () {
             strengthBox.classList.add("good");
             strengthText.textContent = "Good";
             strengthFill.style.width = "75%";
+        } else if (score === 5) {
+            strengthBox.classList.add("good");
+            strengthText.textContent = "Good";
+            strengthFill.style.width = "90%";
         } else {
             strengthBox.classList.add("strong");
             strengthText.textContent = "Strong";
             strengthFill.style.width = "100%";
         }
+    }
+
+    function getNewPasswordPolicyMessage() {
+        const value = newPasswordInput.value.trim();
+        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
+
+        if (!value) {
+            return "New password is required.";
+        }
+
+        if (!passwordPattern.test(value)) {
+            return "Password must be at least 8 characters and include uppercase, lowercase, number, and symbol.";
+        }
+
+        if (isCommonPassword(value)) {
+            return "This password is too common. Please choose a more secure password.";
+        }
+
+        if (containsPersonalInfo(value)) {
+            return "Password must not contain your name, email, NIC, phone number, or city.";
+        }
+
+        return "";
     }
 
     function validateEmail(showError = false) {
@@ -243,15 +399,15 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function validateNewPassword(showError = false) {
-        const value = newPasswordInput.value.trim();
+        const message = getNewPasswordPolicyMessage();
 
-        if (!value) {
-            clearInputState(newPasswordInput, newPasswordError);
-            return false;
-        }
+        if (message) {
+            if (showError) {
+                setInputState(newPasswordInput, newPasswordError, message);
+            } else {
+                clearInputState(newPasswordInput, newPasswordError);
+            }
 
-        if (!isStrongPassword(value)) {
-            clearInputState(newPasswordInput, newPasswordError);
             return false;
         }
 
@@ -311,6 +467,7 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: {
                 "Content-Type": "application/json"
             },
+            credentials: "same-origin",
             body: JSON.stringify({
                 email: emailInput.value.trim()
             })
@@ -325,6 +482,7 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: {
                 "Content-Type": "application/json"
             },
+            credentials: "same-origin",
             body: JSON.stringify({
                 otp: otpInput.value.trim()
             })
@@ -339,6 +497,7 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: {
                 "Content-Type": "application/json"
             },
+            credentials: "same-origin",
             body: JSON.stringify({
                 new_password: newPasswordInput.value.trim()
             })
@@ -351,7 +510,15 @@ document.addEventListener("DOMContentLoaded", function () {
         emailInput.addEventListener("input", function () {
             touched.email = this.value.trim().length > 0;
             validateEmail(touched.email);
+
             otpVerified = false;
+            window.resetPasswordProfile = {};
+
+            if (newPasswordInput && newPasswordInput.value) {
+                updateStrengthUI(newPasswordInput.value.trim());
+                validateNewPassword(touched.new_password);
+            }
+
             updateSubmitState();
         });
 
@@ -367,6 +534,7 @@ document.addEventListener("DOMContentLoaded", function () {
             this.value = this.value.replace(/\D/g, "").slice(0, 6);
             touched.otp = this.value.trim().length > 0;
             validateOtp(touched.otp);
+
             otpVerified = false;
             updateSubmitState();
         });
@@ -458,6 +626,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (result.success) {
                     otpVerified = false;
+                    window.resetPasswordProfile = {};
+
+                    if (newPasswordInput && newPasswordInput.value) {
+                        updateStrengthUI(newPasswordInput.value.trim());
+                        validateNewPassword(touched.new_password);
+                    }
+
                     showFlash(result.message || "OTP sent successfully.", "success");
                 } else {
                     showFlash(result.message || "Failed to send OTP.", "error");
@@ -491,6 +666,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (result.success) {
                     otpVerified = true;
+
+                    if (result.profile) {
+                        window.resetPasswordProfile = result.profile;
+                    }
+
+                    if (newPasswordInput && newPasswordInput.value) {
+                        updateStrengthUI(newPasswordInput.value.trim());
+                        validateNewPassword(touched.new_password);
+                    }
+
                     clearInputState(otpInput, otpError);
                     showFlash(result.message || "OTP verified successfully.", "success");
                 } else {
@@ -543,7 +728,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (result.success) {
                     showFlash(result.message || "Password reset successfully.", "success");
+
                     otpVerified = false;
+                    window.resetPasswordProfile = {};
+
                     form.reset();
                     updateStrengthUI("");
 
@@ -560,6 +748,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     clearInputState(confirmPasswordInput, confirmPasswordError);
 
                     setTimeout(() => {
+                        if (result.redirect_url) {
+                            window.location.href = result.redirect_url;
+                            return;
+                        }
+
                         const backLink = document.querySelector(".back-text a");
 
                         if (backLink) {
@@ -567,7 +760,26 @@ document.addEventListener("DOMContentLoaded", function () {
                         }
                     }, 1200);
                 } else {
-                    showFlash(result.message || "Password reset failed.", "error");
+                    if (
+                        result.message &&
+                        (
+                            result.message.toLowerCase().includes("password") ||
+                            result.message.toLowerCase().includes("common") ||
+                            result.message.toLowerCase().includes("breach") ||
+                            result.message.toLowerCase().includes("name") ||
+                            result.message.toLowerCase().includes("email") ||
+                            result.message.toLowerCase().includes("nic") ||
+                            result.message.toLowerCase().includes("phone") ||
+                            result.message.toLowerCase().includes("city") ||
+                            result.message.toLowerCase().includes("personal")
+                        )
+                    ) {
+                        setInputState(newPasswordInput, newPasswordError, result.message);
+                        updateStrengthUI(newPasswordInput.value.trim());
+                        newPasswordInput.focus();
+                    } else {
+                        showFlash(result.message || "Password reset failed.", "error");
+                    }
                 }
             } catch (error) {
                 showFlash("Something went wrong while resetting the password.", "error");
