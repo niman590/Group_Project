@@ -103,28 +103,106 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function splitDateToDropdowns(dateValue, monthId, dayId, yearId) {
-        if (!dateValue) return;
+    function getElement(id) {
+        return document.getElementById(id);
+    }
 
-        const parts = dateValue.split("-");
-        if (parts.length !== 3) return;
+    function padTwoDigits(value) {
+        return String(value).padStart(2, "0");
+    }
 
-        const yearElement = document.getElementById(yearId);
-        const monthElement = document.getElementById(monthId);
-        const dayElement = document.getElementById(dayId);
+    function getMaxDay(month, year) {
+        const monthNumber = Number(month);
 
-        if (!yearElement || !monthElement || !dayElement) return;
+        if (!monthNumber) return 31;
+        if (year) return new Date(Number(year), monthNumber, 0).getDate();
+        if ([4, 6, 9, 11].includes(monthNumber)) return 30;
+        if (monthNumber === 2) return 29;
 
-        yearElement.value = parts[0];
-        monthElement.value = parts[1];
-        dayElement.value = parts[2];
+        return 31;
+    }
+
+    function rebuildDayOptions(dayElement, maxDay) {
+        if (!dayElement) return;
+
+        const currentValue = dayElement.value;
+        const fragment = document.createDocumentFragment();
+        const placeholder = document.createElement("option");
+
+        placeholder.value = "";
+        placeholder.textContent = "Day";
+        fragment.appendChild(placeholder);
+
+        for (let day = 1; day <= maxDay; day += 1) {
+            const option = document.createElement("option");
+            option.value = padTwoDigits(day);
+            option.textContent = day;
+            fragment.appendChild(option);
+        }
+
+        dayElement.innerHTML = "";
+        dayElement.appendChild(fragment);
+
+        if (currentValue && Number(currentValue) <= maxDay) {
+            dayElement.value = currentValue;
+        } else {
+            dayElement.value = "";
+        }
+    }
+
+    function refreshDayOptions(monthId, dayId, yearId) {
+        const monthElement = getElement(monthId);
+        const dayElement = getElement(dayId);
+        const yearElement = getElement(yearId);
+
+        if (!monthElement || !dayElement || !yearElement) return;
+
+        const maxDay = getMaxDay(monthElement.value, yearElement.value);
+        rebuildDayOptions(dayElement, maxDay);
+    }
+
+    function setDateGroupValidity(monthId, dayId, yearId, message) {
+        [monthId, dayId, yearId].forEach((id) => {
+            const element = getElement(id);
+            if (!element) return;
+
+            element.setCustomValidity(message || "");
+            element.classList.toggle("is-invalid", Boolean(message));
+        });
+    }
+
+    function validateDateGroup(monthId, dayId, yearId, label) {
+        const monthElement = getElement(monthId);
+        const dayElement = getElement(dayId);
+        const yearElement = getElement(yearId);
+
+        if (!monthElement || !dayElement || !yearElement) return true;
+
+        const month = monthElement.value;
+        const day = dayElement.value;
+        const year = yearElement.value;
+        const hasAnyValue = Boolean(month || day || year);
+        const hasCompleteDate = Boolean(month && day && year);
+
+        if (hasAnyValue && !hasCompleteDate) {
+            setDateGroupValidity(monthId, dayId, yearId, `${label} must include month, day, and year.`);
+            return false;
+        }
+
+        if (hasCompleteDate && Number(day) > getMaxDay(month, year)) {
+            setDateGroupValidity(monthId, dayId, yearId, `${label} is not a valid calendar date.`);
+            return false;
+        }
+
+        setDateGroupValidity(monthId, dayId, yearId, "");
+        return true;
     }
 
     function updateHiddenDate(monthId, dayId, yearId, hiddenId) {
-        const monthElement = document.getElementById(monthId);
-        const dayElement = document.getElementById(dayId);
-        const yearElement = document.getElementById(yearId);
-        const hiddenInput = document.getElementById(hiddenId);
+        const monthElement = getElement(monthId);
+        const dayElement = getElement(dayId);
+        const yearElement = getElement(yearId);
+        const hiddenInput = getElement(hiddenId);
 
         if (!monthElement || !dayElement || !yearElement || !hiddenInput) return;
 
@@ -132,24 +210,82 @@ document.addEventListener("DOMContentLoaded", function () {
         const day = dayElement.value;
         const year = yearElement.value;
 
-        if (month && day && year) {
-            hiddenInput.value = `${year}-${month}-${day}`;
-        } else {
-            hiddenInput.value = "";
+        hiddenInput.value = month && day && year ? `${year}-${month}-${day}` : "";
+    }
+
+    function syncDateGroup(monthId, dayId, yearId, hiddenId, label) {
+        refreshDayOptions(monthId, dayId, yearId);
+
+        const isValid = validateDateGroup(monthId, dayId, yearId, label);
+        updateHiddenDate(monthId, dayId, yearId, hiddenId);
+
+        return isValid;
+    }
+
+    function validateDateRange() {
+        const startDate = getElement("start_date");
+        const endDate = getElement("end_date");
+        const endDay = getElement("end_day");
+
+        if (!startDate || !endDate || !endDay) return true;
+
+        if (startDate.value && endDate.value && startDate.value > endDate.value) {
+            endDay.setCustomValidity("End date must be the same as or later than the start date.");
+            endDay.classList.add("is-invalid");
+            return false;
+        }
+
+        if (endDay.validationMessage === "End date must be the same as or later than the start date.") {
+            endDay.setCustomValidity("");
+            endDay.classList.remove("is-invalid");
+        }
+
+        return true;
+    }
+
+    function syncAllDateFilters() {
+        const startValid = syncDateGroup("start_month", "start_day", "start_year", "start_date", "Start date");
+        const endValid = syncDateGroup("end_month", "end_day", "end_year", "end_date", "End date");
+        const rangeValid = startValid && endValid ? validateDateRange() : false;
+
+        return startValid && endValid && rangeValid;
+    }
+
+    function reportFirstInvalidControl(container) {
+        const invalidControl = container ? container.querySelector(":invalid") : document.querySelector(":invalid");
+
+        if (invalidControl && typeof invalidControl.reportValidity === "function") {
+            invalidControl.reportValidity();
         }
     }
 
+    function splitDateToDropdowns(dateValue, monthId, dayId, yearId) {
+        if (!dateValue) return;
+
+        const parts = dateValue.split("-");
+        if (parts.length !== 3) return;
+
+        const yearElement = getElement(yearId);
+        const monthElement = getElement(monthId);
+        const dayElement = getElement(dayId);
+
+        if (!yearElement || !monthElement || !dayElement) return;
+
+        yearElement.value = parts[0];
+        monthElement.value = parts[1];
+        refreshDayOptions(monthId, dayId, yearId);
+        dayElement.value = parts[2];
+    }
+
     function syncDownloadFilters(downloadForm) {
-        if (!downloadForm) return;
+        if (!downloadForm) return true;
+        if (!syncAllDateFilters()) return false;
 
-        updateHiddenDate("start_month", "start_day", "start_year", "start_date");
-        updateHiddenDate("end_month", "end_day", "end_year", "end_date");
-
-        const pageSeverity = document.getElementById("severity");
-        const pageStatus = document.getElementById("status");
-        const pageRuleName = document.getElementById("rule_name");
-        const pageStartDate = document.getElementById("start_date");
-        const pageEndDate = document.getElementById("end_date");
+        const pageSeverity = getElement("severity");
+        const pageStatus = getElement("status");
+        const pageRuleName = getElement("rule_name");
+        const pageStartDate = getElement("start_date");
+        const pageEndDate = getElement("end_date");
 
         const downloadSeverity = downloadForm.querySelector("input[name='severity']");
         const downloadStatus = downloadForm.querySelector("input[name='status']");
@@ -162,6 +298,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (downloadRuleName && pageRuleName) downloadRuleName.value = pageRuleName.value;
         if (downloadStartDate && pageStartDate) downloadStartDate.value = pageStartDate.value;
         if (downloadEndDate && pageEndDate) downloadEndDate.value = pageEndDate.value;
+
+        return true;
     }
 
     const dates = window.securityFilterDates || {
@@ -171,30 +309,48 @@ document.addEventListener("DOMContentLoaded", function () {
 
     splitDateToDropdowns(dates.startDate, "start_month", "start_day", "start_year");
     splitDateToDropdowns(dates.endDate, "end_month", "end_day", "end_year");
+    syncAllDateFilters();
 
     ["start_month", "start_day", "start_year"].forEach((id) => {
-        const element = document.getElementById(id);
+        const element = getElement(id);
         if (!element) return;
 
         element.addEventListener("change", function () {
-            updateHiddenDate("start_month", "start_day", "start_year", "start_date");
+            syncDateGroup("start_month", "start_day", "start_year", "start_date", "Start date");
+            validateDateRange();
         });
     });
 
     ["end_month", "end_day", "end_year"].forEach((id) => {
-        const element = document.getElementById(id);
+        const element = getElement(id);
         if (!element) return;
 
         element.addEventListener("change", function () {
-            updateHiddenDate("end_month", "end_day", "end_year", "end_date");
+            syncDateGroup("end_month", "end_day", "end_year", "end_date", "End date");
+            validateDateRange();
         });
     });
 
-    const securityDownloadForm = document.getElementById("securityDownloadForm");
+    const securityFilterForm = getElement("securityFilterForm");
+
+    if (securityFilterForm) {
+        securityFilterForm.addEventListener("submit", function (event) {
+            if (!syncAllDateFilters()) {
+                event.preventDefault();
+                reportFirstInvalidControl(securityFilterForm);
+            }
+        });
+    }
+
+    const securityDownloadForm = getElement("securityDownloadForm");
 
     if (securityDownloadForm) {
-        securityDownloadForm.addEventListener("submit", function () {
-            syncDownloadFilters(securityDownloadForm);
+        securityDownloadForm.addEventListener("submit", function (event) {
+            if (!syncDownloadFilters(securityDownloadForm)) {
+                event.preventDefault();
+                reportFirstInvalidControl(document);
+                return;
+            }
 
             const downloadButton = securityDownloadForm.querySelector("button[type='submit']");
             if (!downloadButton) return;

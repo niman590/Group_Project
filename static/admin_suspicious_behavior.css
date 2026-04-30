@@ -212,6 +212,20 @@
     background: #fcfdff;
 }
 
+.date-select-row select.is-invalid {
+    border-color: #e11d48;
+    background: #fff7f8;
+    box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.08);
+}
+
+.date-field-help {
+    display: block;
+    color: var(--cp-text-soft);
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
 .filter-actions {
     display: flex;
     align-items: center;

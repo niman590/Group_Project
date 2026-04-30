@@ -95,7 +95,22 @@
                         </div>
                     </div>
 
-                    <form method="GET" action="{{ url_for('admin.admin_suspicious_behavior') }}" class="security-filter-form">
+                    {% set month_options = [
+                        ('01', 'January'),
+                        ('02', 'February'),
+                        ('03', 'March'),
+                        ('04', 'April'),
+                        ('05', 'May'),
+                        ('06', 'June'),
+                        ('07', 'July'),
+                        ('08', 'August'),
+                        ('09', 'September'),
+                        ('10', 'October'),
+                        ('11', 'November'),
+                        ('12', 'December')
+                    ] %}
+
+                    <form method="GET" action="{{ url_for('admin.admin_suspicious_behavior') }}" class="security-filter-form" id="securityFilterForm">
                         <div class="filter-grid">
                             <div class="filter-field">
                                 <label for="severity">Severity</label>
@@ -133,27 +148,33 @@
                                 <label>Start Date</label>
 
                                 <div class="date-select-row">
-                                    <select id="start_month">
+                                    <select id="start_month" aria-label="Start month" aria-describedby="startDateHelp">
                                         <option value="">Month</option>
-                                        {% for m in range(1, 13) %}
-                                        <option value="{{ '%02d'|format(m) }}">{{ m }}</option>
+                                        {% for month_value, month_label in month_options %}
+                                        <option value="{{ month_value }}" {% if start_date and start_date[5:7] == month_value %}selected{% endif %}>
+                                            {{ month_label }}
+                                        </option>
                                         {% endfor %}
                                     </select>
 
-                                    <select id="start_day">
+                                    <select id="start_day" aria-label="Start day" aria-describedby="startDateHelp">
                                         <option value="">Day</option>
                                         {% for d in range(1, 32) %}
                                         <option value="{{ '%02d'|format(d) }}">{{ d }}</option>
                                         {% endfor %}
                                     </select>
 
-                                    <select id="start_year">
+                                    <select id="start_year" aria-label="Start year" aria-describedby="startDateHelp">
                                         <option value="">Year</option>
                                         {% for y in range(2020, 2031) %}
                                         <option value="{{ y }}">{{ y }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
+
+                                <small class="date-field-help" id="startDateHelp">
+                                    Select month, day, and year to apply a start date.
+                                </small>
 
                                 <input type="hidden" id="start_date" name="start_date" value="{{ start_date }}">
                             </div>
@@ -162,27 +183,33 @@
                                 <label>End Date</label>
 
                                 <div class="date-select-row">
-                                    <select id="end_month">
+                                    <select id="end_month" aria-label="End month" aria-describedby="endDateHelp">
                                         <option value="">Month</option>
-                                        {% for m in range(1, 13) %}
-                                        <option value="{{ '%02d'|format(m) }}">{{ m }}</option>
+                                        {% for month_value, month_label in month_options %}
+                                        <option value="{{ month_value }}" {% if end_date and end_date[5:7] == month_value %}selected{% endif %}>
+                                            {{ month_label }}
+                                        </option>
                                         {% endfor %}
                                     </select>
 
-                                    <select id="end_day">
+                                    <select id="end_day" aria-label="End day" aria-describedby="endDateHelp">
                                         <option value="">Day</option>
                                         {% for d in range(1, 32) %}
                                         <option value="{{ '%02d'|format(d) }}">{{ d }}</option>
                                         {% endfor %}
                                     </select>
 
-                                    <select id="end_year">
+                                    <select id="end_year" aria-label="End year" aria-describedby="endDateHelp">
                                         <option value="">Year</option>
                                         {% for y in range(2020, 2031) %}
                                         <option value="{{ y }}">{{ y }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
+
+                                <small class="date-field-help" id="endDateHelp">
+                                    Select month, day, and year to apply an end date.
+                                </small>
 
                                 <input type="hidden" id="end_date" name="end_date" value="{{ end_date }}">
                             </div>
