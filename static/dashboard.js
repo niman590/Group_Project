@@ -230,12 +230,83 @@ document.addEventListener("DOMContentLoaded", function () {
     const chatMessages = document.getElementById("chatMessages");
     const chatInput = document.getElementById("chatInput");
     const chatSendBtn = document.getElementById("chatSendBtn");
+    const chatVoiceBtn = document.getElementById("chatVoiceBtn");
 
     function openChatbot() {
         if (!chatbotBox) return;
         chatbotBox.classList.add("open");
 
-        if (chatbotButton) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let chatRecognition = null;
+    let isListening = false;
+
+    function setVoiceListening(listening) {
+        isListening = listening;
+        if (!chatVoiceBtn) return;
+
+        chatVoiceBtn.classList.toggle("listening", listening);
+        chatVoiceBtn.setAttribute("aria-label", listening ? "Stop voice input" : "Start voice input");
+        chatVoiceBtn.setAttribute("title", listening ? "Stop voice input" : "Speak your question");
+        chatVoiceBtn.innerHTML = listening
+            ? '<i class="fa-solid fa-microphone-lines"></i>'
+            : '<i class="fa-solid fa-microphone"></i>';
+    }
+
+    function setupVoiceInput() {
+        if (!chatVoiceBtn) return;
+
+        if (!SpeechRecognition) {
+            chatVoiceBtn.disabled = true;
+            chatVoiceBtn.setAttribute("title", "Voice input is not supported in this browser");
+            return;
+        }
+
+        chatRecognition = new SpeechRecognition();
+        chatRecognition.lang = "en-US";
+        chatRecognition.interimResults = false;
+        chatRecognition.continuous = false;
+
+        chatRecognition.addEventListener("result", function (event) {
+            const transcript = Array.from(event.results || [])
+                .map((result) => result[0]?.transcript || "")
+                .join(" ")
+                .trim();
+
+            if (transcript && chatInput) {
+                chatInput.value = transcript;
+                chatInput.focus();
+            }
+        });
+
+        chatRecognition.addEventListener("end", function () {
+            setVoiceListening(false);
+        });
+
+        chatRecognition.addEventListener("error", function () {
+            setVoiceListening(false);
+        });
+
+        chatVoiceBtn.addEventListener("click", function () {
+            if (!chatRecognition || chatVoiceBtn.disabled) return;
+
+            if (isListening) {
+                chatRecognition.stop();
+                setVoiceListening(false);
+                return;
+            }
+
+            try {
+                chatRecognition.start();
+                setVoiceListening(true);
+            } catch (error) {
+                setVoiceListening(false);
+            }
+        });
+    }
+
+    setupVoiceInput();
+
+    if (chatbotButton) {
             chatbotButton.setAttribute("aria-expanded", "true");
         }
 
@@ -253,12 +324,33 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function appendChatMessage(message, type) {
         if (!chatMessages) return null;
 
         const messageElement = document.createElement("div");
         messageElement.className = type === "user" ? "user-msg" : "bot-msg";
         messageElement.textContent = message;
+
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return messageElement;
+    }
+
+    function appendChatHtml(html, type) {
+        if (!chatMessages) return null;
+
+        const messageElement = document.createElement("div");
+        messageElement.className = type === "user" ? "user-msg" : "bot-msg";
+        messageElement.innerHTML = html;
 
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -299,6 +391,24 @@ document.addEventListener("DOMContentLoaded", function () {
         return rawReply;
     }
 
+    function renderQuickActions(actions) {
+        if (!Array.isArray(actions) || !actions.length) return "";
+
+        const buttons = actions.map((action) => {
+            const label = escapeHtml(action.label || "Open");
+            const target = action.target ? encodeURI(action.target) : "#";
+            return `<a class="chatbot-quick-action" href="${target}">${label}</a>`;
+        }).join("");
+
+        return `<div class="chatbot-quick-actions">${buttons}</div>`;
+    }
+
+    function renderBotResponse(data, fallback) {
+        const reply = escapeHtml(getSafeChatReply(data, fallback));
+        const quickActions = renderQuickActions(data?.quick_actions);
+        appendChatHtml(`<div>${reply}</div>${quickActions}`, "bot");
+    }
+
     function setChatLoading(isLoading) {
         if (!chatSendBtn || !chatInput) return;
 
@@ -306,6 +416,10 @@ document.addEventListener("DOMContentLoaded", function () {
         chatInput.disabled = isLoading;
         chatInput.setAttribute("aria-busy", isLoading ? "true" : "false");
         chatSendBtn.textContent = isLoading ? "Sending..." : "Send";
+
+        if (chatVoiceBtn) {
+            chatVoiceBtn.disabled = isLoading;
+        }
     }
 
     async function sendChatMessage() {
@@ -341,11 +455,11 @@ document.addEventListener("DOMContentLoaded", function () {
             removeChatLoadingMessage(loadingMessage);
 
             if (!response.ok) {
-                appendChatMessage(getSafeChatReply(data), "bot");
+                renderBotResponse(data);
                 return;
             }
 
-            appendChatMessage(getSafeChatReply(data, "I could not find a response for that."), "bot");
+            renderBotResponse(data, "I could not find a response for that.");
         } catch (error) {
             removeChatLoadingMessage(loadingMessage);
             appendChatMessage("Sorry, I could not connect to the assistant right now. Please try again.", "bot");

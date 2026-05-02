@@ -297,7 +297,7 @@ def get_transaction_history_by_deed(deed_number):
         conn.close()
 
 
-def build_response(reply, response_type="answer", action=None, target=None, payload=None):
+def build_response(reply, response_type="answer", action=None, target=None, payload=None, quick_actions=None):
     data = {
         "type": response_type,
         "reply": reply,
@@ -312,7 +312,141 @@ def build_response(reply, response_type="answer", action=None, target=None, payl
     if payload is not None:
         data["payload"] = payload
 
+    if quick_actions:
+        data["quick_actions"] = quick_actions
+
     return jsonify(data)
+
+
+def get_user_quick_actions():
+    return [
+        {"label": "Open My Applications", "target": url_for("submit_documents.my_applications")},
+        {"label": "Open Submit Documents", "target": url_for("submit_documents.submit_documents")},
+        {"label": "Open Land Valuation", "target": url_for("prediction.land_valuation_page")},
+        {"label": "Open Support Documents", "target": url_for("support_documents.support_documents_page")},
+    ]
+
+
+def get_public_quick_actions():
+    return [
+        {"label": "Sign in", "target": url_for("auth.login")},
+        {"label": "Create account", "target": url_for("auth.register")},
+    ]
+
+
+def database_table_columns(cursor, table_name):
+    try:
+        cursor.execute(f"PRAGMA table_info({table_name})")
+        return {row["name"] for row in cursor.fetchall()}
+    except Exception:
+        return set()
+
+
+def first_existing_column(columns, candidates):
+    for candidate in candidates:
+        if candidate in columns:
+            return candidate
+    return None
+
+
+def get_user_application_attention(user_id, limit=5):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        columns = database_table_columns(cursor, "planning_applications")
+        if not columns or "user_id" not in columns:
+            return []
+
+        selectable_columns = ["application_id", "status", "created_at", "updated_at", "current_step"]
+        selectable_columns += [
+            first_existing_column(columns, ["admin_comment", "admin_comments", "review_comment", "comments", "remarks"]),
+            first_existing_column(columns, ["missing_documents", "required_documents", "requested_documents"]),
+        ]
+
+        safe_columns = []
+        for column in selectable_columns:
+            if column and column in columns and column not in safe_columns:
+                safe_columns.append(column)
+
+        if "application_id" not in safe_columns:
+            safe_columns.insert(0, "application_id")
+
+        order_column = "updated_at" if "updated_at" in columns else "application_id"
+        sql = f"""
+            SELECT {', '.join(safe_columns)}
+            FROM planning_applications
+            WHERE user_id = ?
+            ORDER BY {order_column} DESC
+            LIMIT ?
+        """
+        cursor.execute(sql, (user_id, limit))
+        rows = cursor.fetchall()
+
+        attention_items = []
+        for row in rows:
+            status = (row["status"] if "status" in row.keys() else "") or ""
+            status_lower = status.strip().lower()
+            application_id = row["application_id"] if "application_id" in row.keys() else "N/A"
+
+            needs_action = status_lower in [
+                "draft",
+                "need documents",
+                "needs documents",
+                "revision requested",
+                "rejected",
+                "pending",
+                "pending review",
+                "under review",
+                "in review",
+                "submitted",
+            ]
+
+            if not needs_action:
+                continue
+
+            reason = "This application is still being reviewed by the authority."
+            next_action = "Check My Applications for the latest status and any officer comments."
+
+            if status_lower == "draft":
+                reason = "This application is saved as a draft and has not been submitted yet."
+                next_action = "Open the application, complete the remaining steps, and submit it."
+            elif status_lower in ["need documents", "needs documents", "revision requested"]:
+                reason = "The reviewing officer has requested more information or corrections."
+                next_action = "Open My Applications and upload the requested documents or corrections."
+            elif status_lower == "rejected":
+                reason = "The application was rejected during review."
+                next_action = "Open My Applications to review comments before creating or updating a submission."
+            elif status_lower in ["pending", "pending review", "under review", "in review", "submitted"]:
+                reason = "The application is pending because it is waiting for officer review or workflow processing."
+                next_action = "Keep checking My Applications and Notifications for updates."
+
+            comments = ""
+            for comment_column in ["admin_comment", "admin_comments", "review_comment", "comments", "remarks"]:
+                if comment_column in row.keys() and row[comment_column]:
+                    comments = row[comment_column]
+                    break
+
+            missing_documents = ""
+            for document_column in ["missing_documents", "required_documents", "requested_documents"]:
+                if document_column in row.keys() and row[document_column]:
+                    missing_documents = row[document_column]
+                    break
+
+            attention_items.append({
+                "application_id": application_id,
+                "status": status or "N/A",
+                "reason": reason,
+                "next_action": next_action,
+                "comments": comments or "",
+                "missing_documents": missing_documents or "",
+            })
+
+        return attention_items
+    except Exception:
+        return []
+    finally:
+        conn.close()
 
 
 def handle_navigation_intent(message):
@@ -384,9 +518,66 @@ def handle_navigation_intent(message):
                     response_type="action",
                     action="open_page",
                     target=item["target"],
+                    quick_actions=get_user_quick_actions(),
                 )
 
     return None
+
+
+def handle_application_attention_intent(message):
+    text = normalize_text(message)
+
+    phrases = [
+        "which application needs action",
+        "applications need action",
+        "application need action",
+        "needs action",
+        "need action",
+        "why is my application pending",
+        "why application pending",
+        "why pending",
+        "what document is missing",
+        "missing document",
+        "missing documents",
+        "requested document",
+        "requested documents",
+        "what should i do next",
+        "application comments",
+        "admin comments",
+    ]
+
+    if not any(phrase in text for phrase in phrases):
+        return None
+
+    if not is_logged_in():
+        return build_response(
+            "Please sign in first so I can check which applications need attention.",
+            response_type="action",
+            action="open_page",
+            target=url_for("auth.login"),
+            quick_actions=get_public_quick_actions(),
+        )
+
+    attention_items = get_user_application_attention(session.get("user_id"))
+
+    if not attention_items:
+        return build_response(
+            "I could not find any application that needs action right now. Please check My Applications for the full official list.",
+            response_type="data",
+            payload={"kind": "application_attention", "items": []},
+            quick_actions=get_user_quick_actions(),
+        )
+
+    first_item = attention_items[0]
+    return build_response(
+        (
+            f"Application #{first_item['application_id']} may need attention. "
+            f"Current status: {first_item['status']}. {first_item['reason']}"
+        ),
+        response_type="data",
+        payload={"kind": "application_attention", "items": attention_items},
+        quick_actions=get_user_quick_actions(),
+    )
 
 
 def handle_live_data_intent(message):
@@ -398,6 +589,7 @@ def handle_live_data_intent(message):
             response_type="action",
             action="open_page",
             target=url_for("auth.login"),
+            quick_actions=get_public_quick_actions(),
         )
 
     user_id = session.get("user_id")
@@ -427,6 +619,7 @@ def handle_live_data_intent(message):
                 "kind": "application_summary",
                 "summary": summary,
             },
+            quick_actions=get_user_quick_actions(),
         )
 
     if any(phrase in text for phrase in [
@@ -447,6 +640,7 @@ def handle_live_data_intent(message):
                 "kind": "application_summary",
                 "summary": summary,
             },
+            quick_actions=get_user_quick_actions(),
         )
 
     if any(phrase in text for phrase in ["my alerts", "alerts", "notifications", "pending requests"]):
@@ -457,6 +651,7 @@ def handle_live_data_intent(message):
                 "kind": "alerts_summary",
                 "summary": summary,
             },
+            quick_actions=get_user_quick_actions(),
         )
 
     if any(phrase in text for phrase in ["my property records", "my properties", "my records", "property records"]):
@@ -467,6 +662,7 @@ def handle_live_data_intent(message):
                 "kind": "property_summary",
                 "summary": summary,
             },
+            quick_actions=get_user_quick_actions(),
         )
 
     if any(phrase in text for phrase in ["my valuation", "latest valuation", "land value", "my land value"]):
@@ -482,6 +678,7 @@ def handle_live_data_intent(message):
                     "kind": "valuation_summary",
                     "summary": summary,
                 },
+                quick_actions=get_user_quick_actions(),
             )
 
         return build_response(
@@ -489,6 +686,7 @@ def handle_live_data_intent(message):
             response_type="action",
             action="open_page",
             target=url_for("prediction.land_valuation_page"),
+            quick_actions=get_user_quick_actions(),
         )
 
     deed_number = extract_deed_number(message)
@@ -511,6 +709,7 @@ def handle_live_data_intent(message):
                 "kind": "transaction_history",
                 "record": record,
             },
+            quick_actions=get_user_quick_actions(),
         )
 
     return None
@@ -556,8 +755,9 @@ def handle_faq_intent(message):
                     response_type="action",
                     action=item["action"],
                     target=item["target"],
+                    quick_actions=get_user_quick_actions(),
                 )
-            return build_response(item["reply"])
+            return build_response(item["reply"], quick_actions=get_user_quick_actions())
 
     return None
 
@@ -580,12 +780,14 @@ def handle_public_dashboard_faq_intent(message):
         "my records",
     ]):
         return build_response(
-            "I can’t access personal dashboard details from the public dashboard. Please sign in and use your user dashboard to check application status, alerts, valuations, or records."
+            "I can’t access personal dashboard details from the public dashboard. Please sign in and use your user dashboard to check application status, alerts, valuations, or records.",
+            quick_actions=get_public_quick_actions(),
         )
 
     if any(phrase in text for phrase in ["open", "go to", "take me to", "navigate", "show me page", "view page"]):
         return build_response(
-            "I can explain where to find things, but I can’t open pages from the public dashboard. Please use the navigation links or sign in to access user-only services."
+            "I can explain where to find things, but I can’t open pages from the public dashboard. Please use the navigation links or sign in to access user-only services.",
+            quick_actions=get_public_quick_actions(),
         )
 
     public_faq_map = [
@@ -625,7 +827,7 @@ def handle_public_dashboard_faq_intent(message):
 
     for item in public_faq_map:
         if any(keyword in text for keyword in item["keywords"]):
-            return build_response(item["reply"])
+            return build_response(item["reply"], quick_actions=get_public_quick_actions())
 
     return None
 
@@ -723,10 +925,11 @@ def chat():
 
             public_fallback_reply = generate_public_dashboard_fallback(user_message)
             if public_fallback_reply:
-                return build_response(public_fallback_reply)
+                return build_response(public_fallback_reply, quick_actions=get_public_quick_actions())
 
             return build_response(
-                "I can help with general Civic Plan information from the public dashboard. Please sign in to use user dashboard functions such as application status, page actions, submissions, and personal records."
+                "I can help with general Civic Plan information from the public dashboard. Please sign in to use user dashboard functions such as application status, page actions, submissions, and personal records.",
+                quick_actions=get_public_quick_actions(),
             )
 
         if not is_logged_in():
@@ -735,7 +938,12 @@ def chat():
                 response_type="action",
                 action="open_page",
                 target=url_for("auth.login"),
+                quick_actions=get_public_quick_actions(),
             ), 401
+
+        application_attention_response = handle_application_attention_intent(user_message)
+        if application_attention_response is not None:
+            return application_attention_response
 
         navigation_response = handle_navigation_intent(user_message)
         if navigation_response is not None:
@@ -751,10 +959,11 @@ def chat():
 
         fallback_reply = generate_gemini_fallback(user_message)
         if fallback_reply:
-            return build_response(fallback_reply)
+            return build_response(fallback_reply, quick_actions=get_user_quick_actions())
 
         return build_response(
-            "I can help you open pages, check your dashboard-related summaries, and answer general Civic Plan questions."
+            "I can help you open pages, check your dashboard-related summaries, and answer general Civic Plan questions.",
+            quick_actions=get_user_quick_actions(),
         )
 
     except Exception as error:

@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const chatInput = document.getElementById("chatInput");
     const chatMessages = document.getElementById("chatMessages");
     const chatSendBtn = document.getElementById("chatSendBtn");
+    const chatVoiceBtn = document.getElementById("chatVoiceBtn");
     const chatbotCloseBtn = document.getElementById("chatbotCloseBtn");
     const revealItems = document.querySelectorAll(".reveal-up");
     const statNumbers = document.querySelectorAll(".stat-card h3, .value-number");
@@ -257,6 +258,10 @@ document.addEventListener("DOMContentLoaded", function () {
             chatInput.disabled = isLoading;
             chatInput.setAttribute("aria-busy", isLoading ? "true" : "false");
         }
+
+        if (chatVoiceBtn) {
+            chatVoiceBtn.disabled = isLoading;
+        }
     }
 
     function renderDataPayload(payload) {
@@ -322,7 +327,45 @@ document.addEventListener("DOMContentLoaded", function () {
             `;
         }
 
+        if (payload.kind === "application_attention") {
+            const items = Array.isArray(payload.items) ? payload.items : [];
+
+            if (!items.length) {
+                return `
+                    <div class="chatbot-data-card">
+                        <div><strong>No pending action found.</strong></div>
+                        <div>Please open My Applications for the complete official list.</div>
+                    </div>
+                `;
+            }
+
+            const itemHtml = items.map((item) => `
+                <div class="chatbot-application-card">
+                    <div><strong>Application #${escapeHtml(item.application_id)}</strong></div>
+                    <div><strong>Status:</strong> ${escapeHtml(item.status || "N/A")}</div>
+                    <div><strong>Reason:</strong> ${escapeHtml(item.reason || "Check application details for latest updates.")}</div>
+                    <div><strong>Next action:</strong> ${escapeHtml(item.next_action || "Open My Applications.")}</div>
+                    ${item.missing_documents ? `<div><strong>Requested/Missing documents:</strong> ${escapeHtml(item.missing_documents)}</div>` : ""}
+                    ${item.comments ? `<div><strong>Officer comments:</strong> ${escapeHtml(item.comments)}</div>` : ""}
+                </div>
+            `).join("");
+
+            return `<div class="chatbot-data-card">${itemHtml}</div>`;
+        }
+
         return "";
+    }
+
+    function renderQuickActions(actions) {
+        if (!Array.isArray(actions) || !actions.length) return "";
+
+        const buttons = actions.map((action) => {
+            const label = escapeHtml(action.label || "Open");
+            const target = action.target ? encodeURI(action.target) : "#";
+            return `<a class="chatbot-quick-action" href="${target}">${label}</a>`;
+        }).join("");
+
+        return `<div class="chatbot-quick-actions">${buttons}</div>`;
     }
 
     function renderBotResponse(data) {
@@ -333,11 +376,14 @@ document.addEventListener("DOMContentLoaded", function () {
             extraHtml += renderDataPayload(data.payload);
         }
 
+        if (data?.quick_actions) {
+            extraHtml += renderQuickActions(data.quick_actions);
+        }
+
         if (data?.action === "open_page" && data?.target) {
             extraHtml += `
                 <div style="margin-top:10px;">
-                    <a href="${encodeURI(data.target)}"
-                       style="display:inline-block; padding:8px 12px; border-radius:8px; background:#123f88; color:#fff; text-decoration:none;">
+                    <a href="${encodeURI(data.target)}" class="chatbot-quick-action">
                         Open page
                     </a>
                 </div>
@@ -495,6 +541,76 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
     }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let chatRecognition = null;
+    let isListening = false;
+
+    function setVoiceListening(listening) {
+        isListening = listening;
+        if (!chatVoiceBtn) return;
+
+        chatVoiceBtn.classList.toggle("listening", listening);
+        chatVoiceBtn.setAttribute("aria-label", listening ? "Stop voice input" : "Start voice input");
+        chatVoiceBtn.setAttribute("title", listening ? "Stop voice input" : "Speak your question");
+        chatVoiceBtn.innerHTML = listening
+            ? '<i class="fa-solid fa-microphone-lines"></i>'
+            : '<i class="fa-solid fa-microphone"></i>';
+    }
+
+    function setupVoiceInput() {
+        if (!chatVoiceBtn) return;
+
+        if (!SpeechRecognition) {
+            chatVoiceBtn.disabled = true;
+            chatVoiceBtn.setAttribute("title", "Voice input is not supported in this browser");
+            return;
+        }
+
+        chatRecognition = new SpeechRecognition();
+        chatRecognition.lang = "en-US";
+        chatRecognition.interimResults = false;
+        chatRecognition.continuous = false;
+
+        chatRecognition.addEventListener("result", function (event) {
+            const transcript = Array.from(event.results || [])
+                .map((result) => result[0]?.transcript || "")
+                .join(" ")
+                .trim();
+
+            if (transcript && chatInput) {
+                chatInput.value = transcript;
+                chatInput.focus();
+            }
+        });
+
+        chatRecognition.addEventListener("end", function () {
+            setVoiceListening(false);
+        });
+
+        chatRecognition.addEventListener("error", function () {
+            setVoiceListening(false);
+        });
+
+        chatVoiceBtn.addEventListener("click", function () {
+            if (!chatRecognition || chatVoiceBtn.disabled) return;
+
+            if (isListening) {
+                chatRecognition.stop();
+                setVoiceListening(false);
+                return;
+            }
+
+            try {
+                chatRecognition.start();
+                setVoiceListening(true);
+            } catch (error) {
+                setVoiceListening(false);
+            }
+        });
+    }
+
+    setupVoiceInput();
 
     if (chatbotButton) {
         chatbotButton.addEventListener("click", function (e) {
