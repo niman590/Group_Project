@@ -64,6 +64,31 @@ def get_gemini_client():
     return genai.Client(api_key=api_key)
 
 
+def is_ai_service_unavailable_error(error):
+    error_text = str(error or "").lower()
+    unavailable_markers = [
+        "503",
+        "unavailable",
+        "high demand",
+        "overloaded",
+        "temporarily unavailable",
+        "try again later",
+        "429",
+        "quota",
+        "rate limit",
+        "deadline",
+        "timeout",
+    ]
+    return any(marker in error_text for marker in unavailable_markers)
+
+
+def friendly_ai_unavailable_message():
+    return (
+        "The assistant is taking longer than usual right now. "
+        "Please try again in a moment, or use the portal navigation links for urgent tasks."
+    )
+
+
 def is_logged_in():
     return "user_id" in session
 
@@ -378,7 +403,18 @@ def handle_live_data_intent(message):
     user_id = session.get("user_id")
     summary = get_user_dashboard_summary(user_id)
 
-    if any(phrase in text for phrase in ["application status", "my status", "status of my application", "my applications status"]):
+    if any(phrase in text for phrase in [
+        "application status",
+        "applications status",
+        "my status",
+        "status of my application",
+        "status of my applications",
+        "my applications status",
+        "my planning applications status",
+        "my planing applications status",
+        "planning application status",
+        "planing application status",
+    ]):
         return build_response(
             (
                 f"You have {summary['total_applications']} application(s): "
@@ -393,7 +429,14 @@ def handle_live_data_intent(message):
             },
         )
 
-    if any(phrase in text for phrase in ["my applications", "how many applications", "application summary"]):
+    if any(phrase in text for phrase in [
+        "my applications",
+        "my planning applications",
+        "my planing applications",
+        "how many applications",
+        "application summary",
+        "applications summary",
+    ]):
         return build_response(
             (
                 f"You currently have {summary['total_applications']} application(s). "
@@ -523,7 +566,19 @@ def handle_faq_intent(message):
 def handle_public_dashboard_faq_intent(message):
     text = normalize_text(message)
 
-    if any(phrase in text for phrase in ["my application", "my applications", "application status", "my status", "my alerts", "my valuation", "my property", "my records"]):
+    if any(phrase in text for phrase in [
+        "my application",
+        "my applications",
+        "my planning applications",
+        "my planing applications",
+        "application status",
+        "applications status",
+        "my status",
+        "my alerts",
+        "my valuation",
+        "my property",
+        "my records",
+    ]):
         return build_response(
             "I can’t access personal dashboard details from the public dashboard. Please sign in and use your user dashboard to check application status, alerts, valuations, or records."
         )
@@ -580,17 +635,22 @@ def generate_public_dashboard_fallback(user_message):
     if client is None:
         return None
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=(
-            f"{SYSTEM_PROMPT}\n\n"
-            "Context: The user is on the public dashboard, not the signed-in user dashboard. "
-            "Do not open pages, do not provide application status, do not access personal dashboard data, "
-            "and do not claim to submit applications or check live records. Give general Civic Plan guidance only. "
-            "If the user asks for a user-only function, tell them to sign in and use the user dashboard.\n\n"
-            f"User: {user_message}"
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=(
+                f"{SYSTEM_PROMPT}\n\n"
+                "Context: The user is on the public dashboard, not the signed-in user dashboard. "
+                "Do not open pages, do not provide application status, do not access personal dashboard data, "
+                "and do not claim to submit applications or check live records. Give general Civic Plan guidance only. "
+                "If the user asks for a user-only function, tell them to sign in and use the user dashboard.\n\n"
+                f"User: {user_message}"
+            )
         )
-    )
+    except Exception as error:
+        if is_ai_service_unavailable_error(error):
+            return friendly_ai_unavailable_message()
+        return "Sorry, I could not connect to the assistant right now. Please try again."
 
     reply_text = getattr(response, "text", None)
     if not reply_text:
@@ -622,17 +682,22 @@ Available website modules:
 - Support Documents: {url_for('support_documents.support_documents_page')}
 """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=(
-            f"{SYSTEM_PROMPT}\n\n"
-            f"{user_context}\n\n"
-            f"{available_pages}\n\n"
-            f"Reply as a website assistant. If the user asks for a real status or live system result, "
-            f"tell them to use the relevant dashboard/module unless exact data was provided by the system.\n\n"
-            f"User: {user_message}"
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=(
+                f"{SYSTEM_PROMPT}\n\n"
+                f"{user_context}\n\n"
+                f"{available_pages}\n\n"
+                f"Reply as a website assistant. If the user asks for a real status or live system result, "
+                f"tell them to use the relevant dashboard/module unless exact data was provided by the system.\n\n"
+                f"User: {user_message}"
+            )
         )
-    )
+    except Exception as error:
+        if is_ai_service_unavailable_error(error):
+            return friendly_ai_unavailable_message()
+        return "Sorry, I could not connect to the assistant right now. Please try again."
 
     reply_text = getattr(response, "text", None)
     if not reply_text:
@@ -642,7 +707,6 @@ Available website modules:
 
 
 @chatbot_bp.route("/chat", methods=["POST"])
-@chatbot_login_required
 def chat():
     try:
         data = request.get_json(silent=True) or {}
@@ -665,6 +729,14 @@ def chat():
                 "I can help with general Civic Plan information from the public dashboard. Please sign in to use user dashboard functions such as application status, page actions, submissions, and personal records."
             )
 
+        if not is_logged_in():
+            return build_response(
+                "Please sign in first to use the assistant with your dashboard details.",
+                response_type="action",
+                action="open_page",
+                target=url_for("auth.login"),
+            ), 401
+
         navigation_response = handle_navigation_intent(user_message)
         if navigation_response is not None:
             return navigation_response
@@ -685,8 +757,13 @@ def chat():
             "I can help you open pages, check your dashboard-related summaries, and answer general Civic Plan questions."
         )
 
-    except Exception as e:
+    except Exception as error:
+        if is_ai_service_unavailable_error(error):
+            reply = friendly_ai_unavailable_message()
+        else:
+            reply = "Sorry, something went wrong while contacting the assistant. Please try again."
+
         return jsonify({
             "type": "answer",
-            "reply": f"Something went wrong while contacting the AI assistant: {str(e)}"
+            "reply": reply
         }), 500

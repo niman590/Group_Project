@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function appendChatMessage(message, type) {
-        if (!chatMessages) return;
+        if (!chatMessages) return null;
 
         const messageElement = document.createElement("div");
         messageElement.className = type === "user" ? "user-msg" : "bot-msg";
@@ -262,6 +262,41 @@ document.addEventListener("DOMContentLoaded", function () {
 
         chatMessages.appendChild(messageElement);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+        return messageElement;
+    }
+
+    function appendChatLoadingMessage() {
+        if (!chatMessages) return null;
+
+        const messageElement = document.createElement("div");
+        messageElement.className = "bot-msg loading";
+        messageElement.setAttribute("aria-live", "polite");
+        messageElement.innerHTML = `
+            <span class="typing-indicator" aria-label="Assistant is typing">
+                <span></span><span></span><span></span>
+            </span>
+        `;
+
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return messageElement;
+    }
+
+    function removeChatLoadingMessage(loadingMessage) {
+        if (loadingMessage && loadingMessage.parentNode) {
+            loadingMessage.remove();
+        }
+    }
+
+    function getSafeChatReply(data, fallback) {
+        const rawReply = String(data?.reply || fallback || "Sorry, something went wrong. Please try again.");
+        const noisyError = /\b(503|429|UNAVAILABLE|high demand|quota|rate limit|Traceback|Exception|\{'error'|\"error\")\b/i;
+
+        if (noisyError.test(rawReply)) {
+            return "The assistant is taking longer than usual right now. Please try again in a moment.";
+        }
+
+        return rawReply;
     }
 
     function setChatLoading(isLoading) {
@@ -269,6 +304,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         chatSendBtn.disabled = isLoading;
         chatInput.disabled = isLoading;
+        chatInput.setAttribute("aria-busy", isLoading ? "true" : "false");
         chatSendBtn.textContent = isLoading ? "Sending..." : "Send";
     }
 
@@ -281,6 +317,7 @@ document.addEventListener("DOMContentLoaded", function () {
         appendChatMessage(message, "user");
         chatInput.value = "";
         setChatLoading(true);
+        const loadingMessage = appendChatLoadingMessage();
 
         try {
             const response = await fetch("/chat", {
@@ -294,16 +331,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
             });
 
-            const data = await response.json();
+            let data = {};
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                data = {};
+            }
+
+            removeChatLoadingMessage(loadingMessage);
 
             if (!response.ok) {
-                appendChatMessage(data.reply || "Sorry, something went wrong. Please try again.", "bot");
+                appendChatMessage(getSafeChatReply(data), "bot");
                 return;
             }
 
-            appendChatMessage(data.reply || "I could not find a response for that.", "bot");
+            appendChatMessage(getSafeChatReply(data, "I could not find a response for that."), "bot");
         } catch (error) {
-            appendChatMessage("Sorry, I could not connect to the assistant right now.", "bot");
+            removeChatLoadingMessage(loadingMessage);
+            appendChatMessage("Sorry, I could not connect to the assistant right now. Please try again.", "bot");
         } finally {
             setChatLoading(false);
             if (chatInput) chatInput.focus();
