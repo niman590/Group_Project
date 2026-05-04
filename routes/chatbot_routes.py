@@ -14,21 +14,34 @@ chatbot_bp = Blueprint("chatbot", __name__)
 SYSTEM_PROMPT = """
 You are the AI assistant for Civic Plan, a land management and planning approval portal.
 
-You help users with:
-- registration
-- login
-- password reset
-- planning approvals
-- land records
-- permit status
-- dashboard navigation
-- required documents
-- general website help
+Only describe features that actually exist in the website.
+
+Public dashboard features:
+- general information about planning approval applications
+- general information about land value prediction
+- general information about land transaction history records
+- registration, login, and password reset guidance
+- Drop Your Questions contact form guidance
+
+Signed-in citizen dashboard features:
+- Dashboard summary
+- My Profile / account details
+- Submit Documents / 12-step planning approval application
+- My Applications / application progress tracking
+- requested additional document uploads
+- Transaction History / deed number search
+- Transaction History update or new deed requests with PDF proof upload
+- Land Valuation / GIS map search, current location, estimate, and PDF report
+- Support Documents / planning guidelines, checklists, gazettes/rules, user guide, valuation help, and transaction support
+- Notifications / progress updates, admin messages, requested documents, and mark all as read
+- Logout
 
 Rules:
 - Reply clearly and briefly.
-- Do not invent approval results or legal decisions.
-- If a user asks for official status, tell them to check their dashboard or official records.
+- Use the wording "planning approval progress" or "application progress" instead of "permit status".
+- Do not claim that a feature exists unless it is listed above.
+- Do not invent approval results, valuation results, deed ownership results, or legal decisions.
+- If exact live data is not provided by the system, tell the user where to check it in the portal.
 - Keep answers helpful for Sri Lankan land-management portal users.
 """
 
@@ -319,20 +332,33 @@ def build_response(reply, response_type="answer", action=None, target=None, payl
 
 
 def get_user_quick_actions():
-    return [
-        {"label": "Open My Applications", "target": url_for("submit_documents.my_applications")},
-        {"label": "Open Submit Documents", "target": url_for("submit_documents.submit_documents")},
-        {"label": "Open Land Valuation", "target": url_for("prediction.land_valuation_page")},
-        {"label": "Open Support Documents", "target": url_for("support_documents.support_documents_page")},
-    ]
+    return []
 
 
 def get_public_quick_actions():
-    return [
-        {"label": "Sign in", "target": url_for("auth.login")},
-        {"label": "Create account", "target": url_for("auth.register")},
-    ]
+    return []
 
+
+def get_user_feature_overview_text():
+    return (
+        "I can help with these signed-in citizen portal features:\n"
+        "- Dashboard summary, alerts, and quick links\n"
+        "- My Profile account details and password reset guidance\n"
+        "- Submit Documents for the 12-step planning approval application\n"
+        "- My Applications for progress tracking, officer comments, drafts, and requested document uploads\n"
+        "- Transaction History search by deed number and update/new deed requests\n"
+        "- Land Valuation using GIS map/current location, estimate, and PDF report\n"
+        "- Support Documents such as planning guidelines, checklists, gazettes/rules, and user guide\n"
+        "- Notifications for admin messages, requested documents, and application updates"
+    )
+
+
+def get_public_feature_overview_text():
+    return (
+        "From the public dashboard I can explain Civic Plan services, registration, login, password reset, "
+        "planning approval guidance, land valuation information, transaction history information, and the Drop Your Questions contact form. "
+        "For personal application progress, records, notifications, or submissions, please sign in first."
+    )
 
 def database_table_columns(cursor, table_name):
     try:
@@ -454,60 +480,73 @@ def handle_navigation_intent(message):
 
     navigation_map = [
         {
-            "keywords": ["register", "sign up", "create account"],
-            "reply": "Opening the registration page.",
+            "keywords": ["register", "sign up", "create account", "new account"],
+            "reply": "Opening the Create account page.",
             "target": url_for("auth.register"),
+            "public_allowed": True,
         },
         {
             "keywords": ["login", "log in", "sign in"],
-            "reply": "Opening the login page.",
+            "reply": "Opening the Sign in page.",
             "target": url_for("auth.login"),
+            "public_allowed": True,
         },
         {
-            "keywords": ["password reset", "reset password", "forgot password", "forgot my password"],
+            "keywords": ["password reset", "reset password", "forgot password", "forgot my password", "change password"],
             "reply": "Opening the password reset page.",
             "target": url_for("auth.password_reset"),
+            "public_allowed": True,
         },
         {
-            "keywords": ["account", "profile", "my account"],
-            "reply": "Opening your account page.",
-            "target": url_for("user.account"),
-        },
-        {
-            "keywords": ["dashboard", "home"],
-            "reply": "Opening your dashboard.",
+            "keywords": ["dashboard", "home", "summary", "overview"],
+            "reply": "Opening your Dashboard.",
             "target": url_for("user.user_dashboard"),
         },
         {
-            "keywords": ["submit documents", "submit planning documents", "planning documents", "submit application"],
-            "reply": "Opening the planning document submission page.",
+            "keywords": ["my profile", "profile", "account", "my account", "account details", "edit profile"],
+            "reply": "Opening My Profile.",
+            "target": url_for("user.account"),
+        },
+        {
+            "keywords": ["submit documents", "submit planning documents", "planning documents", "submit application", "new application", "planning approval form", "planning application form"],
+            "reply": "Opening Submit Documents for your planning approval application.",
             "target": url_for("submit_documents.submit_documents"),
         },
         {
-            "keywords": ["my applications", "track applications", "application history", "track my applications"],
-            "reply": "Opening your applications page.",
+            "keywords": ["my applications", "track applications", "application history", "track my applications", "application progress", "planning approval progress", "requested documents", "additional documents", "officer comments", "admin comments", "draft applications"],
+            "reply": "Opening My Applications.",
             "target": url_for("submit_documents.my_applications"),
         },
         {
-            "keywords": ["transaction history", "land transaction history", "ownership history"],
-            "reply": "Opening the transaction history page.",
+            "keywords": ["transaction history", "land transaction history", "ownership history", "deed history", "deed number", "request update", "new deed"],
+            "reply": "Opening Transaction History.",
             "target": url_for("transaction_history.transaction_history_page"),
         },
         {
-            "keywords": ["land valuation", "check land value", "land value", "valuation"],
-            "reply": "Opening the land valuation page.",
+            "keywords": ["land valuation", "check land value", "land value", "valuation", "estimate value", "valuation report", "gis valuation", "map valuation"],
+            "reply": "Opening Land Valuation.",
             "target": url_for("prediction.land_valuation_page"),
         },
         {
-            "keywords": ["support documents", "help documents", "guidelines", "documents guide"],
-            "reply": "Opening the support documents page.",
+            "keywords": ["support documents", "help documents", "guidelines", "documents guide", "checklist", "gazettes", "rules", "policies", "user guide", "manual"],
+            "reply": "Opening Support Documents.",
             "target": url_for("support_documents.support_documents_page"),
+        },
+        {
+            "keywords": ["notifications", "all notifications", "alerts", "admin messages", "messages", "mark all as read"],
+            "reply": "Opening Notifications.",
+            "target": url_for("user.all_notifications"),
+        },
+        {
+            "keywords": ["logout", "log out", "sign out"],
+            "reply": "Opening Logout.",
+            "target": url_for("auth.logout"),
         },
     ]
 
     is_open_request = any(
         phrase in text
-        for phrase in ["open", "go to", "take me to", "show me", "navigate", "view page"]
+        for phrase in ["open", "go to", "take me to", "show me", "navigate", "view page", "view", "go"]
     )
 
     for item in navigation_map:
@@ -606,6 +645,9 @@ def handle_live_data_intent(message):
         "my planing applications status",
         "planning application status",
         "planing application status",
+        "permit status",
+        "application progress",
+        "planning approval progress",
     ]):
         return build_response(
             (
@@ -718,32 +760,115 @@ def handle_live_data_intent(message):
 def handle_faq_intent(message):
     text = normalize_text(message)
 
+    if any(phrase in text for phrase in [
+        "what can you do",
+        "help me",
+        "help",
+        "features",
+        "services",
+        "menu",
+        "what pages",
+        "what functions",
+        "chatbot functions",
+    ]):
+        return build_response(get_user_feature_overview_text(), quick_actions=get_user_quick_actions())
+
     faq_map = [
         {
-            "keywords": ["how to register", "registration", "create an account"],
-            "reply": "To register, open the registration page, fill in your personal details, NIC, email, and password, then submit the form.",
+            "keywords": ["how to register", "registration", "create an account", "sign up"],
+            "reply": "To register, use Create account, enter your personal details, NIC, email, phone number, date of birth, address, city, and password, then submit the form.",
+            "action": "open_page",
+            "target": url_for("auth.register"),
         },
         {
-            "keywords": ["reset password", "forgot password"],
-            "reply": "Use the password reset page to reset your password. If you cannot access your account, contact the administrator.",
+            "keywords": ["login", "log in", "sign in", "how to sign in"],
+            "reply": "To sign in, open the Sign in page and enter your NIC or valid identifier with your password. After login, you will reach the citizen dashboard.",
+            "action": "open_page",
+            "target": url_for("auth.login"),
         },
         {
-            "keywords": ["required documents", "documents needed", "what documents"],
-            "reply": "You can check the Required Documents Checklist in Support Documents, or open the planning submission module to prepare your files.",
+            "keywords": ["reset password", "forgot password", "password reset", "change password"],
+            "reply": "Use password reset if you forgot your password. From My Profile, you can also access password reset or account security options.",
+            "action": "open_page",
+            "target": url_for("auth.password_reset"),
+        },
+        {
+            "keywords": ["dashboard", "overview", "quick summary", "popular services"],
+            "reply": "The Dashboard shows your total applications, approved cases, pending reviews, unread alerts, recent application history, latest valuation, support links, and notifications.",
+            "action": "open_page",
+            "target": url_for("user.user_dashboard"),
+        },
+        {
+            "keywords": ["my profile", "profile", "account", "my account", "update details", "delete account"],
+            "reply": "My Profile lets you update account details such as name, email, phone number, address, and city. It also provides account security and account deletion options.",
+            "action": "open_page",
+            "target": url_for("user.account"),
+        },
+        {
+            "keywords": ["required documents", "documents needed", "what documents", "document checklist", "checklist"],
+            "reply": "For planning submissions, prepare applicant/owner details, property and location details, ownership information, clearances, plans, and PDF supporting files. You can also check the Required Documents Checklist in Support Documents.",
             "action": "open_page",
             "target": url_for("support_documents.support_documents_page"),
         },
         {
-            "keywords": ["planning approval", "submit planning approval", "planning application"],
-            "reply": "You can submit a planning approval request from the Submit Planning Documents page, save drafts step by step, and then submit the application.",
+            "keywords": ["planning approval", "submit planning approval", "planning application", "submit documents", "submit application", "12 step", "draft"],
+            "reply": "Submit Documents is the 12-step planning approval form. It saves draft progress, collects applicant, owner, technical, clearance, site usage, building, parking, submitted plans, and PDF file details before final submission.",
             "action": "open_page",
             "target": url_for("submit_documents.submit_documents"),
         },
         {
-            "keywords": ["support documents", "guidelines", "gazettes", "rules"],
-            "reply": "Support documents include planning guidelines, the required documents checklist, gazettes and rules, and the user manual.",
+            "keywords": ["my applications", "application progress", "planning approval progress", "application status", "track application", "workflow", "site visit", "officer", "committee"],
+            "reply": "My Applications lets you track each planning application, view workflow stage, site visit status, additional document requests, officer/deputy/committee decisions, admin comments, and decision PDF when available.",
+            "action": "open_page",
+            "target": url_for("submit_documents.my_applications"),
+        },
+        {
+            "keywords": ["requested documents", "additional documents", "upload requested", "missing document", "missing documents"],
+            "reply": "When officers request additional documents, open My Applications, choose the related application, and upload the requested PDF file from the requested document section.",
+            "action": "open_page",
+            "target": url_for("submit_documents.my_applications"),
+        },
+        {
+            "keywords": ["land valuation", "land value", "valuation", "estimate", "gis", "map", "current location", "valuation pdf", "download valuation"],
+            "reply": "Land Valuation lets you select a property location on the map, search a location, use current location, enter land details, calculate an estimated value, and download a PDF valuation report.",
+            "action": "open_page",
+            "target": url_for("prediction.land_valuation_page"),
+        },
+        {
+            "keywords": ["transaction history", "ownership history", "deed", "deed number", "land record"],
+            "reply": "Transaction History lets you search ownership records by deed number and view the ownership timeline when the record exists in the portal.",
+            "action": "open_page",
+            "target": url_for("transaction_history.transaction_history_page"),
+        },
+        {
+            "keywords": ["transaction update", "request update", "new deed", "proof document", "proof pdf"],
+            "reply": "In Transaction History, use Request Update / New Deed to submit owner details, transfer date, transaction type, notes, and a PDF proof document for admin review.",
+            "action": "open_page",
+            "target": url_for("transaction_history.transaction_history_page"),
+        },
+        {
+            "keywords": ["support documents", "guidelines", "gazettes", "rules", "policies", "user guide", "manual", "valuation help", "transaction guide"],
+            "reply": "Support Documents includes planning approval guidelines, required document checklist, gazettes/rules/policies, user guide, transaction history support, and land valuation help.",
             "action": "open_page",
             "target": url_for("support_documents.support_documents_page"),
+        },
+        {
+            "keywords": ["notifications", "alerts", "admin messages", "mark all as read", "document request messages"],
+            "reply": "Notifications shows progress updates, admin messages, requested document alerts, and application-related updates. You can also mark all notifications as read.",
+            "action": "open_page",
+            "target": url_for("user.all_notifications"),
+        },
+        {
+            "keywords": ["logout", "log out", "sign out"],
+            "reply": "Use Logout from the sidebar footer when you want to safely leave your account.",
+            "action": "open_page",
+            "target": url_for("auth.logout"),
+        },
+        {
+            "keywords": ["permit status"],
+            "reply": "This portal uses application progress / planning approval progress. Open My Applications to track your submitted planning approval applications.",
+            "action": "open_page",
+            "target": url_for("submit_documents.my_applications"),
         },
     ]
 
@@ -767,67 +892,93 @@ def handle_public_dashboard_faq_intent(message):
     text = normalize_text(message)
 
     if any(phrase in text for phrase in [
+        "what can you do",
+        "help me",
+        "help",
+        "features",
+        "services",
+        "menu",
+        "what pages",
+        "what functions",
+        "chatbot functions",
+    ]):
+        return build_response(get_public_feature_overview_text(), quick_actions=get_public_quick_actions())
+
+    if any(phrase in text for phrase in [
         "my application",
         "my applications",
         "my planning applications",
         "my planing applications",
         "application status",
-        "applications status",
-        "my status",
+        "application progress",
+        "planning approval progress",
         "my alerts",
+        "my notifications",
         "my valuation",
         "my property",
         "my records",
+        "my profile",
+        "my account",
+        "requested document",
+        "additional document",
     ]):
         return build_response(
-            "I can’t access personal dashboard details from the public dashboard. Please sign in and use your user dashboard to check application status, alerts, valuations, or records.",
-            quick_actions=get_public_quick_actions(),
-        )
-
-    if any(phrase in text for phrase in ["open", "go to", "take me to", "navigate", "show me page", "view page"]):
-        return build_response(
-            "I can explain where to find things, but I can’t open pages from the public dashboard. Please use the navigation links or sign in to access user-only services.",
+            "I can’t access personal dashboard details from the public dashboard. Please sign in and use the citizen dashboard for My Applications, Notifications, My Profile, Land Valuation, Transaction History, and personal records.",
             quick_actions=get_public_quick_actions(),
         )
 
     public_faq_map = [
         {
             "keywords": ["how to register", "registration", "create an account", "sign up"],
-            "reply": "To register, use the Create account button on the public dashboard, then enter your personal details, NIC, email, and password."
+            "reply": "To register, use the Create account button on the public dashboard, then enter your personal details, NIC, email, phone number, address, city, and password."
         },
         {
             "keywords": ["login", "log in", "sign in"],
-            "reply": "Use the Sign in button on the public dashboard to access your user dashboard and protected services."
+            "reply": "Use the Sign in button on the public dashboard to access your citizen dashboard and protected services."
         },
         {
             "keywords": ["reset password", "forgot password", "password reset"],
             "reply": "Use the password reset option on the sign-in page if you cannot access your account."
         },
         {
-            "keywords": ["required documents", "documents needed", "what documents"],
-            "reply": "Required documents depend on the service. For planning approvals, prepare identity details, property or land information, ownership records, and any supporting plans or files requested by the authority."
+            "keywords": ["required documents", "documents needed", "what documents", "checklist"],
+            "reply": "Required documents depend on the service. For planning approvals, prepare applicant details, property/location details, ownership details, clearances, plans, and PDF supporting files. After signing in, open Support Documents for the checklist."
         },
         {
-            "keywords": ["planning approval", "submit planning approval", "planning application"],
-            "reply": "Planning approval services are available after signing in. The public dashboard gives general guidance, while the user dashboard is used for submissions and tracking."
+            "keywords": ["planning approval", "submit planning approval", "planning application", "submit documents"],
+            "reply": "Planning approval submission is available after signing in. Use Submit Documents for the 12-step application, and My Applications to track progress after submission."
         },
         {
-            "keywords": ["land value", "valuation", "land valuation"],
-            "reply": "Land value prediction is available through the portal after signing in. The public dashboard can only provide general information about the service."
+            "keywords": ["application progress", "permit status", "planning approval progress", "status"],
+            "reply": "For this website, use My Applications to check planning approval progress. Personal progress is available only after signing in."
         },
         {
-            "keywords": ["transaction history", "ownership history", "land records"],
-            "reply": "Land transaction history records can be checked through the portal after signing in. The public dashboard provides only general service information."
+            "keywords": ["land value", "valuation", "land valuation", "gis"],
+            "reply": "Land Valuation is available after signing in. It lets users select a map location, enter land details, estimate land value, and download a PDF report."
         },
         {
-            "keywords": ["support documents", "guidelines", "gazettes", "rules"],
-            "reply": "Support documents may include planning guidelines, document checklists, gazettes, rules, and user guidance. Sign in or use the portal links to view available resources."
+            "keywords": ["transaction history", "ownership history", "land records", "deed", "new deed", "request update"],
+            "reply": "Transaction History is available after signing in. It lets users search ownership history by deed number and submit update or new deed requests with PDF proof documents."
+        },
+        {
+            "keywords": ["support documents", "guidelines", "gazettes", "rules", "manual", "user guide"],
+            "reply": "Support Documents includes planning approval guidelines, required document checklist, gazettes/rules/policies, user guide, transaction support, and valuation help. Sign in to access them."
+        },
+        {
+            "keywords": ["drop question", "contact", "support", "ask question", "message"],
+            "reply": "Use the Drop Your Questions section on the public dashboard to send your name, email, and message to the Civic Plan team."
         },
     ]
 
     for item in public_faq_map:
         if any(keyword in text for keyword in item["keywords"]):
             return build_response(item["reply"], quick_actions=get_public_quick_actions())
+
+    if any(phrase in text for phrase in ["open", "go to", "take me to", "navigate", "show me page", "view page"]):
+        return build_response(
+            "From the public dashboard, use the visible navigation links, Sign in, Create account, Main services, or Drop Your Questions. User-only pages require sign in first.",
+            quick_actions=get_public_quick_actions(),
+        )
 
     return None
 
@@ -871,17 +1022,21 @@ def generate_gemini_fallback(user_message):
     user_context = f"User is signed in as {full_name}. Email: {email}. NIC: {nic}."
 
     available_pages = f"""
-Available website modules:
+Available signed-in citizen modules and routes:
 - Dashboard: {url_for('user.user_dashboard')}
-- Account: {url_for('user.account')}
-- Register: {url_for('auth.register')}
-- Login: {url_for('auth.login')}
-- Password reset: {url_for('auth.password_reset')}
-- Submit Planning Documents: {url_for('submit_documents.submit_documents')}
+- My Profile: {url_for('user.account')}
+- Submit Documents: {url_for('submit_documents.submit_documents')}
 - My Applications: {url_for('submit_documents.my_applications')}
 - Transaction History: {url_for('transaction_history.transaction_history_page')}
 - Land Valuation: {url_for('prediction.land_valuation_page')}
 - Support Documents: {url_for('support_documents.support_documents_page')}
+- Notifications: {url_for('user.all_notifications')}
+- Logout: {url_for('auth.logout')}
+
+Public/account access routes:
+- Register: {url_for('auth.register')}
+- Login: {url_for('auth.login')}
+- Password reset: {url_for('auth.password_reset')}
 """
 
     try:
@@ -928,7 +1083,7 @@ def chat():
                 return build_response(public_fallback_reply, quick_actions=get_public_quick_actions())
 
             return build_response(
-                "I can help with general Civic Plan information from the public dashboard. Please sign in to use user dashboard functions such as application status, page actions, submissions, and personal records.",
+                "I can help with general Civic Plan information from the public dashboard. Please sign in to use citizen dashboard functions such as My Applications, Submit Documents, Transaction History, Land Valuation, Support Documents, Notifications, and My Profile.",
                 quick_actions=get_public_quick_actions(),
             )
 
@@ -962,7 +1117,7 @@ def chat():
             return build_response(fallback_reply, quick_actions=get_user_quick_actions())
 
         return build_response(
-            "I can help you open pages, check your dashboard-related summaries, and answer general Civic Plan questions.",
+            "I can help you use Dashboard, My Profile, Submit Documents, My Applications, Transaction History, Land Valuation, Support Documents, Notifications, and general Civic Plan guidance.",
             quick_actions=get_user_quick_actions(),
         )
 

@@ -333,6 +333,70 @@ document.addEventListener("DOMContentLoaded", function () {
             .replace(/'/g, "&#039;");
     }
 
+
+    function formatChatReply(reply) {
+        const normalized = String(reply || "")
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n")
+            .trim();
+
+        if (!normalized) {
+            return "<p>Sorry, I could not understand that.</p>";
+        }
+
+        function formatInline(value) {
+            return escapeHtml(value)
+                .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+                .replace(/__(.*?)__/g, "<strong>$1</strong>")
+                .replace(/`([^`]+)`/g, "<code>$1</code>");
+        }
+
+        const lines = normalized.split("\n");
+        const blocks = [];
+        let listItems = [];
+        let paragraphLines = [];
+
+        function flushParagraph() {
+            if (!paragraphLines.length) return;
+            blocks.push(`<p>${paragraphLines.map(formatInline).join("<br>")}</p>`);
+            paragraphLines = [];
+        }
+
+        function flushList() {
+            if (!listItems.length) return;
+            blocks.push(`<ul>${listItems.map((item) => `<li>${formatInline(item)}</li>`).join("")}</ul>`);
+            listItems = [];
+        }
+
+        lines.forEach((line) => {
+            const trimmed = line.trim();
+
+            if (!trimmed) {
+                flushParagraph();
+                flushList();
+                return;
+            }
+
+            const bulletMatch = trimmed.match(/^(?:[-•]|\*+)\s+(.*)$/);
+            const numberedMatch = trimmed.match(/^\d+[.)]\s+(.*)$/);
+
+            if (bulletMatch || numberedMatch) {
+                flushParagraph();
+                const item = (bulletMatch ? bulletMatch[1] : numberedMatch[1]).trim();
+                if (item) listItems.push(item);
+                return;
+            }
+
+            flushList();
+            paragraphLines.push(trimmed);
+        });
+
+        flushParagraph();
+        flushList();
+
+        return `<div class="chatbot-formatted-response">${blocks.join("")}</div>`;
+    }
+
     function appendChatMessage(message, type) {
         if (!chatMessages) return null;
 
@@ -404,9 +468,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function renderBotResponse(data, fallback) {
-        const reply = escapeHtml(getSafeChatReply(data, fallback));
+        const reply = formatChatReply(getSafeChatReply(data, fallback));
         const quickActions = renderQuickActions(data?.quick_actions);
-        appendChatHtml(`<div>${reply}</div>${quickActions}`, "bot");
+        appendChatHtml(`${reply}${quickActions}`, "bot");
     }
 
     function setChatLoading(isLoading) {
