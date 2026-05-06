@@ -26,7 +26,6 @@ Talisman(
 )
 
 app.secret_key = "civic_plan_secret_key"
-
 init_db()
 
 app.register_blueprint(main_bp)
