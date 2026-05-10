@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -21,7 +20,6 @@
   {% set is_system_admin = (user.email == 'admin@civicplan.local' and user.nic == 'ADMIN000000V') %}
 
   <div class="dashboard-shell">
-
     {% if user['is_admin'] %}
       {% include 'partials/admin_sidebar.html' %}
     {% else %}
@@ -30,56 +28,9 @@
 
     <main class="main-content">
       <div class="account-page">
-
-        <div class="left-side">
-          <div class="overlay"></div>
-
-          <div class="left-content">
-            <span class="hero-badge">Account Center</span>
-
-            <h1>
-              Manage
-              Your Account
-              Details
-              Securely
-            </h1>
-
-            <p>
-              Update your personal information, review important account details,
-              reset your password, and permanently remove your account when needed
-              from one secure place.
-            </p>
-
-            <div class="feature-list">
-              <div class="feature-item">
-                <i class="fa-solid fa-user-gear"></i>
-                <span>Update your profile information anytime</span>
-              </div>
-              <div class="feature-item">
-                <i class="fa-solid fa-shield-halved"></i>
-                <span>Keep your account secure and current</span>
-              </div>
-              <div class="feature-item">
-                <i class="fa-solid fa-key"></i>
-                <span>Quick access to password reset</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div class="right-side">
           <div class="form-container">
-            <div class="logo-box">
-              <img src="{{ url_for('static', filename='images/logo_2-removebackground.png') }}" alt="Civic Plan Logo">
-            </div>
 
-            <h2 class="brand-title">CIVIC PLAN</h2>
-            <p class="brand-subtitle">Land Management Portal</p>
-
-            <div class="section-header">
-              <p class="section-kicker">Profile Settings</p>
-              <p class="section-title">My Account</p>
-            </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -94,6 +45,7 @@
                     {% endif %}"></i>
                   <span>{{ message }}</span>
                 </div>
+
                 <button type="button" class="flash-close" data-flash-close aria-label="Close message">
                   <i class="fa-solid fa-xmark"></i>
                 </button>
@@ -104,10 +56,12 @@
             {% endwith %}
 
             <div class="account-card">
+
               <div class="account-summary">
                 <div class="account-avatar">
                   {{ (user.first_name or 'U')[0] | upper }}{{ (user.last_name or '')[:1] | upper }}
                 </div>
+
                 <div class="account-summary-text">
                   <h3>{{ user.first_name or '' }} {{ user.last_name or '' }}</h3>
                   <p>{{ user.email or 'No email available' }}</p>
@@ -119,16 +73,17 @@
                 <div class="lock-notice-icon">
                   <i class="fa-solid fa-lock"></i>
                 </div>
+
                 <div class="lock-notice-content">
                   <strong>Protected System Admin Account</strong>
-                  <p>This account is locked. Profile updates, password reset, and account deletion are disabled for the protected system administrator.</p>
+                  <p>This account is locked. Profile updates, password changes, and account deletion are disabled.</p>
                 </div>
               </div>
               {% endif %}
 
               <form action="{{ url_for('user.account') }}" method="POST" id="accountForm">
-
                 <div class="form-grid">
+
                   <div class="detail-group">
                     <label for="first_name">First Name</label>
                     <div class="input-wrap {% if is_system_admin %}readonly-wrap{% endif %}">
@@ -217,6 +172,7 @@
                         {% if is_system_admin %}readonly data-locked="true"{% endif %}>
                     </div>
                   </div>
+
                 </div>
 
                 <div class="detail-group full-width">
@@ -235,7 +191,7 @@
                   {% if is_system_admin %}
                   <span class="secondary-link-btn disabled-link" aria-disabled="true">
                     <i class="fa-solid fa-key"></i>
-                    <span>Reset Password Disabled</span>
+                    <span>Change Password Disabled</span>
                   </span>
                   {% else %}
                   <a href="{{ url_for('auth.change_password') }}" class="secondary-link-btn">
@@ -245,40 +201,55 @@
                   {% endif %}
                 </div>
 
-                <div class="button-group">
-                  <button
-                    type="submit"
-                    class="edit-btn {% if is_system_admin %}locked-btn{% endif %}"
-                    id="saveChangesBtn"
-                    {% if is_system_admin %}disabled data-locked-action="true"{% endif %}>
-                    <span class="btn-text">{% if is_system_admin %}System Admin Locked{% else %}Save Changes{% endif %}</span>
-                  </button>
+                <div class="account-actions">
+                  <div class="account-actions-left">
+                    <button
+                      type="submit"
+                      class="edit-btn {% if is_system_admin %}locked-btn{% endif %}"
+                      id="saveChangesBtn"
+                      {% if is_system_admin %}disabled data-locked-action="true"{% endif %}>
+                      <i class="fa-solid fa-floppy-disk"></i>
+                      <span class="btn-text">
+                        {% if is_system_admin %}System Admin Locked{% else %}Save Changes{% endif %}
+                      </span>
+                    </button>
+
+                    {% if not is_system_admin %}
+                    <button type="submit" class="delete-btn" id="deleteAccountBtn" form="deleteAccountForm">
+                      <i class="fa-solid fa-trash"></i>
+                      <span class="btn-text">Delete My Account</span>
+                    </button>
+                    {% else %}
+                    <button type="button" class="delete-btn locked-btn" id="deleteAccountBtn" disabled data-locked-action="true">
+                      <i class="fa-solid fa-trash"></i>
+                      <span class="btn-text">Delete Disabled</span>
+                    </button>
+                    {% endif %}
+                  </div>
+
+                  <div class="account-actions-right">
+                    <a class="back-dashboard-link" href="{% if user['is_admin'] %}{{ url_for('admin.admin_dashboard') }}{% else %}{{ url_for('user.user_dashboard') }}{% endif %}">
+                      <i class="fa-solid fa-arrow-left"></i>
+                      <span>Back to Dashboard</span>
+                    </a>
+                  </div>
                 </div>
               </form>
 
-              <form action="{{ url_for('user.delete_account') }}" method="POST" class="delete-form delete-account-form" id="deleteAccountForm">
-                <button
-                  type="submit"
-                  class="delete-btn {% if is_system_admin %}locked-btn{% endif %}"
-                  id="deleteAccountBtn"
-                  {% if is_system_admin %}disabled data-locked-action="true"{% endif %}>
-                  <span class="btn-text">{% if is_system_admin %}Delete Disabled{% else %}Delete My Account{% endif %}</span>
-                </button>
+              {% if not is_system_admin %}
+              <form
+                action="{{ url_for('user.delete_account') }}"
+                method="POST"
+                class="delete-form delete-account-form"
+                id="deleteAccountForm">
               </form>
-
-              <p class="back-text">
-                <a href="{% if user['is_admin'] %}{{ url_for('admin.admin_dashboard') }}{% else %}{{ url_for('user.user_dashboard') }}{% endif %}">
-                  Back to Dashboard
-                </a>
-              </p>
+              {% endif %}
 
             </div>
           </div>
         </div>
-
       </div>
     </main>
-
   </div>
 
   <div class="custom-modal-overlay" id="deleteAccountModal">
@@ -287,6 +258,7 @@
         <div class="custom-modal-icon danger">
           <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
+
         <div>
           <h3 id="deleteAccountModalTitle">Delete Account</h3>
           <p>This action is permanent and cannot be undone.</p>
@@ -295,8 +267,9 @@
 
       <div class="custom-modal-body">
         <p class="custom-modal-message">
-          Are you sure you want to delete your account? All related data that can be removed by the system will be deleted permanently.
+          Are you sure you want to delete your account? This action cannot be undone.
         </p>
+
         <div class="custom-modal-warning">
           <i class="fa-solid fa-circle-info"></i>
           <span>Please confirm only if you are absolutely sure.</span>
@@ -319,5 +292,4 @@
 
   <script src="{{ url_for('static', filename='account.js') }}"></script>
 </body>
-
 </html>

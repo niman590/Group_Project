@@ -1,143 +1,117 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Land Value Prediction</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 700px;
-            margin: 40px auto;
-            padding: 20px;
-        }
 
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 6px;
-            margin-bottom: 16px;
-            box-sizing: border-box;
-        }
-
-        button {
-            cursor: pointer;
-        }
-
-        .error {
-            color: red;
-            font-weight: bold;
-        }
-
-        .success {
-            color: green;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='predict.css') }}">
 </head>
+
 <body>
-    <h2>Land Value Prediction</h2>
+    <main class="prediction-page">
+        <section class="prediction-card">
+            <div class="page-header">
+                <span class="page-kicker">Land Valuation</span>
+                <h2>Land Value Prediction</h2>
+                <p>
+                    Enter land details below to estimate the current value and future predicted land value.
+                </p>
+            </div>
 
-    <input id="publication_year" type="number" placeholder="Publication Year"><br>
-    <input id="land_size" type="number" min="6" step="0.1" placeholder="Land Size (minimum 6 perches)"><br>
-    <input id="access_road_size" type="number" placeholder="Access Road Size"><br>
-    <input id="distance_to_city" type="number" step="0.1" placeholder="Distance to City"><br>
+            <form class="prediction-form" id="landPredictionForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="publication_year">Publication Year</label>
+                        <input id="publication_year" type="number" placeholder="Publication Year">
+                    </div>
 
-    <select id="location">
-        <option value="Ragama">Ragama</option>
-        <option value="Rajagiriya">Rajagiriya</option>
-        <option value="Malabe">Malabe</option>
-        <option value="Ja-Ela">Ja-Ela</option>
-        <option value="Kelaniya">Kelaniya</option>
-        <option value="Kadana">Kadana</option>
-        <option value="Kadawatha">Kadawatha</option>
-        <option value="Kaduwela">Kaduwela</option>
-    </select><br>
+                    <div class="form-group">
+                        <label for="land_size">Land Size</label>
+                        <input id="land_size" type="number" min="6" step="0.1" placeholder="Land Size (minimum 6 perches)">
+                    </div>
 
-    <select id="zone_type">
-        <option value="Residential">Residential</option>
-        <option value="Commercial">Commercial</option>
-        <option value="Agricultural">Agricultural</option>
-    </select><br>
+                    <div class="form-group">
+                        <label for="access_road_size">Access Road Size</label>
+                        <input id="access_road_size" type="number" placeholder="Access Road Size">
+                    </div>
 
-    <input id="electricity" type="number" min="0" max="1" placeholder="Electricity (1 or 0)"><br>
-    <input id="water" type="number" min="0" max="1" placeholder="Water (1 or 0)"><br>
-    <input id="flood_risk" type="number" min="0" max="1" placeholder="Flood Risk (1 or 0)"><br>
+                    <div class="form-group">
+                        <label for="distance_to_city">Distance to City</label>
+                        <input id="distance_to_city" type="number" step="0.1" placeholder="Distance to City">
+                    </div>
 
-    <button onclick="predictLandValue()">Predict</button>
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <select id="location">
+                            <option value="Ragama">Ragama</option>
+                            <option value="Rajagiriya">Rajagiriya</option>
+                            <option value="Malabe">Malabe</option>
+                            <option value="Ja-Ela">Ja-Ela</option>
+                            <option value="Kelaniya">Kelaniya</option>
+                            <option value="Kadana">Kadana</option>
+                            <option value="Kadawatha">Kadawatha</option>
+                            <option value="Kaduwela">Kaduwela</option>
+                        </select>
+                    </div>
 
-    <p id="message"></p>
+                    <div class="form-group">
+                        <label for="zone_type">Zone Type</label>
+                        <select id="zone_type">
+                            <option value="Residential">Residential</option>
+                            <option value="Commercial">Commercial</option>
+                            <option value="Agricultural">Agricultural</option>
+                        </select>
+                    </div>
 
-    <h3>Results</h3>
-    <p>Current Value: <span id="current_value">-</span></p>
-    <p>Predicted 1 Year: <span id="predicted_1_year">-</span></p>
-    <p>Predicted 5 Year: <span id="predicted_5_year">-</span></p>
+                    <div class="form-group">
+                        <label for="electricity">Electricity</label>
+                        <input id="electricity" type="number" min="0" max="1" placeholder="Electricity (1 or 0)">
+                    </div>
 
-    <script>
-        async function predictLandValue() {
-            const message = document.getElementById("message");
-            const currentValue = document.getElementById("current_value");
-            const predicted1Year = document.getElementById("predicted_1_year");
-            const predicted5Year = document.getElementById("predicted_5_year");
+                    <div class="form-group">
+                        <label for="water">Water</label>
+                        <input id="water" type="number" min="0" max="1" placeholder="Water (1 or 0)">
+                    </div>
 
-            message.innerText = "";
-            message.className = "";
-            currentValue.innerText = "-";
-            predicted1Year.innerText = "-";
-            predicted5Year.innerText = "-";
+                    <div class="form-group">
+                        <label for="flood_risk">Flood Risk</label>
+                        <input id="flood_risk" type="number" min="0" max="1" placeholder="Flood Risk (1 or 0)">
+                    </div>
+                </div>
 
-            const landSize = parseFloat(document.getElementById("land_size").value);
+                <button type="submit" class="predict-btn" id="predictBtn">
+                    Predict
+                </button>
+            </form>
 
-            if (isNaN(landSize)) {
-                message.innerText = "Please enter land size.";
-                message.className = "error";
-                return;
-            }
+            <p id="message" class="message"></p>
 
-            if (landSize < 6) {
-                message.innerText = "Land size must be 6 perches or more.";
-                message.className = "error";
-                return;
-            }
+            <section class="results-section">
+                <h3>Results</h3>
 
-            const payload = {
-                publication_year: parseInt(document.getElementById("publication_year").value),
-                land_size: landSize,
-                access_road_size: parseInt(document.getElementById("access_road_size").value),
-                location: document.getElementById("location").value,
-                distance_to_city: parseFloat(document.getElementById("distance_to_city").value),
-                zone_type: document.getElementById("zone_type").value,
-                electricity: parseInt(document.getElementById("electricity").value),
-                water: parseInt(document.getElementById("water").value),
-                flood_risk: parseInt(document.getElementById("flood_risk").value)
-            };
+                <div class="results-grid">
+                    <div class="result-card">
+                        <span>Current Value</span>
+                        <strong id="current_value">-</strong>
+                    </div>
 
-            try {
-                const response = await fetch("/predict-land-value", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
+                    <div class="result-card">
+                        <span>Predicted 1 Year</span>
+                        <strong id="predicted_1_year">-</strong>
+                    </div>
 
-                const result = await response.json();
+                    <div class="result-card">
+                        <span>Predicted 5 Year</span>
+                        <strong id="predicted_5_year">-</strong>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
 
-                if (result.error) {
-                    message.innerText = result.error;
-                    message.className = "error";
-                    return;
-                }
-
-                message.innerText = "Land valuation estimated successfully.";
-                message.className = "success";
-
-                currentValue.innerText = result.current_value;
-                predicted1Year.innerText = result.predicted_1_year;
-                predicted5Year.innerText = result.predicted_5_year;
-            } catch (error) {
-                message.innerText = "Something went wrong while predicting land value.";
-                message.className = "error";
-            }
-        }
-    </script>
+    <script src="{{ url_for('static', filename='predict.js') }}"></script>
 </body>
+
 </html>
