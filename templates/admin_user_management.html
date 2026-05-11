@@ -29,7 +29,11 @@
                     <div class="avatar">{{ user['first_name'][0] | upper }}</div>
                     <div>
                         <strong>{{ user['first_name'] }} {{ user['last_name'] }}</strong>
-                        <span>User ID: USER-{{ user['user_id'] }}</span>
+                        {% if user['is_admin'] %}
+                            <span>Employee ID: {{ user['employee_id'] if user['employee_id'] else 'Not Assigned' }}</span>
+                        {% else %}
+                            <span>User ID: USER-{{ user['user_id'] }}</span>
+                        {% endif %}
                     </div>
                 </a>
             </header>
@@ -174,7 +178,6 @@
                                     <small>Old: 9 digits + V/X or New: 12 digits.</small>
                                 </div>
 
-                                
                                 <div class="admin-field">
                                     <label for="phone_number">Phone Number</label>
                                     <input
@@ -288,7 +291,7 @@
                     <div class="search-input-group">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" id="userSearchInput" name="search"
-                            placeholder="Search by name, NIC, email, or employee ID"
+                            placeholder="Search by name, NIC, email, employee ID, or user ID"
                             value="{{ search_query if search_query else '' }}" autocomplete="off">
                         <button type="button" class="search-inline-clear" id="clearSearchInput"
                             aria-label="Clear search input">
@@ -330,14 +333,17 @@
                                 <th>Email</th>
                                 <th>Role</th>
                                 <th>Status</th>
-                                <th>User ID</th>
+                                <th>ID</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
+
                         <tbody id="usersTableBody">
                             {% if users %}
                             {% set sorted_users = users|sort(attribute='is_admin', reverse=true) %}
                             {% for u in sorted_users %}
+                            {% set displayed_id = u['employee_id'] if u['is_admin'] and u['employee_id'] else ('USER-' ~ u['user_id']) %}
+
                             <tr class="user-row"
                                 data-name="{{ (u['first_name'] ~ ' ' ~ u['last_name'])|lower }}"
                                 data-nic="{{ (u['nic'] if u['nic'] else '')|lower }}"
@@ -345,8 +351,11 @@
                                 data-employee-id="{{ (u['employee_id'] if u['employee_id'] else '')|lower }}"
                                 data-role="{% if u['is_admin'] %}admin{% else %}user{% endif %}"
                                 data-status="{% if u['is_active'] %}active{% else %}inactive{% endif %}"
-                                data-user-id="USER-{{ u['user_id'] }}">
+                                data-user-id="USER-{{ u['user_id'] }}"
+                                data-display-id="{{ displayed_id|lower }}">
+
                                 <td class="row-number">{{ loop.index }}</td>
+
                                 <td>
                                     <div class="user-cell">
                                         <div class="user-mini-avatar">
@@ -358,8 +367,13 @@
                                         </div>
                                     </div>
                                 </td>
+
                                 <td>{{ u['nic'] if u['nic'] else '-' }}</td>
-                                <td class="email-cell copy-email" title="Click to copy email">{{ u['email'] }}</td>
+
+                                <td class="email-cell copy-email" title="Click to copy email">
+                                    {{ u['email'] }}
+                                </td>
+
                                 <td>
                                     {% if u['is_admin'] %}
                                     <span class="badge admin">Admin</span>
@@ -367,6 +381,7 @@
                                     <span class="badge user">User</span>
                                     {% endif %}
                                 </td>
+
                                 <td>
                                     {% if u['is_active'] %}
                                     <span class="badge active">Active</span>
@@ -374,11 +389,22 @@
                                     <span class="badge inactive">Inactive</span>
                                     {% endif %}
                                 </td>
+
                                 <td>
-                                    <span class="user-id-pill copy-user-id" title="Click to copy user ID">USER-{{ u['user_id'] }}</span>
+                                    {% if u['is_admin'] %}
+                                        <span class="user-id-pill admin-employee-pill copy-user-id" title="Click to copy employee ID">
+                                            {{ u['employee_id'] if u['employee_id'] else 'No Employee ID' }}
+                                        </span>
+                                    {% else %}
+                                        <span class="user-id-pill copy-user-id" title="Click to copy user ID">
+                                            USER-{{ u['user_id'] }}
+                                        </span>
+                                    {% endif %}
                                 </td>
+
                                 <td>
                                     {% set is_system_admin = (u['email'] == 'admin@civicplan.local' and u['nic'] == 'ADMIN000000V') %}
+
                                     {% if is_system_admin %}
                                     <div class="action-buttons">
                                         <span class="badge admin protected-badge">
@@ -418,7 +444,8 @@
                                         {% endif %}
 
                                         <form action="{{ url_for('admin.delete_user', user_id=u['user_id']) }}"
-                                            method="POST" class="delete-user-form"
+                                            method="POST"
+                                            class="delete-user-form"
                                             data-user-name="{{ u['first_name'] }} {{ u['last_name'] }}">
                                             <button type="submit" class="btn small danger action-submit-btn">
                                                 <i class="fa-solid fa-trash"></i>
