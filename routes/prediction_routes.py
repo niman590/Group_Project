@@ -30,6 +30,18 @@ from routes.Prediction_model.gis_utils import (
 prediction_bp = Blueprint("prediction", __name__)
 
 
+SUPPORTED_VALUATION_AREAS = [
+    "Ragama",
+    "Rajagiriya",
+    "Malabe",
+    "Ja-Ela",
+    "Kelaniya",
+    "Kadana",
+    "Kadawatha",
+    "Kaduwela",
+]
+
+
 def user_login_required(view_func):
     @wraps(view_func)
     def wrapper(*args, **kwargs):
@@ -68,6 +80,16 @@ def to_binary(value):
     return 0
 
 
+def normalize_supported_area(location):
+    location = str(location or "").strip()
+
+    for area in SUPPORTED_VALUATION_AREAS:
+        if location.lower() == area.lower():
+            return area
+
+    return location or None
+
+
 def validate_old_land_inputs(data):
     try:
         publication_year = int(data.get("publication_year", datetime.now().year))
@@ -89,11 +111,13 @@ def validate_old_land_inputs(data):
     if distance_to_city < 0:
         return None, jsonify({"error": "Distance cannot be negative."}), 400
 
+    location = normalize_supported_area(data.get("location", ""))
+
     cleaned_data = {
         "publication_year": publication_year,
         "land_size": land_size,
         "access_road_size": access_road_size,
-        "location": str(data.get("location", "")).strip(),
+        "location": location,
         "distance_to_city": distance_to_city,
         "zone_type": str(data.get("zone_type", "")).strip(),
         "electricity": to_binary(data.get("electricity", 0)),
@@ -142,7 +166,7 @@ def validate_gis_land_inputs(data):
             "distance_to_city_km": nearest_city_result.get("distance_to_city"),
         }), 400
 
-    location = nearest_city_result["nearest_city"]
+    location = normalize_supported_area(nearest_city_result["nearest_city"])
     distance_to_city = nearest_city_result["distance_to_city"]
 
     if "flood_risk" in data and data.get("flood_risk") not in [None, ""]:
@@ -174,7 +198,8 @@ def save_prediction_for_user(user_id, cleaned_data, result):
     conn = get_connection()
     cursor = conn.cursor()
 
-    address = cleaned_data.get("address") or cleaned_data.get("location") or "Unknown Location"
+    geographic_area = normalize_supported_area(cleaned_data.get("location"))
+    address = cleaned_data.get("address") or geographic_area or "Unknown Location"
     property_size = cleaned_data["land_size"]
     predicted_value = float(result["current_value"])
 
@@ -222,11 +247,18 @@ def save_prediction_for_user(user_id, cleaned_data, result):
         """
         INSERT INTO value_prediction (
             property_id,
-            predicted_value
+            predicted_value,
+            prediction_date,
+            geographic_area
         )
-        VALUES (?, ?)
+        VALUES (?, ?, ?, ?)
         """,
-        (property_id, predicted_value),
+        (
+            property_id,
+            predicted_value,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            geographic_area,
+        ),
     )
 
     conn.commit()
@@ -307,6 +339,7 @@ def estimate_land_value():
 
     result["saved"] = True
     result["property_id"] = property_id
+    result["geographic_area"] = cleaned_data["location"]
     result["message"] = "Land valuation saved successfully."
 
     return jsonify({
@@ -355,6 +388,7 @@ def predict_land():
 
     result["saved"] = True
     result["property_id"] = property_id
+    result["geographic_area"] = cleaned_data["location"]
     result["message"] = "Land valuation saved successfully."
 
     return jsonify(result)
@@ -507,9 +541,6 @@ def download_land_valuation_pdf():
         )
 
     details_top = card_y_top - 105
-
-    pdf.setFillColor(primary_dark)
-    pdf.roundRect(margin, details_top - 285, width - (2 * margin), 285, 10, fill=0, stroke=0)
 
     pdf.setFillColor(section_bg)
     pdf.roundRect(margin, details_top - 285, width - (2 * margin), 285, 10, fill=1, stroke=0)

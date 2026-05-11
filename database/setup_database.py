@@ -16,19 +16,24 @@ def get_connection():
 def get_existing_columns(cursor, table_name):
     cursor.execute(f"PRAGMA table_info({table_name})")
     rows = cursor.fetchall()
+
     columns = []
     for row in rows:
         if isinstance(row, sqlite3.Row):
             columns.append(row["name"])
         else:
             columns.append(row[1])
+
     return columns
 
 
 def add_column_if_missing(cursor, table_name, column_name, column_definition):
     columns = get_existing_columns(cursor, table_name)
+
     if column_name not in columns:
-        cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}")
+        cursor.execute(
+            f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}"
+        )
 
 
 def create_tables(cursor):
@@ -53,10 +58,6 @@ def create_tables(cursor):
 
     add_column_if_missing(cursor, "users", "employee_id", "TEXT")
     add_column_if_missing(cursor, "users", "is_active", "BOOLEAN DEFAULT 1")
-    add_column_if_missing(cursor, "users", "failed_login_attempts", "INTEGER DEFAULT 0")
-    add_column_if_missing(cursor, "users", "account_locked_until", "TEXT")
-    add_column_if_missing(cursor, "users", "lockout_stage", "INTEGER DEFAULT 0")
-    add_column_if_missing(cursor, "users", "post_lock_failed_attempts", "INTEGER DEFAULT 0")
     add_column_if_missing(cursor, "users", "failed_login_attempts", "INTEGER DEFAULT 0")
     add_column_if_missing(cursor, "users", "account_locked_until", "TEXT")
     add_column_if_missing(cursor, "users", "lockout_stage", "INTEGER DEFAULT 0")
@@ -90,9 +91,12 @@ def create_tables(cursor):
         property_id INTEGER NOT NULL,
         predicted_value REAL NOT NULL,
         prediction_date TEXT DEFAULT CURRENT_TIMESTAMP,
+        geographic_area TEXT,
         FOREIGN KEY (property_id) REFERENCES property(property_id)
     );
     """)
+
+    add_column_if_missing(cursor, "value_prediction", "geographic_area", "TEXT")
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS report (
@@ -198,7 +202,6 @@ def create_tables(cursor):
     );
     """)
 
-    # Safe upgrade for old databases
     add_column_if_missing(cursor, "planning_applications", "reviewed_by", "INTEGER")
     add_column_if_missing(cursor, "planning_applications", "reviewed_at", "TEXT")
     add_column_if_missing(cursor, "planning_applications", "admin_comment", "TEXT")
@@ -494,23 +497,35 @@ def create_tables(cursor):
 def create_indexes(cursor):
     cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_unique ON users(email)")
     cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_nic_unique ON users(nic)")
+
     cursor.execute("""
         CREATE UNIQUE INDEX IF NOT EXISTS idx_users_employee_id_unique
         ON users(employee_id)
         WHERE employee_id IS NOT NULL
     """)
+
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_property_owner_id ON property(owner_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_transaction_history_property_id ON transaction_history(property_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_value_prediction_property_id ON value_prediction(property_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_value_prediction_geographic_area ON value_prediction(geographic_area)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_value_prediction_prediction_date ON value_prediction(prediction_date)")
+
     cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_land_record_deed_number_unique ON land_record(deed_number)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_ownership_history_land_id ON ownership_history(land_id)")
-    cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_ownership_history_land_order_unique ON ownership_history(land_id, ownership_order)")
+
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_ownership_history_land_order_unique
+        ON ownership_history(land_id, ownership_order)
+    """)
+
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_history_update_request_user_id ON transaction_history_update_request(user_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_history_update_request_deed_number ON transaction_history_update_request(deed_number)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_history_update_request_status ON transaction_history_update_request(status)")
+
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_planning_applications_user_id ON planning_applications(user_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_planning_applications_status ON planning_applications(status)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_planning_applications_workflow_stage ON planning_applications(workflow_stage)")
+
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_planning_app_summary_assessment_no ON planning_application_summary(assessment_no)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_planning_app_applicants_application_id ON planning_application_applicants(application_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_planning_app_proposed_uses_application_id ON planning_application_proposed_uses(application_id)")
@@ -519,29 +534,46 @@ def create_indexes(cursor):
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_planning_app_requests_application_id ON planning_application_requests(application_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_planning_requested_docs_application_id ON planning_application_requested_documents(application_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_workflow_history_application_id ON planning_application_workflow_history(application_id)")
+
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_notifications_user_id ON user_notifications(user_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_user_notifications_is_read ON user_notifications(is_read)")
+
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_user_id ON suspicious_events(user_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_rule_name ON suspicious_events(rule_name)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_severity ON suspicious_events(severity)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_status ON suspicious_events(status)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_created_at ON suspicious_events(created_at)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_suspicious_events_ip_address ON suspicious_events(ip_address)")
+
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_notifications_is_read ON admin_notifications(is_read)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_notifications_severity ON admin_notifications(severity)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_admin_notifications_created_at ON admin_notifications(created_at)")
 
+
 def create_default_admin(cursor):
     cursor.execute("UPDATE users SET is_active = 1 WHERE is_active IS NULL")
 
-    cursor.execute("SELECT user_id FROM users WHERE email = ?", ("admin@civicplan.local",))
+    cursor.execute(
+        "SELECT user_id FROM users WHERE email = ?",
+        ("admin@civicplan.local",)
+    )
     admin_exists = cursor.fetchone()
 
     if not admin_exists:
         cursor.execute("""
             INSERT INTO users (
-                first_name, last_name, phone_number, email, password_hash,
-                date_of_birth, address, city, nic, employee_id, is_admin, is_active
+                first_name,
+                last_name,
+                phone_number,
+                email,
+                password_hash,
+                date_of_birth,
+                address,
+                city,
+                nic,
+                employee_id,
+                is_admin,
+                is_active
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
@@ -563,7 +595,10 @@ def create_default_admin(cursor):
 def insert_sample_transaction_history_data(cursor):
     cursor.execute("""
         INSERT OR IGNORE INTO land_record (
-            deed_number, property_address, location, current_owner_name
+            deed_number,
+            property_address,
+            location,
+            current_owner_name
         )
         VALUES (?, ?, ?, ?)
     """, (
@@ -573,7 +608,10 @@ def insert_sample_transaction_history_data(cursor):
         "Amal Perera"
     ))
 
-    cursor.execute("SELECT land_id FROM land_record WHERE deed_number = ?", ("D-1001",))
+    cursor.execute(
+        "SELECT land_id FROM land_record WHERE deed_number = ?",
+        ("D-1001",)
+    )
     land = cursor.fetchone()
 
     if not land:
@@ -581,20 +619,56 @@ def insert_sample_transaction_history_data(cursor):
 
     land_id = land["land_id"]
 
-    cursor.execute("SELECT COUNT(*) AS count FROM ownership_history WHERE land_id = ?", (land_id,))
+    cursor.execute(
+        "SELECT COUNT(*) AS count FROM ownership_history WHERE land_id = ?",
+        (land_id,)
+    )
     history_count = cursor.fetchone()["count"]
 
     if history_count == 0:
         sample_rows = [
-            (land_id, "Nimal Silva", "901234567V", "Colombo", "0711111111", "2010-05-10", "Original Registration", 1),
-            (land_id, "Sunil Fernando", "881234567V", "Gampaha", "0722222222", "2015-08-15", "Sale", 2),
-            (land_id, "Amal Perera", "851234567V", "Kaduwela", "0773333333", "2020-02-01", "Sale", 3),
+            (
+                land_id,
+                "Nimal Silva",
+                "901234567V",
+                "Colombo",
+                "0711111111",
+                "2010-05-10",
+                "Original Registration",
+                1
+            ),
+            (
+                land_id,
+                "Sunil Fernando",
+                "881234567V",
+                "Gampaha",
+                "0722222222",
+                "2015-08-15",
+                "Sale",
+                2
+            ),
+            (
+                land_id,
+                "Amal Perera",
+                "851234567V",
+                "Kaduwela",
+                "0773333333",
+                "2020-02-01",
+                "Sale",
+                3
+            ),
         ]
 
         cursor.executemany("""
             INSERT INTO ownership_history (
-                land_id, owner_name, owner_nic, owner_address,
-                owner_phone, transfer_date, transaction_type, ownership_order
+                land_id,
+                owner_name,
+                owner_nic,
+                owner_address,
+                owner_phone,
+                transfer_date,
+                transaction_type,
+                ownership_order
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, sample_rows)
