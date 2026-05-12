@@ -11,7 +11,7 @@ from routes.admin_routes import admin_bp, admin_required, safe_fetchall, safe_fe
 
 
 SUPPORTED_VALUATION_AREAS = [
-    "RagamaA",
+    "Ragama",
     "Rajagiriya",
     "Malabe",
     "Ja-Ela",
