@@ -16,6 +16,11 @@ NEW_DEED_NOTE_MARKERS = [
 ]
 
 
+# Purpose - Clean internal new deed request markers from the request note before displaying or storing admin-readable text.
+# Input - raw_note: note text submitted with a transaction history update request.
+# Output - Cleaned note string with system markers removed.
+# Author - Niman Nethmika Rathnayake
+# Date - 20 April 2026
 def clean_request_note(raw_note):
     note = (raw_note or "").strip()
 
@@ -32,6 +37,11 @@ def clean_request_note(raw_note):
     return note.strip()
 
 
+# Purpose - Identify whether a transaction history update request is for a deed number that does not yet exist in the system.
+# Input - req: transaction history update request record containing status and notes fields.
+# Output - Boolean value indicating whether the request should be treated as a new deed number review.
+# Author - Niman Nethmika Rathnayake
+# Date - 20 April 2026
 def is_new_deed_number_request(req):
     status = (req["status"] or "").strip()
     notes = (req["notes"] or "").strip()
@@ -48,6 +58,11 @@ def is_new_deed_number_request(req):
     return False
 
 
+# Purpose - Calculate the next ownership sequence number for a land record before adding a new ownership history entry.
+# Input - cursor: active database cursor; land_id: selected land record identifier.
+# Output - Next ownership_order integer for the given land record.
+# Author - Niman Nethmika Rathnayake
+# Date - 21 April 2026
 def get_next_ownership_order(cursor, land_id):
     cursor.execute(
         """
@@ -66,6 +81,11 @@ def get_next_ownership_order(cursor, land_id):
     return int(row["max_order"] or 0) + 1
 
 
+# Purpose - Insert an approved owner transfer or registration record into the ownership history table.
+# Input - cursor, land_id, owner details, transfer_date, transaction_type, and ownership_order.
+# Output - New ownership_history row is added to the database through the provided cursor.
+# Author - Niman Nethmika Rathnayake
+# Date - 21 April 2026
 def insert_ownership_history(
     cursor,
     land_id,
@@ -104,6 +124,11 @@ def insert_ownership_history(
     )
 
 
+# Purpose - Create a new land record when an admin approves a valid request for a deed number that is not already registered.
+# Input - cursor: active database cursor; req: approved transaction history request data.
+# Output - Newly created land_id returned after inserting the land record.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 22 April 2026
 def create_new_land_record_from_request(cursor, req):
     deed_number = (req["deed_number"] or "").strip()
     proposed_owner_name = (req["proposed_owner_name"] or "").strip()
@@ -133,6 +158,11 @@ def create_new_land_record_from_request(cursor, req):
     return cursor.lastrowid
 
 
+# Purpose - Display all submitted transaction history update requests for admin review.
+# Input - Admin session state and transaction_history_update_request records from the database.
+# Output - Rendered admin transaction history request page with request records.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 22 April 2026
 @admin_bp.route("/admin/transaction-history-requests")
 def admin_transaction_history_requests():
     admin_user, redirect_response = admin_required()
@@ -161,6 +191,11 @@ def admin_transaction_history_requests():
     )
 
 
+# Purpose - Approve a pending transaction history request by updating ownership history, creating a new deed record when required, and marking the request as reviewed.
+# Input - request_id from the route, logged-in admin details, and the pending request record from the database.
+# Output - Database updates are committed and the admin is redirected with a success or error message.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 23 April 2026
 @admin_bp.route("/admin/transaction-history-request/<int:request_id>/approve", methods=["POST"])
 def approve_transaction_history_request(request_id):
     admin_user, redirect_response = admin_required()
@@ -314,6 +349,11 @@ def approve_transaction_history_request(request_id):
     return redirect(url_for("admin.admin_transaction_history_requests"))
 
 
+# Purpose - Reject a pending transaction history update request with an admin comment explaining the decision.
+# Input - request_id from the route, logged-in admin details, and admin_comment from the submitted form.
+# Output - Request status is updated to Rejected and the admin is redirected to the request list.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 24 April 2026
 @admin_bp.route("/admin/transaction-history-request/<int:request_id>/reject", methods=["POST"])
 def reject_transaction_history_request(request_id):
     admin_user, redirect_response = admin_required()
@@ -361,6 +401,11 @@ def reject_transaction_history_request(request_id):
     return redirect(url_for("admin.admin_transaction_history_requests"))
 
 
+# Purpose - Load the admin page used to manually add a new deed and its ownership history.
+# Input - Logged-in admin session state.
+# Output - Rendered add deed page for admin users.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 25 April 2026
 @admin_bp.route("/admin/add-deed", methods=["GET"])
 def admin_add_deed_page():
     admin_user, redirect_response = admin_required()
@@ -374,6 +419,11 @@ def admin_add_deed_page():
     )
 
 
+# Purpose - Validate and save a new deed record with one or more ownership history rows entered by an administrator.
+# Input - Admin form data including deed number, property details, owner details, transfer dates, and transaction types.
+# Output - New land_record and ownership_history rows are saved, or validation errors are shown to the admin.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 26 April 2026
 @admin_bp.route("/admin/add-deed", methods=["POST"])
 def admin_add_deed():
     admin_user, redirect_response = admin_required()
