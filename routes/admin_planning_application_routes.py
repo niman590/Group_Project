@@ -29,14 +29,29 @@ STAGE_LETTER_FOLDER = "static/uploads/planning_stage_letters"
 os.makedirs(STAGE_LETTER_FOLDER, exist_ok=True)
 
 
+# Purpose - Builds the full server file path for uploaded/generated planning approval documents.
+# Input - Relative file path saved in the application or generated letter process.
+# Output - Absolute path inside the Flask application root.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Niman Nethmika Rathnayake
+# Date - 20 April 2026
 def _build_absolute_path(relative_path):
     return os.path.join(current_app.root_path, relative_path)
 
 
+# Purpose - Ensures an admin review comment is never empty before it is written into a decision letter.
+# Input - Comment text entered by an administrator.
+# Output - Cleaned comment text or a default message when no comment is provided.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Prashan Kalhara Wijesinghe
+# Date - 20 April 2026
 def _safe_comment(comment):
     return (comment or "").strip() or "No additional comments were provided."
 
 
+# Purpose - Generates a PDF confirmation letter for each planning approval workflow stage decision.
+# Input - Application ID, applicant name, workflow stage name, decision status, and admin comment.
+# Output - Saved PDF letter path for the relevant approval or rejection stage.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Niman Nethmika Rathnayake, Prashan Kalhara Wijesinghe
+# Date - 21 April 2026
 def _generate_stage_decision_letter(application_id, applicant_name, stage_name, decision, comment):
     safe_stage = stage_name.lower().replace(" ", "_").replace("/", "_")
     safe_decision = decision.lower().strip()
@@ -187,6 +202,11 @@ def _generate_stage_decision_letter(application_id, applicant_name, stage_name, 
     return relative_path
 
 
+# Purpose - Retrieves the planning application and applicant details needed for review actions and letters.
+# Input - Database cursor and planning application ID.
+# Output - Application record with linked user name and user ID, or no record if not found.
+# Author - Niman Nethmika Rathnayake, R.A.D. Akash Dhananjaya Randeniya
+# Date - 21 April 2026
 def _get_application_and_user(cursor, application_id):
     cursor.execute(
         """
@@ -200,6 +220,11 @@ def _get_application_and_user(cursor, application_id):
     return cursor.fetchone()
 
 
+# Purpose - Displays all submitted planning applications for administrator review.
+# Input - Authenticated admin session and planning application records from the database.
+# Output - Admin planning applications page with non-draft application list.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Niman Nethmika Rathnayake, Nadeeja Ayeshan Weerasekara
+# Date - 22 April 2026
 @admin_planning_bp.route("/admin/planning-applications")
 def admin_planning_applications():
     admin_user, redirect_response = admin_required()
@@ -241,6 +266,11 @@ def admin_planning_applications():
         active_page="planning_applications",
     )
 
+# Purpose - Displays the full details of a selected planning application and its workflow progress.
+# Input - Planning application ID and application bundle data from the database.
+# Output - Detailed admin review page with applicant, land, document, request, and workflow information.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Niman Nethmika Rathnayake, Nadeeja Ayeshan Weerasekara
+# Date - 23 April 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>", endpoint="admin_planning_application_detail")
 @admin_planning_bp.route("/admin/planning/<int:application_id>", endpoint="review_planning_application")
 def admin_planning_application_detail(application_id):
@@ -302,6 +332,11 @@ def admin_planning_application_detail(application_id):
     )
 
 
+# Purpose - Updates the site visit stage of a planning application and moves the workflow forward when completed.
+# Input - Application ID, site visit status, admin comment, and authenticated admin user.
+# Output - Updated site visit status, workflow history entry, and user notification.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Nadeeja Ayeshan Weerasekara, Prashan Kalhara Wijesinghe
+# Date - 24 April 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/site-visit", methods=["POST"], endpoint="mark_site_visit")
 def mark_site_visit(application_id):
     admin_user, redirect_response = admin_required()
@@ -365,6 +400,11 @@ def mark_site_visit(application_id):
     return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
+# Purpose - Requests missing planning documents from the applicant or clears the additional document stage.
+# Input - Application ID, request title, request message, required document labels, and admin session.
+# Output - Updated application workflow, requested document records, workflow history, and user notification.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Niman Nethmika Rathnayake, Nadeeja Ayeshan Weerasekara
+# Date - 25 April 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/request-documents", methods=["POST"], endpoint="request_additional_documents")
 def request_additional_documents(application_id):
     admin_user, redirect_response = admin_required()
@@ -490,6 +530,11 @@ def request_additional_documents(application_id):
     return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
+# Purpose - Allows an administrator to send a manual notification to the applicant during application review.
+# Input - Application ID, notification title, message, type, and authenticated admin user.
+# Output - User notification record and workflow history entry.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Nadeeja Ayeshan Weerasekara
+# Date - 26 April 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/notify-user", methods=["POST"])
 def notify_application_user(application_id):
     admin_user, redirect_response = admin_required()
@@ -523,6 +568,11 @@ def notify_application_user(application_id):
     return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
+# Purpose - Opens the Planning Office or First Officer review page for an application.
+# Input - Planning application ID and full application review bundle.
+# Output - Planning Office review page with attachments, requested documents, and workflow history.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Niman Nethmika Rathnayake
+# Date - 27 April 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/planning-office", endpoint="planning_office_approval")
 def planning_office_approval(application_id):
     admin_user, redirect_response = admin_required()
@@ -545,6 +595,11 @@ def planning_office_approval(application_id):
     )
 
 
+# Purpose - Saves the Planning Office review decision and advances the application to Deputy Director review.
+# Input - Application ID, approval or rejection decision, officer comment, and optional uploaded letter.
+# Output - Updated application decision fields, generated or uploaded letter path, workflow history, and user notification.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Niman Nethmika Rathnayake, Prashan Kalhara Wijesinghe
+# Date - 28 April 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/planning-office/submit", methods=["POST"], endpoint="submit_planning_office_review")
 def submit_planning_office_review(application_id):
     admin_user, redirect_response = admin_required()
@@ -642,6 +697,11 @@ def submit_planning_office_review(application_id):
     return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
+# Purpose - Saves the First Officer decision and generates the related decision letter when no uploaded letter is provided.
+# Input - Application ID, officer decision, admin comment, and optional approval letter file.
+# Output - Updated first officer review data, generated letter path, workflow history, and applicant notification.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Nadeeja Ayeshan Weerasekara, Prashan Kalhara Wijesinghe
+# Date - 29 April 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/first-officer-decision", methods=["POST"])
 def first_officer_decision(application_id):
     approval_letter = request.files.get("approval_letter")
@@ -729,6 +789,11 @@ def first_officer_decision(application_id):
     return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
+# Purpose - Records the Deputy Director decision and advances the application to District Project Committee review.
+# Input - Application ID, Deputy Director decision, admin comment, and authenticated admin user.
+# Output - Updated Deputy Director review data, generated letter, workflow history, and applicant notification.
+# Author - Nadeeja Ayeshan Weerasekara, R.A.D. Akash Dhananjaya Randeniya, Prashan Kalhara Wijesinghe
+# Date - 30 April 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/deputy-director/submit", methods=["POST"], endpoint="deputy_director_decision")
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/deputy-director-decision", methods=["POST"])
 def deputy_director_decision(application_id):
@@ -807,6 +872,11 @@ def deputy_director_decision(application_id):
     return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
+# Purpose - Records the final District Project Committee decision for the planning application.
+# Input - Application ID, final approval or rejection decision, admin comment, and authenticated admin user.
+# Output - Final application status, final decision PDF, workflow history, and applicant notification.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Nadeeja Ayeshan Weerasekara, Prashan Kalhara Wijesinghe
+# Date - 01 May 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/committee-decision", methods=["POST"], endpoint="committee_decision")
 def committee_decision(application_id):
     admin_user, redirect_response = admin_required()
@@ -888,16 +958,31 @@ def committee_decision(application_id):
     return redirect(url_for("admin_planning.admin_planning_application_detail", application_id=application_id))
 
 
+# Purpose - Provides a route alias for approving a planning application through the committee decision process.
+# Input - Planning application ID submitted from the admin approval form.
+# Output - Redirects the request to the final committee decision handler.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 01 May 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/approve", methods=["POST"])
 def approve_planning_application(application_id):
     return committee_decision(application_id)
 
 
+# Purpose - Provides a route alias for rejecting a planning application through the committee decision process.
+# Input - Planning application ID submitted from the admin rejection form.
+# Output - Redirects the request to the final committee decision handler.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 01 May 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/reject", methods=["POST"])
 def reject_planning_application(application_id):
     return committee_decision(application_id)
 
 
+# Purpose - Allows an administrator to download the final planning approval or rejection PDF.
+# Input - Planning application ID and authenticated admin session.
+# Output - Final decision PDF file download or an error message if the file is unavailable.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Prashan Kalhara Wijesinghe
+# Date - 02 May 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/decision-pdf")
 def download_planning_decision_pdf(application_id):
     admin_user, redirect_response = admin_required()
@@ -930,6 +1015,11 @@ def download_planning_decision_pdf(application_id):
     return send_file(absolute_path, as_attachment=True)
 
 
+# Purpose - Allows an administrator to download the generated or uploaded First Officer decision letter.
+# Input - Planning application ID and authenticated admin session.
+# Output - First Officer / Planning Office letter file download or an error message if unavailable.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Niman Nethmika Rathnayake
+# Date - 02 May 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/first-officer-letter")
 def download_first_officer_letter(application_id):
     admin_user, redirect_response = admin_required()
@@ -962,6 +1052,11 @@ def download_first_officer_letter(application_id):
     return send_file(absolute_path, as_attachment=True)
 
 
+# Purpose - Allows an administrator to download the Deputy Director decision letter and regenerates it if needed.
+# Input - Planning application ID and authenticated admin session.
+# Output - Deputy Director decision letter file download or an error message if unavailable.
+# Author - Nadeeja Ayeshan Weerasekara, Prashan Kalhara Wijesinghe, R.A.D. Akash Dhananjaya Randeniya
+# Date - 02 May 2026
 @admin_planning_bp.route("/admin/planning-applications/<int:application_id>/deputy-director-letter")
 def download_deputy_director_letter(application_id):
     admin_user, redirect_response = admin_required()

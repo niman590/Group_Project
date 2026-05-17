@@ -11,7 +11,7 @@ from routes.admin_routes import admin_bp, admin_required, safe_fetchall, safe_fe
 
 
 SUPPORTED_VALUATION_AREAS = [
-    "Ragama",
+    "RagamaA",
     "Rajagiriya",
     "Malabe",
     "Ja-Ela",
@@ -27,6 +27,12 @@ PREDICTION_MODEL_DIR = os.path.join(BASE_DIR, "routes", "Prediction_model")
 GROWTH_RATES_PATH = os.path.join(PREDICTION_MODEL_DIR, "growth_rates.pkl")
 
 
+# Purpose - Load saved land valuation growth-rate data for prediction charts.
+# Input - growth_rates.pkl file path from the prediction model directory.
+# Output - Dictionary of area-wise growth rates, or an empty dictionary if unavailable.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-27
+
 def load_growth_rates():
     try:
         if os.path.exists(GROWTH_RATES_PATH):
@@ -40,12 +46,24 @@ def load_growth_rates():
 GROWTH_RATES = load_growth_rates()
 
 
+# Purpose - Safely convert database aggregate values into rounded numeric averages.
+# Input - Numeric, text, null, or invalid database value.
+# Output - Rounded float value, or 0 when conversion fails.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-28
+
 def safe_average(value):
     try:
         return round(float(value or 0), 2)
     except Exception:
         return 0
 
+
+# Purpose - Format land valuation amounts for dashboard display in Sri Lankan Rupees.
+# Input - Numeric land value or invalid value.
+# Output - Formatted LKR currency string.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-28
 
 def format_lkr(value):
     try:
@@ -54,12 +72,24 @@ def format_lkr(value):
         return "LKR 0.00"
 
 
+# Purpose - Convert stored suspicious-activity rule names into readable dashboard labels.
+# Input - Rule name text from the database.
+# Output - Title-cased readable rule label, or '-' when empty.
+# Author - Nadeeja Ayeshan Weerasekara
+# Date - 2026-05-01
+
 def format_rule_name(rule_name):
     if not rule_name:
         return "-"
 
     return str(rule_name).replace("_", " ").title()
 
+
+# Purpose - Validate and standardize dashboard date-filter values.
+# Input - Date text submitted from the dashboard filter.
+# Output - Date string in YYYY-MM-DD format, or an empty string for invalid input.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-29
 
 def normalize_date_input(value):
     if not value:
@@ -70,6 +100,12 @@ def normalize_date_input(value):
     except Exception:
         return ""
 
+
+# Purpose - Resolve selected dashboard filter options into practical start and end dates.
+# Input - Range key with optional custom start date and end date.
+# Output - Start date and end date values used by dashboard queries.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-29
 
 def resolve_dashboard_date_range(range_key, start_date="", end_date=""):
     today = datetime.today().date()
@@ -96,6 +132,12 @@ def resolve_dashboard_date_range(range_key, start_date="", end_date=""):
     return start_date, end_date
 
 
+# Purpose - Build reusable SQL date-filter conditions for dashboard queries.
+# Input - Column name, start date, and end date.
+# Output - SQL condition string and parameter list.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-30
+
 def build_date_clause(column_name, start_date, end_date):
     conditions = []
     params = []
@@ -113,6 +155,12 @@ def build_date_clause(column_name, start_date, end_date):
 
     return "", params
 
+
+# Purpose - Generate dashboard chart images for reports and visual summaries.
+# Input - Chart labels, values, title, and chart type.
+# Output - Base64 encoded PNG image string, or None if chart generation fails.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-01
 
 def build_chart_image(labels, values, title, kind="bar"):
     try:
@@ -170,6 +218,12 @@ def build_chart_image(labels, values, title, kind="bar"):
     return base64.b64encode(image_buffer.read()).decode("utf-8")
 
 
+# Purpose - Prepare the user registration chart for the admin dashboard.
+# Input - Database cursor with optional start and end date filters.
+# Output - Base64 encoded user registration chart image.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-01
+
 def get_user_registration_chart(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
 
@@ -203,6 +257,12 @@ def get_user_registration_chart(cursor, start_date="", end_date=""):
     return build_chart_image(labels, values, "User Registrations", kind="bar")
 
 
+# Purpose - Prepare the planning application status chart for the admin dashboard.
+# Input - Database cursor with optional start and end date filters.
+# Output - Base64 encoded planning application status chart image.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-01
+
 def get_application_status_chart(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
 
@@ -228,9 +288,21 @@ def get_application_status_chart(cursor, start_date="", end_date=""):
     return build_chart_image(labels, values, "Planning Application Status", kind="pie")
 
 
+# Purpose - Provide the list of supported areas for land valuation analysis.
+# Input - Optional database cursor.
+# Output - List of supported valuation area names.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-30
+
 def get_land_valuation_area_options(cursor=None):
     return SUPPORTED_VALUATION_AREAS.copy()
 
+
+# Purpose - Create SQL logic to map property addresses into supported valuation areas.
+# Input - Property table alias used in SQL queries.
+# Output - SQL CASE expression for valuation area detection.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-30
 
 def get_land_valuation_area_case_expression(property_alias="p"):
     address_expr = f"LOWER(TRIM(COALESCE({property_alias}.property_address, '')))"
@@ -250,6 +322,12 @@ def get_land_valuation_area_case_expression(property_alias="p"):
     """
 
 
+# Purpose - Format valuation trend period labels for weekly or monthly charts.
+# Input - Period start date and selected chart granularity.
+# Output - Readable weekly or monthly label.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-02
+
 def _format_land_valuation_label(period_start, granularity):
     try:
         period_date = datetime.strptime(period_start, "%Y-%m-%d")
@@ -261,6 +339,12 @@ def _format_land_valuation_label(period_start, granularity):
     except Exception:
         return str(period_start)
 
+
+# Purpose - Calculate future weekly or monthly periods for forecast labels.
+# Input - Base period start date, granularity, and number of steps.
+# Output - Future period start date in YYYY-MM-DD format.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-02
 
 def _add_periods(period_start, granularity, steps):
     base_date = datetime.strptime(period_start, "%Y-%m-%d")
@@ -274,6 +358,12 @@ def _add_periods(period_start, granularity, steps):
 
     return f"{year:04d}-{month:02d}-01"
 
+
+# Purpose - Select the practical annual growth rate used for land value forecasting.
+# Input - Selected area name or 'all'.
+# Output - Annual growth rate as a decimal value.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-02
 
 def get_growth_rate_for_area(area):
     try:
@@ -292,6 +382,12 @@ def get_growth_rate_for_area(area):
     except Exception:
         return 0.06
 
+
+# Purpose - Convert annual land value growth into weekly or monthly growth.
+# Input - Annual growth rate and selected chart granularity.
+# Output - Period-based growth rate for forecasting.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-02
 
 def convert_annual_growth_to_period_growth(annual_growth_rate, granularity):
     """
@@ -313,6 +409,12 @@ def convert_annual_growth_to_period_growth(annual_growth_rate, granularity):
 
     return (1 + annual_growth_rate) ** (1 / 12) - 1
 
+
+# Purpose - Count supported and unsupported land valuation records for dashboard summaries.
+# Input - Database cursor connected to property and value prediction records.
+# Output - Dictionary containing total counts, supported counts, unsupported counts, and city counts.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-05-03
 
 def get_land_valuation_counts(cursor):
     area_expression = get_land_valuation_area_case_expression("p")
@@ -369,6 +471,12 @@ def get_land_valuation_counts(cursor):
         "city_counts": city_counts,
     }
 
+
+# Purpose - Collect historical land valuation trend data by area and time period.
+# Input - Database cursor, granularity, and selected valuation area.
+# Output - List of formatted historical valuation trend rows.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-03
 
 def get_land_valuation_trend_rows(cursor, granularity="monthly", area="all"):
     if granularity not in {"weekly", "monthly"}:
@@ -437,6 +545,12 @@ def get_land_valuation_trend_rows(cursor, granularity="monthly", area="all"):
     return formatted_rows
 
 
+# Purpose - Limit unrealistic forecast jumps in land valuation charts.
+# Input - Previous value, projected value, and selected chart granularity.
+# Output - Adjusted projected value within a practical weekly or monthly range.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-04
+
 def cap_forecast_change(previous_value, projected_value, granularity):
     """
     Prevents unrealistic chart spikes.
@@ -452,6 +566,12 @@ def cap_forecast_change(previous_value, projected_value, granularity):
 
     return round(min(max(projected_value, lower_limit), upper_limit), 2)
 
+
+# Purpose - Create a flat baseline forecast when valuation history is too limited.
+# Input - Historical trend rows, chart granularity, and selected area.
+# Output - Forecast data bundle using the latest available value.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-04
 
 def build_flat_baseline_forecast(trend_rows, granularity="monthly", area="all"):
     """
@@ -485,6 +605,12 @@ def build_flat_baseline_forecast(trend_rows, granularity="monthly", area="all"):
         "annual_growth_rate": round(get_growth_rate_for_area(area) * 100, 2),
     }
 
+
+# Purpose - Create a growth-based forecast when records exist in only one period.
+# Input - Historical trend rows, chart granularity, and selected area.
+# Output - Forecast data bundle based on saved city growth rates.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-04
 
 def build_single_period_growth_forecast(trend_rows, granularity="monthly", area="all"):
     """
@@ -536,6 +662,12 @@ def build_single_period_growth_forecast(trend_rows, granularity="monthly", area=
         "annual_growth_rate": round(annual_growth_rate * 100, 2),
     }
 
+
+# Purpose - Generate a simple regression forecast from available valuation history.
+# Input - Historical valuation trend rows, chart granularity, and selected area.
+# Output - Forecast data bundle with projected values and latest movement.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-05
 
 def build_regression_forecast(trend_rows, granularity="monthly", area="all"):
     actual_values = [float(row["average_value"] or 0) for row in trend_rows]
@@ -595,6 +727,12 @@ def build_regression_forecast(trend_rows, granularity="monthly", area="all"):
     }
 
 
+# Purpose - Choose the most suitable land valuation forecasting method for available data.
+# Input - Historical valuation trend rows, chart granularity, and selected area.
+# Output - Forecast availability details and forecast data bundle.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-05
+
 def build_land_valuation_forecast(trend_rows, granularity="monthly", area="all"):
     if not trend_rows:
         return {
@@ -620,6 +758,12 @@ def build_land_valuation_forecast(trend_rows, granularity="monthly", area="all")
     return build_regression_forecast(trend_rows, granularity, area)
 
 
+# Purpose - Get the valuation record count for the selected dashboard area.
+# Input - Count bundle and selected area value.
+# Output - Integer count for the selected area.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-05-05
+
 def get_selected_area_count(count_bundle, area):
     if area == "all":
         return count_bundle["supported_valuation_count"]
@@ -630,6 +774,12 @@ def get_selected_area_count(count_bundle, area):
 
     return 0
 
+
+# Purpose - Build the full land valuation chart payload for the admin dashboard.
+# Input - Database cursor, chart granularity, and selected area.
+# Output - Dictionary containing chart labels, historical data, forecast data, and summary counts.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-06
 
 def get_land_valuation_chart_payload(cursor, granularity="monthly", area="all"):
     if granularity not in {"weekly", "monthly"}:
@@ -695,6 +845,12 @@ def get_land_valuation_chart_payload(cursor, granularity="monthly", area="all"):
         "forecast_period_label": "weeks" if granularity == "weekly" else "months",
     }
 
+
+# Purpose - Display the main admin dashboard with planning, valuation, reporting, and security summaries.
+# Input - Admin session state and dashboard filter values from the HTTP request.
+# Output - Rendered admin dashboard page with charts, counts, notifications, and filters.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-06
 
 @admin_bp.route("/admin/dashboard")
 def admin_dashboard():
@@ -966,6 +1122,12 @@ def admin_dashboard():
         active_page="dashboard",
     )
 
+
+# Purpose - Provide land valuation trend data to the admin dashboard asynchronously.
+# Input - Admin session state plus granularity and area query parameters.
+# Output - JSON response containing valuation trend and forecast payload.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-06
 
 @admin_bp.route("/admin/dashboard/land-valuation-trends")
 def admin_land_valuation_trends():
