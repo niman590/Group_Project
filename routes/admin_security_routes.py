@@ -29,6 +29,11 @@ SECURITY_RULE_NAMES = (
 )
 
 
+# Purpose - Validate and standardize date filter values for security reports.
+# Input - Date text submitted from admin filter forms.
+# Output - Date string in YYYY-MM-DD format, or an empty string for invalid input.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-22
 def normalize_date_input(value):
     if not value:
         return ""
@@ -39,6 +44,11 @@ def normalize_date_input(value):
         return ""
 
 
+# Purpose - Build reusable SQL date filter conditions for suspicious event queries.
+# Input - Database column name, start date, and end date.
+# Output - SQL condition string and matching parameter list.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-23
 def build_date_clause(column_name, start_date, end_date):
     conditions = []
     params = []
@@ -57,6 +67,11 @@ def build_date_clause(column_name, start_date, end_date):
     return "", params
 
 
+# Purpose - Load available suspicious activity rule names for the admin filter dropdown.
+# Input - Database cursor connected to suspicious event records.
+# Output - Sorted list of predefined and database-stored security rule names.
+# Author - Nadeeja Ayeshan
+# Date - 2026-04-24
 def get_rule_name_options(cursor):
     rows = safe_fetchall(
         cursor,
@@ -78,6 +93,11 @@ def get_rule_name_options(cursor):
     return sorted(rule_names, key=lambda value: value.replace("_", " ").lower())
 
 
+# Purpose - Calculate suspicious behavior summary counts for the security dashboard.
+# Input - Database cursor with optional start and end date filters.
+# Output - Dictionary containing total, status-based, and severity-based security event counts.
+# Author - Prashan Kalhara
+# Date - 2026-04-25
 def get_security_overview(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
 
@@ -169,6 +189,11 @@ def get_security_overview(cursor, start_date="", end_date=""):
     }
 
 
+# Purpose - Retrieve suspicious activity records using selected admin filters.
+# Input - Database cursor, severity, status, rule name, start date, and end date.
+# Output - Filtered suspicious event records with user and reviewer details.
+# Author - Nadeeja Ayeshan
+# Date - 2026-04-26
 def get_suspicious_events(
     cursor,
     severity="",
@@ -242,6 +267,11 @@ def get_suspicious_events(
     return cursor.fetchall()
 
 
+# Purpose - Identify the most frequent suspicious activity rules for reporting.
+# Input - Database cursor with optional start and end date filters.
+# Output - List of top security rule names with their event counts.
+# Author - Prashan Kalhara
+# Date - 2026-04-27
 def get_top_security_rules(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
 
@@ -260,6 +290,11 @@ def get_top_security_rules(cursor, start_date="", end_date=""):
 
 
 @admin_bp.route("/admin/suspicious-behavior")
+# Purpose - Display the admin suspicious behavior monitoring page.
+# Input - Admin session state and security filter values from the HTTP request.
+# Output - Rendered suspicious behavior page with overview, events, rule filters, and top rules.
+# Author - Nadeeja Ayeshan
+# Date - 2026-04-28
 def admin_suspicious_behavior():
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -306,6 +341,11 @@ def admin_suspicious_behavior():
 
 
 @admin_bp.route("/admin/suspicious-behavior/<int:event_id>/mark-reviewed", methods=["POST"])
+# Purpose - Mark a selected suspicious activity event as reviewed by the admin.
+# Input - Suspicious event ID and current admin user session.
+# Output - Updated event review status and redirect back to the suspicious behavior page.
+# Author - Prashan Kalhara
+# Date - 2026-04-29
 def mark_suspicious_event_reviewed(event_id):
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -333,6 +373,11 @@ def mark_suspicious_event_reviewed(event_id):
 
 
 @admin_bp.route("/admin/suspicious-behavior/<int:event_id>/mark-resolved", methods=["POST"])
+# Purpose - Mark a selected suspicious activity event as resolved by the admin.
+# Input - Suspicious event ID and current admin user session.
+# Output - Updated event resolution status and redirect back to the suspicious behavior page.
+# Author - Prashan Kalhara
+# Date - 2026-04-30
 def mark_suspicious_event_resolved(event_id):
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -360,6 +405,11 @@ def mark_suspicious_event_resolved(event_id):
 
 
 @admin_bp.route("/admin/suspicious-behavior/resolve-low", methods=["POST"])
+# Purpose - Bulk resolve all low severity suspicious activity events.
+# Input - Current admin user session.
+# Output - Updated low severity event statuses and confirmation message.
+# Author - Nadeeja Ayeshan
+# Date - 2026-05-01
 def resolve_low_severity_events():
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -390,6 +440,11 @@ def resolve_low_severity_events():
 
 
 @admin_bp.route("/admin/suspicious-behavior/download-pdf", methods=["POST"])
+# Purpose - Generate and download a filtered suspicious activity PDF report.
+# Input - Admin session state and selected security report filters from the form.
+# Output - Downloadable PDF file containing filtered security notification records.
+# Author - Prashan Kalhara
+# Date - 2026-05-02
 def download_suspicious_events_pdf():
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -428,6 +483,11 @@ def download_suspicious_events_pdf():
             )
         )
 
+    # Purpose - Sanitize values before placing them inside the PDF report.
+    # Input - Raw report value from database or generated report text.
+    # Output - Escaped PDF-safe text, or '-' when the value is empty.
+    # Author - Mora Mudalige Thenuk Sandul
+    # Date - 2026-05-02
     def pdf_text(value):
         if value is None or value == "":
             return "-"

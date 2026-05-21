@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the Civic Plan login page for citizens and administrators.
+Input - Flask/Jinja routes, flash messages, login form credentials, logo image, and login JavaScript.
+Output - Secure login page with NIC/Employee ID input, password field, password visibility toggle, forgot password link, register link, and dashboard back navigation.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-04-30
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -14,6 +21,7 @@
     <div class="login-shell">
       <div class="login-container">
 
+        <!-- Left visual panel introducing the Civic Plan portal and key service benefits. -->
         <div class="left-panel">
           <div class="overlay"></div>
 
@@ -56,6 +64,7 @@
           </div>
         </div>
 
+        <!-- Right login panel containing logo, flash messages, login form, and registration link. -->
         <div class="right-panel">
           <div class="login-card">
             <div class="logo-box">
@@ -65,6 +74,7 @@
             <h2 class="brand-title">CIVIC PLAN</h2>
             <p class="brand-subtitle">Land Management Portal</p>
 
+            <!-- Displays Flask flash messages for login success, errors, or information. -->
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
             <div class="flash-messages">
@@ -87,6 +97,7 @@
             {% endif %}
             {% endwith %}
 
+            <!-- Login form for both citizen NIC login and admin employee ID login. -->
             <form class="login-form" method="POST" action="{{ url_for('auth.login_post') }}" id="loginForm">
               <div class="form-group">
                 <label for="nic">NIC / Employee ID </label>
@@ -116,6 +127,7 @@
               </button>
             </form>
 
+            <!-- Registration link for users who do not already have an account. -->
             <p class="register-text">
               Don’t have an account?
               <a href="{{ url_for('auth.register') }}">Register here</a>

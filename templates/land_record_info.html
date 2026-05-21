@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the public Land Record Search information page.
+Input - Flask/Jinja dashboard route and static dashboard stylesheet.
+Output - Simple information page explaining land record search features with a back link to the dashboard.
+Author - Niman Nethmika Rathnayake
+Date - 2026-04-28
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,12 +17,14 @@
 
 <body>
     <div class="info-page">
+        <!-- Main heading and description for the public land record search service. -->
         <h1>Land Record Search</h1>
         <p>
             This service provides public access to land-related information and available property records.
             Users can search and review land ownership and property details where access is permitted.
         </p>
 
+        <!-- Feature list explaining what users can do through the land record search service. -->
         <h3>Main Features</h3>
         <ul>
             <li>Search property and land records</li>
@@ -24,6 +33,7 @@
             <li>Support faster land verification</li>
         </ul>
 
+        <!-- Navigation link back to the public dashboard page. -->
         <a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a>
     </div>
 </body>

@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the My Account page for both citizen users and admin users in the Civic Plan portal.
+Input - Logged-in user details, account role, flash messages, sidebar selection, and protected system admin status.
+Output - Account profile form with editable user details, protected admin restrictions, password/account actions, and delete confirmation modal.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-04-14
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,6 +12,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Civic Plan - My Account</title>
 
+  <!-- Loads the correct sidebar stylesheet depending on whether the logged-in user is an admin or citizen. -->
   {% if user['is_admin'] %}
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
   {% else %}
@@ -17,9 +25,11 @@
 </head>
 
 <body>
+  <!-- Identifies the protected default system admin account and disables risky account actions for it. -->
   {% set is_system_admin = (user.email == 'admin@civicplan.local' and user.nic == 'ADMIN000000V') %}
 
   <div class="dashboard-shell">
+    <!-- Includes the correct sidebar template based on the logged-in user's role. -->
     {% if user['is_admin'] %}
       {% include 'partials/admin_sidebar.html' %}
     {% else %}
@@ -32,6 +42,7 @@
           <div class="form-container">
 
 
+            <!-- Displays success, error, or information messages returned from Flask actions. -->
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
             <div class="flash-messages">
@@ -57,6 +68,7 @@
 
             <div class="account-card">
 
+              <!-- Shows the user's initials, full name, and email at the top of the account page. -->
               <div class="account-summary">
                 <div class="account-avatar">
                   {{ (user.first_name or 'U')[0] | upper }}{{ (user.last_name or '')[:1] | upper }}
@@ -68,6 +80,7 @@
                 </div>
               </div>
 
+              <!-- Warning message shown only for the protected system admin account. -->
               {% if is_system_admin %}
               <div class="lock-notice">
                 <div class="lock-notice-icon">
@@ -81,6 +94,7 @@
               </div>
               {% endif %}
 
+              <!-- Account update form for editable profile details. -->
               <form action="{{ url_for('user.account') }}" method="POST" id="accountForm">
                 <div class="form-grid">
 
@@ -142,6 +156,7 @@
                     </div>
                   </div>
 
+                  <!-- NIC is shown as read-only because it is a core identity field. -->
                   <div class="detail-group">
                     <label for="nic">NIC Number</label>
                     <div class="input-wrap readonly-wrap">
@@ -150,6 +165,7 @@
                     </div>
                   </div>
 
+                  <!-- Employee ID is shown only for admin users. -->
                   {% if user['is_admin'] %}
                   <div class="detail-group">
                     <label for="employee_id">Employee ID</label>
@@ -187,6 +203,7 @@
                   </div>
                 </div>
 
+                <!-- Provides password change access for normal accounts and disables it for the system admin. -->
                 <div class="account-tools">
                   {% if is_system_admin %}
                   <span class="secondary-link-btn disabled-link" aria-disabled="true">
@@ -201,6 +218,7 @@
                   {% endif %}
                 </div>
 
+                <!-- Account action buttons for saving profile changes, deleting account, and returning to dashboard. -->
                 <div class="account-actions">
                   <div class="account-actions-left">
                     <button
@@ -236,6 +254,7 @@
                 </div>
               </form>
 
+              <!-- Hidden delete form used by the delete confirmation modal for normal user accounts. -->
               {% if not is_system_admin %}
               <form
                 action="{{ url_for('user.delete_account') }}"
@@ -252,6 +271,7 @@
     </main>
   </div>
 
+  <!-- Custom modal used to confirm account deletion before submitting the delete form. -->
   <div class="custom-modal-overlay" id="deleteAccountModal">
     <div class="custom-modal-card danger-modal" role="dialog" aria-modal="true" aria-labelledby="deleteAccountModalTitle">
       <div class="custom-modal-header">

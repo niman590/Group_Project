@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the citizen sidebar navigation layout for the Civic Plan user portal.
+Input - Flask/Jinja route URLs, active page value, unread notification count, and static logo/script paths.
+Output - Responsive citizen sidebar with main menu links, notification badge, logout link, mobile toggle, overlay, and sidebar script.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-04-13
+-->
 <aside class="sidebar user-sidebar" id="userSidebar">
     <div class="sidebar-top">
         <div class="sidebar-brand-wrap">
@@ -17,6 +24,7 @@
 
         <div class="sidebar-section-title">Main Menu</div>
 
+        <!-- Citizen portal navigation links with active page highlighting. -->
         <nav class="sidebar-nav">
             <a href="{{ url_for('user.user_dashboard') }}"
                 class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">
@@ -73,6 +81,7 @@
         </nav>
     </div>
 
+    <!-- Sidebar footer section for citizen logout access. -->
     <div class="sidebar-footer">
         <a href="{{ url_for('auth.logout') }}" class="nav-link logout-link">
             <span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
@@ -81,6 +90,7 @@
     </div>
 </aside>
 
+<!-- Mobile sidebar toggle button and overlay for responsive citizen navigation. -->
 <button type="button" class="mobile-sidebar-toggle" id="mobileSidebarToggle" aria-label="Open sidebar">
     <i class="fa-solid fa-bars"></i>
 </button>

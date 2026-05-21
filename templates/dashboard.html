@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the public Civic Plan landing page with services, guidance, contact support, modals, chatbot, and navigation.
+Input - Flask/Jinja route URLs, static assets, modal triggers, dashboard service content, support form fields, and chatbot UI elements.
+Output - Public dashboard page with header, hero section, service cards, information modals, contact form, map, footer, chatbot, and scroll controls.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-04-25
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,6 +19,7 @@
 <body>
 
     <!-- HEADER -->
+    <!-- Main public navigation header with logo, menu links, and account access buttons. -->
     <header class="site-header" id="siteHeader">
         <div class="container header-wrapper">
             <div class="brand">
@@ -45,6 +53,7 @@
     </header>
 
     <!-- HERO -->
+    <!-- Landing section introducing Civic Plan and directing users to sign in or register. -->
     <section class="hero-section">
         <div class="container hero-grid">
             <div class="hero-content reveal-up">
@@ -91,6 +100,7 @@
     </section>
 
     <!-- MAIN SERVICES -->
+    <!-- Public service cards that open detailed service explanation modals. -->
     <section class="quick-links-section" id="main-services">
         <div class="container">
             <div class="section-header reveal-up">
@@ -131,6 +141,7 @@
     </section>
 
     <!-- INFORMATION -->
+    <!-- Guidance cards that explain preparation steps and portal updates for public users. -->
     <section class="info-section" id="useful-information">
         <div class="container">
             <div class="section-header light reveal-up">
@@ -171,6 +182,7 @@
     </section>
 
     <!-- BENEFITS -->
+    <!-- Summary guidance section explaining portal benefits and preparation requirements. -->
     <section class="benefits-section" id="help-section">
         <div class="container benefits-grid">
             <div class="benefit-box reveal-up">
@@ -196,6 +208,7 @@
     </section>
 
     <!-- CTA -->
+    <!-- Call-to-action section encouraging visitors to sign in or create an account. -->
     <section class="cta-section">
         <div class="container cta-box reveal-up">
             <div>
@@ -211,6 +224,7 @@
     </section>
 
     <!-- DROP YOUR QUESTIONS WITH UDA MAP -->
+    <!-- Contact support section with question form and embedded UDA Head Office map. -->
     <section class="question-section" id="drop-question">
         <div class="container question-container-wide">
             <div class="question-card question-map-card reveal-up">
@@ -279,6 +293,7 @@
     </section>
 
     <!-- FOOTER -->
+    <!-- Public footer with portal links, account links, and legal/help modal triggers. -->
     <footer class="site-footer">
         <div class="container footer-grid">
             <div class="footer-brand">
@@ -315,6 +330,7 @@
     <div class="modal-overlay" id="modalOverlay"></div>
 
     <!-- PLANNING APPROVAL MODAL -->
+    <!-- Service information modal explaining planning approval application features. -->
     <div class="service-modal" id="planningModal" role="dialog" aria-modal="true" aria-labelledby="planningModalTitle">
         <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
@@ -337,6 +353,7 @@
     </div>
 
     <!-- LAND VALUE PREDICTION MODAL -->
+    <!-- Service information modal explaining land value prediction features. -->
     <div class="service-modal" id="valueModal" role="dialog" aria-modal="true" aria-labelledby="valueModalTitle">
         <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
@@ -356,6 +373,7 @@
     </div>
 
     <!-- LAND TRANSACTION HISTORY MODAL -->
+    <!-- Service information modal explaining land transaction history record features. -->
     <div class="service-modal" id="historyModal" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle">
         <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
         <div class="modal-icon">
@@ -375,6 +393,7 @@
     </div>
 
     <!-- OWNERSHIP VERIFICATION INFO MODAL -->
+    <!-- Guidance modal explaining how users should prepare for land ownership verification. -->
     <div class="service-modal large-modal" id="ownershipInfoModal" role="dialog" aria-modal="true"
         aria-labelledby="ownershipInfoModalTitle">
         <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
@@ -409,6 +428,7 @@
     </div>
 
     <!-- PLANNING SUBMISSION INFO MODAL -->
+    <!-- Guidance modal explaining preparation steps for planning approval submissions. -->
     <div class="service-modal large-modal" id="planningInfoModal" role="dialog" aria-modal="true"
         aria-labelledby="planningInfoModalTitle">
         <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
@@ -442,6 +462,7 @@
     </div>
 
     <!-- NOTIFICATION INFO MODAL -->
+    <!-- Guidance modal explaining how portal notifications and application updates work. -->
     <div class="service-modal large-modal" id="notificationInfoModal" role="dialog" aria-modal="true"
         aria-labelledby="notificationInfoModalTitle">
         <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
@@ -475,6 +496,7 @@
     </div>
 
     <!-- HELP MODAL -->
+    <!-- Help modal explaining account setup, submissions, notifications, and support guidance. -->
     <div class="service-modal large-modal" id="helpModal" role="dialog" aria-modal="true"
         aria-labelledby="helpModalTitle">
         <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
@@ -522,6 +544,7 @@
     </div>
 
     <!-- PRIVACY MODAL -->
+    <!-- Privacy notice modal explaining how personal and property-related data is handled in the portal. -->
     <div class="service-modal large-modal" id="privacyModal" role="dialog" aria-modal="true"
         aria-labelledby="privacyModalTitle">
         <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
@@ -579,6 +602,7 @@
     </div>
 
     <!-- TERMS MODAL -->
+    <!-- Terms modal explaining acceptable use, applications, records, account security, and service limitations. -->
     <div class="service-modal large-modal" id="termsModal" role="dialog" aria-modal="true"
         aria-labelledby="termsModalTitle">
         <button class="close-modal" data-close type="button" aria-label="Close modal">&times;</button>
@@ -631,6 +655,7 @@
     </div>
 
     <!-- CHATBOT -->
+    <!-- Floating chatbot widget for public users to ask basic Civic Plan service and navigation questions. -->
     <button class="chatbot-button" id="chatbotButton" aria-label="Open AI Assistant">
         <i class="fa-solid fa-comment-dots"></i>
     </button>

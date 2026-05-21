@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the citizen My Applications page for tracking submitted planning applications, drafts, workflow progress, and document requests.
+Input - User application cards, total record count, flash messages, application workflow status, requested document counts, and action routes.
+Output - Application tracking page with timeline cards, status badges, additional document upload links, draft actions, progress view, PDF download, and empty state.
+Author - Niman Nethmika Rathnayake
+Date - 2026-05-01
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,6 +22,7 @@
         {% include 'partials/user_sidebar.html' %}
 
         <main class="my-app-main">
+            <!-- Hero section showing page title, purpose, feature tags, and total application records. -->
             <section class="hero-panel reveal-up">
                 <div class="hero-left">
                     <span class="page-kicker">Citizen Services</span>
@@ -39,6 +47,7 @@
                 </div>
             </section>
 
+            <!-- Displays Flask flash messages for application actions such as uploads, edits, or deletions. -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     <div class="flash-wrap reveal-up">
@@ -52,6 +61,7 @@
                 {% endif %}
             {% endwith %}
 
+            <!-- Main panel showing all submitted applications and drafts as separate cards. -->
             <section class="applications-panel reveal-up">
                 <div class="panel-header panel-header-premium">
                     <div>
@@ -66,6 +76,7 @@
 
                 <div class="cards-stack">
                     {% for item in application_cards %}
+                    <!-- Individual application card showing status, workflow stage, document requests, and user actions. -->
                     <article class="app-card reveal-up">
                         <div class="app-card-glow"></div>
 
@@ -101,6 +112,7 @@
                             </div>
                         </div>
 
+                        <!-- Metadata ribbon showing created date, updated date, and latest admin comment. -->
                         <div class="meta-ribbon">
                             <div class="meta-ribbon-item">
                                 <span class="mini-label">Created At</span>
@@ -118,6 +130,7 @@
                             </div>
                         </div>
 
+                        <!-- Additional document request strip showing upload progress and upload action when needed. -->
                         <div class="request-strip">
                             <div class="request-strip-left">
                                 <div class="request-icon">
@@ -144,6 +157,7 @@
                             {% endif %}
                         </div>
 
+                        <!-- Visual workflow timeline for tracking the planning approval progress. -->
                         <div class="timeline-section">
                             <div class="timeline-header">
                                 <h4>Workflow Progress</h4>
@@ -202,6 +216,7 @@
                                 </div>
                             </div>
 
+                            <!-- Compact workflow status pills for smaller visual progress summary. -->
                             <div class="progress-pills">
                                 <div class="progress-mini done">Submitted</div>
                                 <div class="progress-mini {% if item.application['site_visit_status'] == 'Completed' %}done{% else %}active{% endif %}">
@@ -222,6 +237,7 @@
                             </div>
                         </div>
 
+                        <!-- Shows draft actions for draft records or progress/PDF actions for submitted applications. -->
                         <div class="app-actions">
                             {% if (item.application['status'] or '').lower() == 'draft' %}
                                 <a class="primary-btn action-btn"
@@ -256,6 +272,7 @@
                         </div>
                     </article>
                     {% else %}
+                    <!-- Empty state shown when the user has not created any planning applications yet. -->
                     <div class="empty-state reveal-up">
                         <div class="empty-state-icon">
                             <i class="fa-regular fa-folder-open"></i>

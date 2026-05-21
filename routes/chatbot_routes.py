@@ -46,6 +46,12 @@ Rules:
 """
 
 
+# Purpose - Protect chatbot routes by requiring a signed-in user before the view function runs.
+# Input - Flask view function that needs login protection.
+# Output - Wrapped view function or JSON login response when the user is not signed in.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-18
+
 def chatbot_login_required(view_func):
     @wraps(view_func)
     def wrapper(*args, **kwargs):
@@ -62,6 +68,12 @@ def chatbot_login_required(view_func):
     return wrapper
 
 
+# Purpose - Add no-cache response headers for chatbot requests.
+# Input - Flask response object returned from the chatbot route.
+# Output - Response object with cache-control headers applied.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-18
+
 @chatbot_bp.after_request
 def add_chatbot_no_cache_headers(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -70,12 +82,24 @@ def add_chatbot_no_cache_headers(response):
     return response
 
 
+# Purpose - Create the Gemini AI client used by the Civic Plan chatbot.
+# Input - GEMINI_API_KEY value loaded from the environment file.
+# Output - Gemini client object, or None when the API key is unavailable.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-19
+
 def get_gemini_client():
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         return None
     return genai.Client(api_key=api_key)
 
+
+# Purpose - Detect AI service quota, timeout, overload, or temporary availability errors.
+# Input - Exception or error message returned by the AI service.
+# Output - True if the error indicates service unavailability, otherwise False.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-19
 
 def is_ai_service_unavailable_error(error):
     error_text = str(error or "").lower()
@@ -95,6 +119,12 @@ def is_ai_service_unavailable_error(error):
     return any(marker in error_text for marker in unavailable_markers)
 
 
+# Purpose - Provide a user-friendly fallback message when the AI assistant is temporarily unavailable.
+# Input - No direct input.
+# Output - Readable assistant unavailable message for the chatbot UI.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-19
+
 def friendly_ai_unavailable_message():
     return (
         "The assistant is taking longer than usual right now. "
@@ -102,13 +132,31 @@ def friendly_ai_unavailable_message():
     )
 
 
+# Purpose - Check whether the current visitor has an active logged-in session.
+# Input - Current Flask session data.
+# Output - True if a user ID exists in the session, otherwise False.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-20
+
 def is_logged_in():
     return "user_id" in session
 
 
+# Purpose - Clean and standardize user messages before keyword matching.
+# Input - Raw user message text.
+# Output - Lowercase single-spaced text string.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-20
+
 def normalize_text(text):
     return re.sub(r"\s+", " ", (text or "").strip().lower())
 
+
+# Purpose - Identify a deed number from the user's chatbot message.
+# Input - User message text that may contain a deed number.
+# Output - Extracted deed number string, or None when not found.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-20
 
 def extract_deed_number(text):
     if not text:
@@ -128,6 +176,12 @@ def extract_deed_number(text):
 
     return None
 
+
+# Purpose - Collect the signed-in user's application, alert, property, and valuation summary for chatbot replies.
+# Input - Logged-in user's user ID.
+# Output - Dictionary containing dashboard summary counts and latest valuation details.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-22
 
 def get_user_dashboard_summary(user_id):
     conn = get_connection()
@@ -258,6 +312,12 @@ def get_user_dashboard_summary(user_id):
     return summary
 
 
+# Purpose - Fetch land transaction and ownership history using a deed number.
+# Input - Deed number entered by the user.
+# Output - Transaction history dictionary, or None if no matching land record exists.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-23
+
 def get_transaction_history_by_deed(deed_number):
     conn = get_connection()
     cursor = conn.cursor()
@@ -310,6 +370,12 @@ def get_transaction_history_by_deed(deed_number):
         conn.close()
 
 
+# Purpose - Build a consistent JSON response structure for chatbot answers and actions.
+# Input - Reply text, response type, optional action, target, payload, and quick actions.
+# Output - Flask JSON response used by the chatbot frontend.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-23
+
 def build_response(reply, response_type="answer", action=None, target=None, payload=None, quick_actions=None):
     data = {
         "type": response_type,
@@ -331,13 +397,31 @@ def build_response(reply, response_type="answer", action=None, target=None, payl
     return jsonify(data)
 
 
+# Purpose - Provide quick action options for signed-in chatbot users.
+# Input - No direct input.
+# Output - List of signed-in user quick actions.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-24
+
 def get_user_quick_actions():
     return []
 
 
+# Purpose - Provide quick action options for public dashboard chatbot users.
+# Input - No direct input.
+# Output - List of public quick actions.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-24
+
 def get_public_quick_actions():
     return []
 
+
+# Purpose - Prepare the chatbot feature overview for signed-in citizen dashboard users.
+# Input - No direct input.
+# Output - Text explaining available signed-in Civic Plan portal features.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-24
 
 def get_user_feature_overview_text():
     return (
@@ -353,12 +437,24 @@ def get_user_feature_overview_text():
     )
 
 
+# Purpose - Prepare the chatbot feature overview for public dashboard users.
+# Input - No direct input.
+# Output - Text explaining public Civic Plan guidance and sign-in requirement.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-24
+
 def get_public_feature_overview_text():
     return (
         "From the public dashboard I can explain Civic Plan services, registration, login, password reset, "
         "planning approval guidance, land valuation information, transaction history information, and the Drop Your Questions contact form. "
         "For personal application progress, records, notifications, or submissions, please sign in first."
     )
+
+# Purpose - Safely read column names from a database table for flexible chatbot queries.
+# Input - Database cursor and table name.
+# Output - Set of available column names, or an empty set if unavailable.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-25
 
 def database_table_columns(cursor, table_name):
     try:
@@ -368,12 +464,24 @@ def database_table_columns(cursor, table_name):
         return set()
 
 
+# Purpose - Find the first matching column from a list of possible database column names.
+# Input - Existing column set and candidate column names.
+# Output - First matching column name, or None if no candidate exists.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-25
+
 def first_existing_column(columns, candidates):
     for candidate in candidates:
         if candidate in columns:
             return candidate
     return None
 
+
+# Purpose - Find user applications that may need action or review attention.
+# Input - Logged-in user ID and maximum number of records to return.
+# Output - List of application attention items with status, reason, and next action.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-26
 
 def get_user_application_attention(user_id, limit=5):
     conn = get_connection()
@@ -475,6 +583,12 @@ def get_user_application_attention(user_id, limit=5):
         conn.close()
 
 
+# Purpose - Detect chatbot navigation requests and return the correct portal page action.
+# Input - User chatbot message.
+# Output - Navigation JSON response, or None if no navigation intent is detected.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-27
+
 def handle_navigation_intent(message):
     text = normalize_text(message)
 
@@ -563,6 +677,12 @@ def handle_navigation_intent(message):
     return None
 
 
+# Purpose - Answer questions about applications that need action, missing documents, or admin comments.
+# Input - User chatbot message and current session state.
+# Output - Application attention response, login action, or None if not applicable.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-28
+
 def handle_application_attention_intent(message):
     text = normalize_text(message)
 
@@ -618,6 +738,12 @@ def handle_application_attention_intent(message):
         quick_actions=get_user_quick_actions(),
     )
 
+
+# Purpose - Respond to chatbot requests for live dashboard summaries, valuations, alerts, and deed history.
+# Input - User chatbot message and signed-in session data.
+# Output - Data response, page action response, or None if no live data intent matches.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-29
 
 def handle_live_data_intent(message):
     text = normalize_text(message)
@@ -757,6 +883,12 @@ def handle_live_data_intent(message):
     return None
 
 
+# Purpose - Handle signed-in user FAQ questions about portal features and services.
+# Input - User chatbot message.
+# Output - FAQ or navigation response, or None if no FAQ intent matches.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-30
+
 def handle_faq_intent(message):
     text = normalize_text(message)
 
@@ -888,6 +1020,12 @@ def handle_faq_intent(message):
 
 
 
+# Purpose - Handle public dashboard FAQ questions without exposing personal dashboard data.
+# Input - Public dashboard chatbot message.
+# Output - Public FAQ response, sign-in guidance, or None if no intent matches.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-01
+
 def handle_public_dashboard_faq_intent(message):
     text = normalize_text(message)
 
@@ -983,6 +1121,12 @@ def handle_public_dashboard_faq_intent(message):
     return None
 
 
+# Purpose - Generate a public-dashboard-safe fallback chatbot answer using Gemini.
+# Input - User message from the public dashboard.
+# Output - Generated public guidance text, unavailable message, or None if client is unavailable.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-02
+
 def generate_public_dashboard_fallback(user_message):
     client = get_gemini_client()
     if client is None:
@@ -1010,6 +1154,12 @@ def generate_public_dashboard_fallback(user_message):
         reply_text = "Sorry, I could not generate a reply right now."
 
     return reply_text
+
+# Purpose - Generate a signed-in user fallback chatbot answer using Gemini with portal route context.
+# Input - Signed-in user's chatbot message and session profile details.
+# Output - Generated assistant reply text, unavailable message, or None if client is unavailable.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-03
 
 def generate_gemini_fallback(user_message):
     client = get_gemini_client()
@@ -1062,6 +1212,12 @@ Public/account access routes:
 
     return reply_text
 
+
+# Purpose - Process incoming chatbot messages and route them through public, navigation, live data, FAQ, or Gemini fallback handlers.
+# Input - POST request JSON containing the user message and optional page context.
+# Output - JSON chatbot response with answer, action, data payload, or error message.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-04
 
 @chatbot_bp.route("/chat", methods=["POST"])
 def chat():

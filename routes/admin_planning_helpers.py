@@ -33,6 +33,11 @@ WORKFLOW_STAGES = [
 
 ALLOWED_DOC_EXTENSIONS = {"pdf", "doc", "docx"}
 
+# Purpose - Ensures the planning approval database schema contains all workflow, review, decision, and letter-tracking fields required by the admin planning module.
+# Input - None; reads the existing planning_applications table structure from the database.
+# Output - Updates the database schema where required and sets default workflow values for older records.
+# Author - Niman Nethmika Rathnayake, R.A.D. Akash Dhananjaya Randeniya, Nadeeja Ayeshan
+# Date - 20/04/2026
 def ensure_planning_schema():
     conn = get_connection()
     cursor = conn.cursor()
@@ -103,6 +108,11 @@ def ensure_planning_schema():
 ensure_planning_schema()
 
 
+# Purpose - Validates whether an uploaded planning document has an allowed file extension before it is saved.
+# Input - filename and optional allowed_set containing accepted document extensions.
+# Output - Returns True for allowed file types and False for invalid or missing extensions.
+# Author - Prashan Kalhara, Nadeeja Ayeshan
+# Date - 21/04/2026
 def allowed_extension(filename, allowed_set=None):
     allowed_set = allowed_set or ALLOWED_DOC_EXTENSIONS
     if not filename or "." not in filename:
@@ -110,6 +120,11 @@ def allowed_extension(filename, allowed_set=None):
     return filename.rsplit(".", 1)[1].lower() in allowed_set
 
 
+# Purpose - Securely saves an uploaded planning-related document using a timestamped filename inside the selected upload folder.
+# Input - file_obj from the request, target subfolder, and optional allowed file extension set.
+# Output - Returns the stored relative file path when successful, or None when the upload is missing or invalid.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 21/04/2026
 def save_uploaded_file(file_obj, subfolder, allowed_set=None):
     if not file_obj or not file_obj.filename:
         return None
@@ -130,17 +145,32 @@ def save_uploaded_file(file_obj, subfolder, allowed_set=None):
     return f"static/{subfolder}/{stored_name}"
 
 
+# Purpose - Converts a stored relative PDF path into an absolute server path and ensures the destination folder exists.
+# Input - relative_path of the PDF to be created or accessed.
+# Output - Returns the absolute file system path for the PDF.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 22/04/2026
 def _build_planning_pdf_path(relative_path):
     absolute_path = os.path.join(current_app.root_path, relative_path)
     os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
     return absolute_path
 
 
+# Purpose - Provides a safe comment value for stage decision letters when the admin comment is empty.
+# Input - comment entered by the officer and default_text to use as a fallback.
+# Output - Returns the cleaned comment or the default text.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 22/04/2026
 def _safe_stage_comment(comment, default_text):
     cleaned = (comment or "").strip()
     return cleaned if cleaned else default_text
 
 
+# Purpose - Generates a PDF confirmation letter for an intermediate planning approval workflow stage such as First Officer or Deputy Director review.
+# Input - application_id, applicant_name, stage_name, decision, and officer comment.
+# Output - Creates the stage decision PDF and returns its relative file path.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Niman Nethmika Rathnayake
+# Date - 23/04/2026
 def generate_stage_decision_pdf(application_id, applicant_name, stage_name, decision, comment):
     safe_stage = (
         stage_name.lower()
@@ -297,6 +327,11 @@ def generate_stage_decision_pdf(application_id, applicant_name, stage_name, deci
         )
     )
 
+    # Purpose - Draws the header, footer, and page number layout for each intermediate stage decision PDF page.
+    # Input - ReportLab canvas object and document object while the PDF is being built.
+    # Output - Adds page border lines and page numbering to the generated stage decision PDF.
+    # Author - R.A.D. Akash Dhananjaya Randeniya, M.M. Thenuk Sandul
+    # Date - 23/04/2026
     def draw_page(canvas_obj, doc_obj):
         canvas_obj.saveState()
         width, height = A4
@@ -319,6 +354,11 @@ def generate_stage_decision_pdf(application_id, applicant_name, stage_name, deci
     return relative_path
 
 
+# Purpose - Generates the final planning decision PDF for an approved or rejected planning application.
+# Input - application_id, applicant_name, final decision, and committee/admin comment.
+# Output - Creates the final approval or rejection PDF and returns its relative file path.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Niman Nethmika Rathnayake, Prashan Kalhara
+# Date - 24/04/2026
 def generate_decision_pdf(application_id, applicant_name, decision, comment):
     filename = f"planning_decision_{application_id}_{decision.lower()}.pdf"
     relative_path = os.path.join(PDF_FOLDER, filename)
@@ -660,6 +700,11 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
         )
     )
 
+    # Purpose - Draws the header, footer, and page number layout for each final approval or rejection PDF page.
+    # Input - ReportLab canvas object and document object while the PDF is being built.
+    # Output - Adds page border lines and page numbering to the generated final decision PDF.
+    # Author - R.A.D. Akash Dhananjaya Randeniya
+    # Date - 24/04/2026
     def draw_page(canvas_obj, doc_obj):
         canvas_obj.saveState()
         width, height = A4
@@ -681,6 +726,11 @@ def generate_decision_pdf(application_id, applicant_name, decision, comment):
     doc.build(story, onFirstPage=draw_page, onLaterPages=draw_page)
     return relative_path
 
+# Purpose - Creates a notification record so the applicant can be informed about planning application updates.
+# Input - database cursor, user_id, application_id, notification title, message, and notification type.
+# Output - Inserts a new unread notification into the user_notifications table.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Nadeeja Ayeshan
+# Date - 24/04/2026
 def create_user_notification(cursor, user_id, application_id, title, message, notification_type="info"):
     cursor.execute(
         """
@@ -693,6 +743,11 @@ def create_user_notification(cursor, user_id, application_id, title, message, no
     )
 
 
+# Purpose - Records each planning approval workflow action for audit tracking and review history.
+# Input - database cursor, application_id, stage_name, action_taken, comment, and acted_by admin user ID.
+# Output - Inserts a workflow history entry into the planning_application_workflow_history table.
+# Author - Niman Nethmika Rathnayake, Nadeeja Ayeshan
+# Date - 25/04/2026
 def add_workflow_history(cursor, application_id, stage_name, action_taken, comment, acted_by):
     cursor.execute(
         """
@@ -705,6 +760,11 @@ def add_workflow_history(cursor, application_id, stage_name, action_taken, comme
     )
 
 
+# Purpose - Retrieves the applicant user ID linked to a planning application for notification and workflow updates.
+# Input - database cursor and application_id.
+# Output - Returns the user_id if the application exists, otherwise returns None.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Nadeeja Ayeshan
+# Date - 25/04/2026
 def get_application_user_id(cursor, application_id):
     cursor.execute(
         """
@@ -718,6 +778,11 @@ def get_application_user_id(cursor, application_id):
     return row["user_id"] if row else None
 
 
+# Purpose - Updates the current workflow stage and optional step number of a planning application.
+# Input - database cursor, application_id, stage_name, and optional current_step.
+# Output - Updates the planning_applications record timestamp and workflow status.
+# Author - R.A.D. Akash Dhananjaya Randeniya, Niman Nethmika Rathnayake
+# Date - 25/04/2026
 def update_application_stage(cursor, application_id, stage_name, current_step=None):
     if current_step is None:
         cursor.execute(
@@ -742,6 +807,11 @@ def update_application_stage(cursor, application_id, stage_name, current_step=No
         )
 
 
+# Purpose - Retrieves the full planning application dataset required for admin review, including applicant details, technical data, attachments, requests, and workflow history.
+# Input - application_id of the planning application to review.
+# Output - Returns a dictionary containing all related application records, or None if the application does not exist.
+# Author - Niman Nethmika Rathnayake, M.M.T. Sandul
+# Date - 26/04/2026
 def fetch_full_application_bundle(application_id):
     conn = get_connection()
     cursor = conn.cursor()

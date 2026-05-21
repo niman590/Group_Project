@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the admin sidebar navigation layout for the Civic Plan admin portal.
+Input - Flask/Jinja route URLs, active page value, request endpoint, and static logo/script paths.
+Output - Responsive admin sidebar with navigation links, logout link, mobile toggle, overlay, and sidebar script.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-04-12
+-->
 <aside class="sidebar admin-sidebar" id="adminSidebar">
     <div class="sidebar-top">
         <div class="sidebar-brand">
@@ -14,6 +21,7 @@
             </button>
         </div>
 
+        <!-- Admin navigation links with active state handling based on the current page or endpoint. -->
         <nav class="sidebar-nav">
             <a href="{{ url_for('admin.admin_dashboard') }}"
                 class="nav-link {% if active_page == 'dashboard' or request.endpoint == 'admin.admin_dashboard' %}active{% endif %}">
@@ -65,6 +73,7 @@
         </nav>
     </div>
 
+    <!-- Sidebar footer section for admin logout access. -->
     <div class="sidebar-footer">
         <a href="{{ url_for('auth.logout') }}" class="nav-link logout-link">
             <span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
@@ -73,6 +82,7 @@
     </div>
 </aside>
 
+<!-- Mobile sidebar toggle button and overlay for responsive admin navigation. -->
 <button type="button" class="mobile-sidebar-toggle" id="mobileSidebarToggle" aria-label="Open sidebar">
     <i class="fa-solid fa-bars"></i>
 </button>

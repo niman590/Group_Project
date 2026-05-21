@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the Add New Deed page for admins to create a deed record with ownership history.
+Input - Current year value, Flask/Jinja routes, flash messages, admin sidebar, and deed form data.
+Output - Admin deed creation form with deed details, dynamic ownership rows, and save action.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-04-15
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,6 +17,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='admin_sidebar.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
+    <!-- Stores the current year for frontend deed form validation. -->
     <script>
     window.ADD_DEED_CURRENT_YEAR = Number("{{ current_year | default(2026) }}");
     </script>
@@ -20,6 +28,7 @@
         {% include 'partials/admin_sidebar.html' %}
 
         <main class="main-content">
+            <!-- Page heading section for the admin deed creation module. -->
             <header class="topbar">
                 <div class="topbar-content">
                     <div class="page-heading">
@@ -30,6 +39,7 @@
                 </div>
             </header>
 
+            <!-- Displays Flask flash messages after save or validation actions. -->
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
             {% for category, message in messages %}
@@ -38,6 +48,7 @@
             {% endif %}
             {% endwith %}
 
+            <!-- Main form used to submit the new deed details and ownership history. -->
             <form method="POST" action="{{ url_for('admin.admin_add_deed') }}" class="deed-form-panel" id="addDeedForm">
                 <section class="panel deed-panel">
                     <div class="panel-header">
@@ -47,6 +58,7 @@
                         </div>
                     </div>
 
+                    <!-- Basic deed information fields required before saving the deed record. -->
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="deed_number">Deed Number</label>
@@ -78,6 +90,7 @@
                         </button>
                     </div>
 
+                    <!-- JavaScript adds ownership transaction rows inside this container. -->
                     <div id="owners-container" class="owners-container"></div>
 
                     <div class="helper-note">

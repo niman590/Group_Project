@@ -16,6 +16,11 @@ from routes.admin_routes import (
 
 
 @admin_bp.route("/admin/users")
+# Purpose - Display the admin user management page with user statistics and search results.
+# Input - Admin session state and optional search query from the request.
+# Output - Rendered admin user management page with user list and account summary counts.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-16
 def admin_users():
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -102,6 +107,11 @@ def admin_users():
 
 
 @admin_bp.route("/admin/users/create-admin", methods=["POST"])
+# Purpose - Create a new administrator account after validating personal details, employee ID, NIC, and password.
+# Input - Admin creation form data submitted from the user management page.
+# Output - Redirect response with success or error message after creating the admin account.
+# Author - Nadeeja Ayeshan
+# Date - 2026-04-18
 def create_admin_user():
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -249,6 +259,11 @@ def create_admin_user():
 
 
 @admin_bp.route("/admin/users/<int:user_id>/toggle-status", methods=["POST"])
+# Purpose - Activate or deactivate a user account while protecting system admin and current admin accounts.
+# Input - Target user ID and current admin session state.
+# Output - Redirect response after updating account status and clearing lockout data when reactivated.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-20
 def toggle_user_status(user_id):
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -337,6 +352,11 @@ def toggle_user_status(user_id):
 
 
 @admin_bp.route("/admin/users/<int:user_id>/make-admin", methods=["POST"])
+# Purpose - Promote a standard user to administrator by assigning a valid employee ID.
+# Input - Target user ID, employee ID form value, and current admin session state.
+# Output - Redirect response after updating admin privileges or showing validation errors.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-23
 def make_admin(user_id):
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -419,6 +439,11 @@ def make_admin(user_id):
 
 
 @admin_bp.route("/admin/users/<int:user_id>/remove-admin", methods=["POST"])
+# Purpose - Remove administrator privileges from a user while preventing unsafe admin access changes.
+# Input - Target user ID and current admin session state.
+# Output - Redirect response after removing admin access or showing protection errors.
+# Author - Nadeeja Ayeshan
+# Date - 2026-04-25
 def remove_admin(user_id):
     admin_user, redirect_response = admin_required()
     if redirect_response:
@@ -474,6 +499,11 @@ def remove_admin(user_id):
 
 
 @admin_bp.route("/admin/users/<int:user_id>/delete", methods=["POST"])
+# Purpose - Delete a user account and remove related property, document, transaction, valuation, and plan records.
+# Input - Target user ID and current admin session state.
+# Output - Redirect response after safely deleting the user and dependent records.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-28
 def delete_user(user_id):
     admin_user, redirect_response = admin_required()
     if redirect_response:

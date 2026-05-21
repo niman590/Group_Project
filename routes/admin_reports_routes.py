@@ -62,6 +62,12 @@ TABLE_HEADER_STYLE = ParagraphStyle(
 )
 
 
+# Purpose - Retrieve the currently logged-in user from the session and database.
+# Input - User ID stored in the active Flask session.
+# Output - Current user record, or None when no valid session user exists.
+# Author - Nadeeja Ayeshan
+# Date - 2026-04-05
+
 def get_current_user():
     if "user_id" not in session:
         return None
@@ -81,6 +87,12 @@ def get_current_user():
     return user
 
 
+# Purpose - Verify that the current session belongs to an authenticated administrator.
+# Input - Current user session and role details.
+# Output - Admin user with no redirect, or a redirect response when access is invalid.
+# Author - Prashan Kalhara
+# Date - 2026-04-06
+
 def admin_required():
     user = get_current_user()
     if not user:
@@ -94,6 +106,12 @@ def admin_required():
     return user, None
 
 
+# Purpose - Safely execute a single-value database query for report statistics.
+# Input - Database cursor, SQL query, result key, default value, and query parameters.
+# Output - Requested database value, or the default value if the query fails.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-08
+
 def safe_fetchone_value(cursor, query, key, default=0, params=()):
     try:
         cursor.execute(query, params)
@@ -105,6 +123,12 @@ def safe_fetchone_value(cursor, query, key, default=0, params=()):
     return default
 
 
+# Purpose - Safely execute a database query that returns multiple report rows.
+# Input - Database cursor, SQL query, and optional query parameters.
+# Output - List of database rows, or an empty list if the query fails.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-08
+
 def safe_fetchall(cursor, query, params=()):
     try:
         cursor.execute(query, params)
@@ -112,6 +136,12 @@ def safe_fetchall(cursor, query, params=()):
     except Exception:
         return []
 
+
+# Purpose - Validate and standardize date filter values submitted from the reports page.
+# Input - Date text from the HTTP request.
+# Output - Date string in YYYY-MM-DD format, or an empty string for invalid input.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-10
 
 def normalize_date_input(value):
     if not value:
@@ -122,6 +152,12 @@ def normalize_date_input(value):
         return ""
 
 
+# Purpose - Convert report filter dates into readable text for pages and PDF subtitles.
+# Input - Date string in YYYY-MM-DD format.
+# Output - Formatted display date, original value, or 'Any time' when empty.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-10
+
 def format_date_for_display(value):
     if not value:
         return "Any time"
@@ -130,6 +166,12 @@ def format_date_for_display(value):
     except Exception:
         return value
 
+
+# Purpose - Create reusable SQL date filter conditions for report queries.
+# Input - Database column name, start date, and end date.
+# Output - SQL date condition string with matching parameter values.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-11
 
 def build_date_clause(column_name, start_date, end_date):
     conditions = []
@@ -148,6 +190,12 @@ def build_date_clause(column_name, start_date, end_date):
 
     return "", params
 
+
+# Purpose - Generate chart images for admin report analytics.
+# Input - Chart labels, values, title, and chart type.
+# Output - Base64 encoded PNG chart image, or None if chart generation fails.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-15
 
 def build_chart_image(labels, values, title, kind="bar"):
     try:
@@ -204,6 +252,12 @@ def build_chart_image(labels, values, title, kind="bar"):
     return base64.b64encode(image_buffer.read()).decode("utf-8")
 
 
+# Purpose - Prepare the user registration chart used in admin reports.
+# Input - Database cursor with optional start and end date filters.
+# Output - Base64 encoded user registration chart image.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-16
+
 def get_user_registration_chart(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
     rows = safe_fetchall(
@@ -235,6 +289,12 @@ def get_user_registration_chart(cursor, start_date="", end_date=""):
     return build_chart_image(labels, values, "User Registrations", kind="bar")
 
 
+# Purpose - Prepare the planning application status chart used in admin reports.
+# Input - Database cursor with optional start and end date filters.
+# Output - Base64 encoded planning application status chart image.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-16
+
 def get_application_status_chart(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
     rows = safe_fetchall(
@@ -259,6 +319,12 @@ def get_application_status_chart(cursor, start_date="", end_date=""):
     return build_chart_image(labels, values, "Planning Application Status", kind="pie")
 
 
+# Purpose - Fetch recently registered users for the admin reports page and PDF exports.
+# Input - Database cursor with optional start and end date filters.
+# Output - List of recent user records limited to the latest 50 results.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-18
+
 def get_recent_users(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("created_at", start_date, end_date)
 
@@ -274,6 +340,12 @@ def get_recent_users(cursor, start_date="", end_date=""):
         tuple(params),
     )
 
+
+# Purpose - Fetch recent planning applications with applicant details for reports.
+# Input - Database cursor with optional start and end date filters.
+# Output - List of recent planning application records limited to the latest 50 results.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-18
 
 def get_recent_applications(cursor, start_date="", end_date=""):
     date_clause, params = build_date_clause("pa.created_at", start_date, end_date)
@@ -297,6 +369,12 @@ def get_recent_applications(cursor, start_date="", end_date=""):
         tuple(params),
     )
 
+
+# Purpose - Create the base PDF canvas with the Civic Plan report header.
+# Input - PDF file path, report title, and optional subtitle.
+# Output - Prepared PDF canvas with page size and starting Y position.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-22
 
 def create_pdf_canvas(filepath, title, subtitle=None):
     pdf = canvas.Canvas(filepath, pagesize=A4)
@@ -334,6 +412,12 @@ def create_pdf_canvas(filepath, title, subtitle=None):
     return pdf, width, height, y
 
 
+# Purpose - Check available PDF space and create a new page when needed.
+# Input - PDF canvas, current Y position, page height, and required space.
+# Output - Updated Y position on the current page or a new page.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-22
+
 def ensure_pdf_space(pdf, y, height, needed_space=70):
     if y < max(needed_space, PDF_BOTTOM_MARGIN):
         pdf.showPage()
@@ -354,6 +438,12 @@ def ensure_pdf_space(pdf, y, height, needed_space=70):
     return y
 
 
+# Purpose - Draw a styled section heading inside the generated PDF report.
+# Input - PDF canvas, section title, current Y position, and page height.
+# Output - Updated Y position after drawing the section heading.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-23
+
 def draw_section_title(pdf, title, y, height):
     y = ensure_pdf_space(pdf, y, height, 90)
     pdf.setFillColor(colors.HexColor("#123f82"))
@@ -368,6 +458,12 @@ def draw_section_title(pdf, title, y, height):
     return y
 
 
+# Purpose - Draw a label and value line inside the generated PDF report.
+# Input - PDF canvas, label, value, current Y position, and page height.
+# Output - Updated Y position after drawing the key-value line.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-23
+
 def draw_kv_line(pdf, label, value, y, height):
     y = ensure_pdf_space(pdf, y, height, 60)
     pdf.setFont("Helvetica-Bold", 10)
@@ -378,6 +474,12 @@ def draw_kv_line(pdf, label, value, y, height):
     return y
 
 
+# Purpose - Convert a base64 chart image into a ReportLab image reader object.
+# Input - Base64 encoded chart image string.
+# Output - ImageReader object, or None if decoding fails.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-24
+
 def decode_chart_image(image_b64):
     if not image_b64:
         return None
@@ -386,6 +488,12 @@ def decode_chart_image(image_b64):
     except Exception:
         return None
 
+
+# Purpose - Draw a chart panel with title and image inside the generated PDF report.
+# Input - PDF canvas, chart title, base64 image, current Y position, page height, and chart height.
+# Output - Updated Y position after drawing the chart block.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-24
 
 def draw_chart_block(pdf, title, image_b64, y, height, chart_height=185):
     if not image_b64:
@@ -415,6 +523,12 @@ def draw_chart_block(pdf, title, image_b64, y, height, chart_height=185):
     return y - chart_height - 34
 
 
+# Purpose - Shorten long table text so it fits inside a fixed PDF column width.
+# Input - Text value, available width, font name, and font size.
+# Output - Original or trimmed text with ellipsis when required.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-25
+
 def fit_text(value, width, font_name="Helvetica", font_size=8):
     value = "" if value is None else str(value)
     if not value:
@@ -426,6 +540,12 @@ def fit_text(value, width, font_name="Helvetica", font_size=8):
         trimmed = trimmed[:-1]
     return (trimmed + "...") if trimmed else "-"
 
+
+# Purpose - Create a safe wrapped paragraph for text displayed inside PDF tables.
+# Input - Text value, available width, and paragraph style.
+# Output - ReportLab paragraph object with calculated height.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-25
 
 def wrap_paragraph(text, width, style):
     paragraph = Paragraph(
@@ -439,6 +559,12 @@ def wrap_paragraph(text, width, style):
     return paragraph, max(h, style.leading)
 
 
+# Purpose - Draw a multi-row PDF table with wrapped text and automatic page handling.
+# Input - PDF canvas, table headers, rows, column widths, current Y position, page height, and body style.
+# Output - Updated Y position after drawing the table.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-26
+
 def draw_wrapped_table(pdf, headers, rows, col_widths, y, height, body_style=BODY_STYLE):
     if not rows:
         return y
@@ -450,6 +576,12 @@ def draw_wrapped_table(pdf, headers, rows, col_widths, y, height, body_style=BOD
     cell_padding_y = 6
     min_row_height = 24
 
+    # Purpose - Draw the header row for the wrapped PDF table.
+    # Input - Current Y position used by the parent table drawing function.
+    # Output - Updated Y position after drawing the table header.
+    # Author - Mora Mudalige Thenuk Sandul
+    # Date - 2026-04-26
+    
     def draw_header(current_y):
         current_y = ensure_pdf_space(pdf, current_y, height, 100)
         pdf.setFillColor(colors.HexColor("#eaf1fb"))
@@ -495,6 +627,12 @@ def draw_wrapped_table(pdf, headers, rows, col_widths, y, height, body_style=BOD
 
     return y - 6
 
+
+# Purpose - Generate the complete admin summary PDF with statistics, charts, users, and applications.
+# Input - Report data dictionary containing dashboard counts, charts, and recent records.
+# Output - Generated admin report PDF file path.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-01
 
 def generate_admin_report_pdf(report_data):
     filename = f"admin_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -579,6 +717,12 @@ def generate_admin_report_pdf(report_data):
     return filepath
 
 
+# Purpose - Generate a PDF report for registered users within the selected date range.
+# Input - Start date, end date, user records, and optional user registration chart.
+# Output - Generated user registration report PDF file path.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-02
+
 def generate_user_registration_pdf(start_date, end_date, users, user_chart=None):
     filename = f"user_registration_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     filepath = os.path.join(REPORT_PDF_FOLDER, filename)
@@ -630,6 +774,12 @@ def generate_user_registration_pdf(start_date, end_date, users, user_chart=None)
     pdf.save()
     return filepath
 
+
+# Purpose - Generate a PDF report for applicants who submitted planning applications.
+# Input - Start date, end date, application records, and optional planning status chart.
+# Output - Generated applicant submission report PDF file path.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-02
 
 def generate_application_applicants_pdf(start_date, end_date, applications, planning_chart=None):
     filename = f"application_applicants_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -683,6 +833,12 @@ def generate_application_applicants_pdf(start_date, end_date, applications, plan
     pdf.save()
     return filepath
 
+
+# Purpose - Display the admin reports page with system counts, date filters, and recent records.
+# Input - Admin session state and report filter values from the HTTP request.
+# Output - Rendered admin reports page.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-05
 
 @admin_reports_bp.route("/admin/reports")
 def admin_reports():
@@ -744,6 +900,12 @@ def admin_reports():
     )
 
 
+# Purpose - Download the complete admin reports summary as a PDF file.
+# Input - Admin session state and current report data from the database.
+# Output - Generated PDF file response sent as an attachment.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-06
+
 @admin_reports_bp.route("/admin/reports/download-pdf")
 def download_admin_reports_pdf():
     admin_user, redirect_response = admin_required()
@@ -774,6 +936,12 @@ def download_admin_reports_pdf():
     return send_file(filepath, as_attachment=True)
 
 
+# Purpose - Download the filtered user registration report as a PDF file.
+# Input - Admin session state and user date filter values from the HTTP request.
+# Output - Generated user registration PDF file response sent as an attachment.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-06
+
 @admin_reports_bp.route("/admin/reports/download-users-pdf")
 def download_user_registration_pdf():
     admin_user, redirect_response = admin_required()
@@ -794,6 +962,12 @@ def download_user_registration_pdf():
     filepath = generate_user_registration_pdf(user_start_date, user_end_date, users, user_chart=user_chart)
     return send_file(filepath, as_attachment=True)
 
+
+# Purpose - Download the filtered applicant submission report as a PDF file.
+# Input - Admin session state and applicant date filter values from the HTTP request.
+# Output - Generated applicant PDF file response sent as an attachment.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-06
 
 @admin_reports_bp.route("/admin/reports/download-applicants-pdf")
 def download_applicants_pdf():

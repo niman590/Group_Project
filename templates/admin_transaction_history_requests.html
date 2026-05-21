@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the admin transaction history request page for reviewing deed update and new deed requests.
+Input - Transaction request records, proof document paths, request statuses, flash messages, and admin action routes.
+Output - Admin request management page with summary cards, request table, proof links, approve/reject actions, and new deed indicators.
+Author - Niman Nethmika Rathnayake
+Date - 2026-04-21
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -21,6 +28,7 @@
 
         <main class="main-content">
 
+            <!-- Page heading and shortcut to add a new deed manually. -->
             <header class="transaction-hero">
                 <div class="hero-left">
                     <span class="page-kicker">Administration</span>
@@ -36,6 +44,7 @@
                 </div>
             </header>
 
+            <!-- Displays useful flash messages while hiding the normal login success message. -->
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
             {% set visible_messages = [] %}
@@ -63,6 +72,7 @@
             {% endif %}
             {% endwith %}
 
+            <!-- Summary cards showing the main transaction request counts. -->
             <section class="stats-section">
                 <div class="section-head">
                     <div>
@@ -131,6 +141,7 @@
                 </div>
             </section>
 
+            <!-- Main request table where admins review transaction update and new deed requests. -->
             <section class="request-panel">
                 <div class="panel-header">
                     <div>
@@ -158,6 +169,7 @@
 
                         <tbody>
                             {% for req in requests %}
+                            <!-- Detects whether the request is for a brand-new deed number or an existing deed update. -->
                             {% set raw_note = req['notes'] if req['notes'] else '' %}
                             {% set status_text = req['status'] if req['status'] else '' %}
 
@@ -315,6 +327,7 @@
                                 </td>
                             </tr>
                             {% else %}
+                            <!-- Empty state shown when no transaction requests are available. -->
                             <tr>
                                 <td colspan="9">
                                     <div class="empty-state">

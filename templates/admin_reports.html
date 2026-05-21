@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the admin reports page with user, application, transaction, and exportable report summaries.
+Input - Admin report totals, recent users, recent applications, date filters, flash messages, and PDF download routes.
+Output - Admin reports dashboard with summary cards, filtered tables, and downloadable PDF report actions.
+Author - Niman Nethmika Rathnayake
+Date - 2026-04-19
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -16,6 +23,7 @@
         {% include 'partials/admin_sidebar.html' %}
 
         <main class="main-content">
+            <!-- Page heading and full admin report PDF download action. -->
             <header class="topbar report-page-topbar">
                 <div>
                     <span class="page-label">Admin Reports</span>
@@ -30,6 +38,7 @@
                 </div>
             </header>
 
+            <!-- Displays Flask flash messages for report actions or errors. -->
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
             <div class="flash-messages">
@@ -40,6 +49,7 @@
             {% endif %}
             {% endwith %}
 
+            <!-- Summary cards showing main user and planning application report totals. -->
             <section class="stats-section">
                 <div class="section-head">
                     <div>
@@ -88,6 +98,7 @@
                 </div>
             </section>
 
+            <!-- Report summary panels for planning applications and transaction requests. -->
             <section class="reports-grid">
                 <div class="panel report-panel">
                     <div class="panel-header">
@@ -150,6 +161,7 @@
                 </div>
             </section>
 
+            <!-- User registration report table with date filters and separate PDF export. -->
             <section class="panel report-table-panel">
                 <div class="section-top">
                     <div>
@@ -163,6 +175,7 @@
                     </a>
                 </div>
 
+                <!-- User registration filter form keeps applicant filter values while applying user date filters. -->
                 <form class="inline-filter-form" method="GET" action="{{ url_for('admin_reports.admin_reports') }}">
                     <input type="hidden" name="applicant_start_date" value="{{ applicant_start_date if applicant_start_date else '' }}">
                     <input type="hidden" name="applicant_end_date" value="{{ applicant_end_date if applicant_end_date else '' }}">
@@ -249,6 +262,7 @@
                     </div>
                 </form>
 
+                <!-- Shows the selected user registration filter period. -->
                 {% if user_start_date or user_end_date %}
                 <div class="filter-pill-row">
                     <span class="badge user">
@@ -260,6 +274,7 @@
                 </div>
                 {% endif %}
 
+                <!-- Table of users who registered accounts within the selected filter period. -->
                 <div class="table-wrap">
                     <table>
                         <thead>
@@ -291,6 +306,7 @@
                     </table>
                 </div>
 
+                <!-- Expands the hidden user rows when more than five records are available. -->
                 {% if recent_users and recent_users|length > 5 %}
                 <div class="view-all-wrap">
                     <button type="button" class="btn secondary small view-all-btn" data-target="user-row">
@@ -300,6 +316,7 @@
                 {% endif %}
             </section>
 
+            <!-- Planning application applicant report table with date filters and separate PDF export. -->
             <section class="panel report-table-panel">
                 <div class="section-top">
                     <div>
@@ -313,6 +330,7 @@
                     </a>
                 </div>
 
+                <!-- Applicant filter form keeps user registration filter values while applying applicant date filters. -->
                 <form class="inline-filter-form" method="GET" action="{{ url_for('admin_reports.admin_reports') }}">
                     <input type="hidden" name="user_start_date" value="{{ user_start_date if user_start_date else '' }}">
                     <input type="hidden" name="user_end_date" value="{{ user_end_date if user_end_date else '' }}">
@@ -399,6 +417,7 @@
                     </div>
                 </form>
 
+                <!-- Shows the selected planning application applicant filter period. -->
                 {% if applicant_start_date or applicant_end_date %}
                 <div class="filter-pill-row">
                     <span class="badge user">
@@ -410,6 +429,7 @@
                 </div>
                 {% endif %}
 
+                <!-- Table of applicants who submitted planning applications within the selected filter period. -->
                 <div class="table-wrap">
                     <table>
                         <thead>
@@ -451,6 +471,7 @@
                     </table>
                 </div>
 
+                <!-- Expands the hidden applicant rows when more than five records are available. -->
                 {% if recent_applications and recent_applications|length > 5 %}
                 <div class="view-all-wrap">
                     <button type="button" class="btn secondary small view-all-btn" data-target="application-row">

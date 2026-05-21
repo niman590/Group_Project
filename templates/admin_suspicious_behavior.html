@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the admin suspicious behavior monitoring page for reviewing system security events.
+Input - Security overview totals, suspicious event records, filter values, rule names, flash messages, and PDF export routes.
+Output - Security monitoring dashboard with summary cards, filters, suspicious event table, review/resolve actions, PDF download, and confirmation modal.
+Author - Nadeeja Ayeshan / R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-04-20
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,6 +24,7 @@
         {% include 'partials/admin_sidebar.html' %}
 
         <main class="main-content">
+            <!-- Page heading for the security monitoring module. -->
             <header class="topbar">
                 <div class="topbar-copy">
                     <span class="page-label">Security Monitoring</span>
@@ -25,6 +33,7 @@
                 </div>
             </header>
 
+            <!-- Displays flash messages for review, resolve, filter, and download actions. -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 <div class="flash-stack auto-dismiss-flash" id="securityFlashStack">
@@ -37,6 +46,7 @@
                 {% endif %}
             {% endwith %}
 
+            <!-- Summary cards showing suspicious event totals and priority security alerts. -->
             <section class="stats-section">
                 <div class="section-head">
                     <div>
@@ -85,6 +95,7 @@
                 </div>
             </section>
 
+            <!-- Filter panel used to narrow suspicious events by severity, status, rule, and date range. -->
             <section class="stats-section">
                 <div class="security-filter-panel">
                     <div class="section-head">
@@ -144,6 +155,7 @@
                                 </select>
                             </div>
 
+                            <!-- Start date selectors are converted into the hidden start_date field by JavaScript. -->
                             <div class="filter-field date-field">
                                 <label>Start Date</label>
 
@@ -179,6 +191,7 @@
                                 <input type="hidden" id="start_date" name="start_date" value="{{ start_date }}">
                             </div>
 
+                            <!-- End date selectors are converted into the hidden end_date field by JavaScript. -->
                             <div class="filter-field date-field">
                                 <label>End Date</label>
 
@@ -230,6 +243,7 @@
                 </div>
             </section>
 
+            <!-- Suspicious event table and admin actions for review, resolve, and filtered PDF export. -->
             <section class="stats-section">
                 <div class="section-head events-section-head">
                     <div>
@@ -291,6 +305,7 @@
 
                         <tbody>
                             {% for event in events %}
+                            <!-- High severity rows are highlighted to make critical events easier to notice. -->
                             <tr class="{% if event['severity'] | lower == 'high' %}high-row{% endif %}">
                                 <td>{{ event['created_at'] or '-' }}</td>
 
@@ -366,6 +381,7 @@
         </main>
     </div>
 
+    <!-- Reusable confirmation modal for resolving security events and bulk security actions. -->
     <div class="system-modal-overlay" id="systemConfirmOverlay" aria-hidden="true">
         <div class="system-modal" role="dialog" aria-modal="true" aria-labelledby="systemConfirmTitle">
             <div class="system-modal-header">
@@ -394,6 +410,7 @@
         </div>
     </div>
 
+    <!-- Sends selected filter date values to the security page JavaScript. -->
     <script>
         window.securityFilterDates = {
             startDate: "{{ start_date }}",

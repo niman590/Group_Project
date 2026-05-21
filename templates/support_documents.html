@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the Support Documents page for citizens to search, filter, view, and access project support resources.
+Input - User sidebar, support document records, search/filter controls, document metadata, modal data attributes, and support documents JavaScript.
+Output - Citizen resource center page with quick support topics, searchable document cards, category/audience filters, empty state, and document details modal.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-05-09
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,6 +25,7 @@
         <main class="main-content">
             <div class="support-page">
 
+                <!-- Page header introducing the citizen resource center and available support material. -->
                 <header class="support-header">
                     <div class="header-text">
                         <span class="page-kicker">Citizen Resource Center</span>
@@ -34,6 +42,7 @@
                     </div>
                 </header>
 
+                <!-- Quick topic panel showing the most common support areas for citizens. -->
                 <section class="top-grid single-panel">
                     <div class="info-panel hero-panel">
                         <div class="panel-head">
@@ -55,6 +64,7 @@
                     </div>
                 </section>
 
+                <!-- Toolbar used to search documents and filter them by category or audience. -->
                 <section class="toolbar">
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -77,8 +87,10 @@
                     </select>
                 </section>
 
+                <!-- Document card grid generated from backend document records. -->
                 <section class="documents-grid" id="documentsGrid">
                     {% for doc in documents %}
+                    <!-- Each document card stores searchable and modal data for frontend filtering and detail preview. -->
                     <article class="document-card"
                         data-title="{{ doc.title|lower }}"
                         data-description="{{ doc.description|lower }}"
@@ -117,6 +129,7 @@
                     {% endfor %}
                 </section>
 
+                <!-- Empty state shown when search or filter results do not match any documents. -->
                 <div class="empty-state hidden" id="emptyState">
                     <i class="fa-solid fa-folder-open"></i>
                     <h3>No matching documents found</h3>
@@ -127,6 +140,7 @@
         </main>
     </div>
 
+    <!-- Modal used to show selected support document details and available open/download actions. -->
     <div class="modal-overlay hidden" id="docModal">
         <div class="modal-card">
             <button class="close-modal" id="closeModalBtn" type="button">

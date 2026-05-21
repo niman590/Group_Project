@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the Civic Plan admin dashboard with application, security, report, and valuation summaries.
+Input - Logged-in admin details, dashboard counts, chart images, notifications, filters, and land valuation data.
+Output - Admin dashboard page with overview cards, security alerts, date filters, charts, and land valuation forecast section.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-04-16
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,6 +24,7 @@
         {% include 'partials/admin_sidebar.html' %}
 
         <main class="main-content">
+            <!-- Displays the admin dashboard heading and logged-in admin account shortcut. -->
             <header class="topbar">
                 <div class="topbar-copy">
                     <span class="page-label">Admin Dashboard</span>
@@ -33,6 +41,7 @@
                 </a>
             </header>
 
+            <!-- Shows main planning application totals for the selected dashboard period. -->
             <section class="stats-section">
                 <div class="section-head">
                     <div>
@@ -85,6 +94,7 @@
                 </div>
             </section>
 
+            <!-- Summarizes suspicious behavior and security events for admin monitoring. -->
             <section class="stats-section">
                 <div class="section-head section-head-with-action">
                     <div>
@@ -133,6 +143,7 @@
             </section>
 
 
+            <!-- Displays the latest unread high-priority admin security notification. -->
             <section class="stats-section">
                 <div class="admin-notifications-card">
                     <div class="admin-notifications-header">
@@ -183,6 +194,7 @@
                 </div>
             </section>
 
+            <!-- Provides quick and custom date filters for dashboard analytics. -->
             <section class="filter-section">
                 <div class="section-head">
                     <div>
@@ -285,6 +297,7 @@
                 </div>
             </section>
 
+            <!-- Shows Python-generated chart images for users and planning applications. -->
             <section class="charts-section">
                 <div class="section-head">
                     <div>
@@ -331,6 +344,7 @@
                 </div>
             </section>
 
+            <!-- Displays land valuation analytics, city counts, and forecast chart controls. -->
             <section class="land-valuation-section">
                 <div class="section-head">
                     <div>
@@ -474,6 +488,7 @@
         </main>
     </div>
 
+    <!-- Provides initial valuation chart data and API route for the dashboard JavaScript. -->
     <script id="initialLandValuationDataJson" type="application/json">
         {{ land_valuation_chart | default({}) | tojson }}
     </script>

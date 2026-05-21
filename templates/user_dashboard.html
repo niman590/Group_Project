@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the Civic Plan citizen dashboard with account summary, application stats, quick services, notifications, valuation summary, and chatbot.
+Input - Logged-in user details, dashboard statistics, unread notifications, notification records, alerts, application history, latest valuation, support documents, and user dashboard JavaScript.
+Output - Citizen dashboard page with topbar, notification panel, quick summary cards, service shortcuts, pending alerts, application history, profile summary, valuation overview, support document links, and AI assistant widget.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-05-11
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,6 +24,7 @@
 
         <main class="main-content">
 
+            <!-- Dashboard topbar showing welcome text, notification dropdown, and user account shortcut. -->
             <header class="topbar compact-topbar reveal-up">
                 <div class="topbar-copy">
                     <span class="page-kicker">Citizen Dashboard</span>
@@ -25,6 +33,7 @@
                 </div>
 
                 <div class="topbar-actions">
+                    <!-- Notification button and dropdown panel for latest citizen updates. -->
                     <div class="notification-wrap">
                         <button
                             class="icon-btn notification-toggle"
@@ -59,6 +68,7 @@
                             <div class="notification-panel-body" id="notificationList">
                                 {% if notifications %}
                                     {% for notification in notifications %}
+                                    <!-- Individual notification item stores IDs for read status and application navigation. -->
                                     <div class="notification-item {% if notification['is_read'] == 0 %}unread{% endif %}"
                                          data-id="{{ notification['notification_id'] }}"
                                          data-application-id="{{ notification['application_id'] or '' }}">
@@ -88,6 +98,7 @@
                         </div>
                     </div>
 
+                    <!-- User chip links to the My Account page and shows basic identity details. -->
                     <a href="{{ url_for('user.account') }}" class="user-chip user-chip-link" title="Go to My Account">
                         <div class="avatar">
                             {{ user['first_name'][0] | upper if user and user['first_name'] else 'U' }}
@@ -103,6 +114,7 @@
                 </div>
             </header>
 
+            <!-- Overview section showing key user statistics and popular service shortcuts. -->
             <section class="overview-services-box reveal-up">
                 <div class="overview-box-header">
                     <div>
@@ -112,6 +124,7 @@
                     </div>
                 </div>
 
+                <!-- Summary cards for applications, approvals, pending reviews, and notifications. -->
                 <div class="stats-grid inside-overview-grid">
                     <div class="stat-card reveal-up">
                         <div class="stat-icon blue"><i class="fa-solid fa-file-circle-check"></i></div>
@@ -146,6 +159,7 @@
                     </div>
                 </div>
 
+                <!-- Quick action cards for the most-used citizen modules. -->
                 <div class="action-grid inside-overview-grid">
                     <a href="{{ url_for('submit_documents.submit_documents') }}" class="action-card reveal-up">
                         <div class="action-icon"><i class="fa-solid fa-file-arrow-up"></i></div>
@@ -180,6 +194,7 @@
             <section class="content-grid">
                 <div class="left-column">
 
+                    <!-- Pending requests and alerts panel showing recent important account activity. -->
                     <div class="panel reveal-up">
                         <div class="panel-header">
                             <div>
@@ -212,6 +227,7 @@
                         </div>
                     </div>
 
+                    <!-- Application history table showing the user's latest submitted records and outcomes. -->
                     <div class="panel reveal-up">
                         <div class="panel-header">
                             <div>
@@ -255,6 +271,7 @@
 
                 <div class="right-column">
 
+                    <!-- Profile summary panel with quick access to edit account details. -->
                     <div class="panel reveal-up">
                         <div class="panel-header">
                             <div>
@@ -280,6 +297,7 @@
                         </div>
                     </div>
 
+                    <!-- Land valuation panel showing the latest saved valuation or empty valuation state. -->
                     <div class="panel reveal-up">
                         <div class="panel-header">
                             <div>
@@ -324,6 +342,7 @@
                         </div>
                     </div>
 
+                    <!-- Support documents panel with useful citizen help and reference document links. -->
                     <div class="panel reveal-up">
                         <div class="panel-header">
                             <div>
@@ -351,6 +370,7 @@
         </main>
     </div>
 
+    <!-- Floating chatbot widget for quick Civic Plan service and navigation support. -->
     <button class="chatbot-button" id="chatbotButton" aria-label="Open AI Assistant">
         <i class="fa-solid fa-comment-dots"></i>
     </button>

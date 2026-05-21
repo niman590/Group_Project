@@ -29,6 +29,11 @@ SYSTEM_ADMIN_EMPLOYEE_ID = "ADMIN001"
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
+# Purpose - Read the users table schema to identify available database columns.
+# Input - Active database connection for the users table.
+# Output - Set of column names available in the users table.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-03-24
 def get_user_columns():
     conn = get_connection()
     cursor = conn.cursor()
@@ -38,10 +43,20 @@ def get_user_columns():
     return columns
 
 
+# Purpose - Check whether a specific column exists in the users table.
+# Input - Column name that needs to be checked.
+# Output - True if the column exists, otherwise False.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-03-24
 def has_column(column_name):
     return column_name in get_user_columns()
 
 
+# Purpose - Add missing login security columns to the users table when the system starts authentication checks.
+# Input - Current users table schema from the database.
+# Output - Updated users table with login attempt and account lockout fields.
+# Author - Nadeeja Ayeshan
+# Date - 2026-03-26
 def ensure_login_security_columns():
     conn = get_connection()
     cursor = conn.cursor()
@@ -73,14 +88,29 @@ def ensure_login_security_columns():
     conn.close()
 
 
+# Purpose - Get the current UTC time for login security and lockout calculations.
+# Input - No direct input.
+# Output - Current UTC datetime value.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-03-27
 def get_current_time():
     return datetime.utcnow()
 
 
+# Purpose - Format datetime values before storing them in the database.
+# Input - Datetime object that needs to be stored.
+# Output - Formatted datetime string using the system datetime format.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-03-27
 def format_datetime(value):
     return value.strftime(DATETIME_FORMAT)
 
 
+# Purpose - Convert stored datetime text back into a datetime object.
+# Input - Datetime string from the database.
+# Output - Parsed datetime object, or None when the value is invalid.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-03-27
 def parse_datetime(value):
     if not value:
         return None
@@ -91,24 +121,44 @@ def parse_datetime(value):
         return None
 
 
+# Purpose - Build a user's full display name from first name and last name fields.
+# Input - User database record.
+# Output - Formatted full name string.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-03-28
 def get_full_name(user):
     first_name = user["first_name"] if "first_name" in user.keys() and user["first_name"] else ""
     last_name = user["last_name"] if "last_name" in user.keys() and user["last_name"] else ""
     return f"{first_name} {last_name}".strip()
 
 
+# Purpose - Check whether the selected user has administrator privileges.
+# Input - User database record.
+# Output - True if the user is an admin, otherwise False.
+# Author - Nadeeja Ayeshan
+# Date - 2026-03-29
 def is_admin_user(user):
     if "is_admin" in user.keys():
         return bool(user["is_admin"])
     return False
 
 
+# Purpose - Check whether the selected user account is active and allowed to sign in.
+# Input - User database record.
+# Output - True if the account is active, otherwise False.
+# Author - Nadeeja Ayeshan
+# Date - 2026-03-29
 def is_active_user(user):
     if "is_active" in user.keys():
         return bool(user["is_active"])
     return True
 
 
+# Purpose - Identify the protected default system administrator account.
+# Input - User database record.
+# Output - True if the user matches the protected system admin account, otherwise False.
+# Author - Prashan Kalhara
+# Date - 2026-03-30
 def is_protected_system_admin(user):
     return (
         user is not None
@@ -121,24 +171,44 @@ def is_protected_system_admin(user):
     )
 
 
+# Purpose - Read the current login lockout stage for a user account.
+# Input - User database record.
+# Output - Integer lockout stage value.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-01
 def get_lockout_stage(user):
     if "lockout_stage" in user.keys() and user["lockout_stage"] is not None:
         return int(user["lockout_stage"])
     return LOCK_STAGE_NORMAL
 
 
+# Purpose - Read the number of failed login attempts before the first lockout stage.
+# Input - User database record.
+# Output - Failed login attempt count.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-01
 def get_failed_login_attempts(user):
     if "failed_login_attempts" in user.keys() and user["failed_login_attempts"] is not None:
         return int(user["failed_login_attempts"])
     return 0
 
 
+# Purpose - Read failed login attempts made after a temporary lock has expired.
+# Input - User database record.
+# Output - Post-lock failed attempt count.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-01
 def get_post_lock_failed_attempts(user):
     if "post_lock_failed_attempts" in user.keys() and user["post_lock_failed_attempts"] is not None:
         return int(user["post_lock_failed_attempts"])
     return 0
 
 
+# Purpose - Get the time until which a user account is locked.
+# Input - User database record containing account lock data.
+# Output - Lock expiry datetime, or None when the account is not time locked.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-02
 def get_locked_until(user):
     if "account_locked_until" not in user.keys():
         return None
@@ -146,6 +216,11 @@ def get_locked_until(user):
     return parse_datetime(user["account_locked_until"])
 
 
+# Purpose - Check whether a user account is still inside an active time-based lock period.
+# Input - User database record.
+# Output - True if the account is currently time locked, otherwise False.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-02
 def is_currently_time_locked(user):
     locked_until = get_locked_until(user)
 
@@ -155,6 +230,11 @@ def is_currently_time_locked(user):
     return get_current_time() < locked_until
 
 
+# Purpose - Calculate the remaining lockout time in minutes for a locked user account.
+# Input - User database record.
+# Output - Remaining lockout minutes as an integer.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-03
 def get_remaining_lock_minutes(user):
     locked_until = get_locked_until(user)
 
@@ -169,6 +249,11 @@ def get_remaining_lock_minutes(user):
     return max(1, (remaining_seconds + 59) // 60)
 
 
+# Purpose - Reload the latest user record after security-related database updates.
+# Input - User ID of the account to refresh.
+# Output - Updated user database record, or None if not found.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-04
 def refresh_user(user_id):
     conn = get_connection()
     cursor = conn.cursor()
@@ -188,6 +273,11 @@ def refresh_user(user_id):
     return user
 
 
+# Purpose - Store authenticated user details in the Flask session after successful login.
+# Input - User database record after password verification.
+# Output - Updated session values for the logged-in user.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-04
 def sync_session_user(user):
     session["user_id"] = user["user_id"]
     session["first_name"] = user["first_name"] if "first_name" in user.keys() else ""
@@ -202,6 +292,11 @@ def sync_session_user(user):
     session["employee_id"] = user["employee_id"] if "employee_id" in user.keys() and user["employee_id"] else ""
 
 
+# Purpose - Redirect users to the correct dashboard based on their role.
+# Input - Authenticated user database record.
+# Output - Redirect response to the admin dashboard or user dashboard.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-05
 def redirect_after_login(user):
     if is_admin_user(user):
         try:
@@ -213,6 +308,11 @@ def redirect_after_login(user):
     return redirect(url_for("user.user_dashboard"))
 
 
+# Purpose - Clear failed login counters and lockout values after a successful login or password update.
+# Input - User ID of the account to reset.
+# Output - Updated database record with login security values cleared.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-06
 def reset_login_security_state(user_id):
     conn = get_connection()
     cursor = conn.cursor()
@@ -233,6 +333,11 @@ def reset_login_security_state(user_id):
     conn.close()
 
 
+# Purpose - Apply the first temporary lock after repeated failed login attempts.
+# Input - User database record that reached the first failed attempt limit.
+# Output - Redirect response with a temporary lock warning message.
+# Author - Nadeeja Ayeshan
+# Date - 2026-04-07
 def activate_15_minute_lock(user):
     locked_until = get_current_time() + timedelta(minutes=INITIAL_LOCK_MINUTES)
 
@@ -266,6 +371,11 @@ def activate_15_minute_lock(user):
     return redirect(url_for("auth.login"))
 
 
+# Purpose - Apply a 24-hour security lock and record a high-risk login event.
+# Input - User database record and login identifier used in the failed attempt.
+# Output - Redirect response with a high-risk lockout warning message.
+# Author - Nadeeja Ayeshan
+# Date - 2026-04-08
 def activate_24_hour_lock(user, identifier):
     locked_until = get_current_time() + timedelta(hours=SECOND_LOCK_HOURS)
 
@@ -309,6 +419,11 @@ def activate_24_hour_lock(user, identifier):
     return redirect(url_for("auth.login"))
 
 
+# Purpose - Permanently deactivate an account after continued suspicious login failures.
+# Input - User database record and login identifier used in the failed attempt.
+# Output - Redirect response with a permanent lock warning message.
+# Author - Nadeeja Ayeshan
+# Date - 2026-04-09
 def activate_permanent_lock(user, identifier):
     conn = get_connection()
     cursor = conn.cursor()
@@ -350,6 +465,11 @@ def activate_permanent_lock(user, identifier):
     return redirect(url_for("auth.login"))
 
 
+# Purpose - Clear expired temporary lockout values before processing a new login attempt.
+# Input - User database record with possible lockout data.
+# Output - Database update that removes expired time-lock values when needed.
+# Author - Nadeeja Ayeshan
+# Date - 2026-04-10
 def clear_expired_time_lock_if_needed(user):
     stage = get_lockout_stage(user)
     locked_until = get_locked_until(user)
@@ -391,6 +511,11 @@ def clear_expired_time_lock_if_needed(user):
     conn.close()
 
 
+# Purpose - Process failed login attempts and move the account through the required lockout stages.
+# Input - User database record and submitted login identifier.
+# Output - Redirect response showing the relevant failed login or lockout message.
+# Author - Nadeeja Ayeshan
+# Date - 2026-04-11
 def handle_failed_login_attempt(user, identifier):
     stage = get_lockout_stage(user)
 
@@ -465,11 +590,21 @@ def handle_failed_login_attempt(user, identifier):
     return redirect(url_for("auth.login"))
 
 
+# Purpose - Display the login page for registered users and administrators.
+# Input - GET request to the login route.
+# Output - Rendered login page template.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-12
 @auth_bp.route("/login", methods=["GET"])
 def login():
     return render_template("login.html")
 
 
+# Purpose - Authenticate users and administrators using NIC, employee ID, email, and password rules.
+# Input - POST request containing login identifier and password.
+# Output - Redirect response after successful login, failed login, or account lockout handling.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-13
 @auth_bp.route("/login", methods=["POST"])
 def login_post():
     ensure_login_security_columns()
@@ -610,6 +745,11 @@ def login_post():
     return redirect_after_login(user)
 
 
+# Purpose - Display the user registration page with password policy support.
+# Input - GET request to the registration route.
+# Output - Rendered registration page template.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-15
 @auth_bp.route("/register", methods=["GET"])
 def register():
     return render_template(
@@ -618,6 +758,11 @@ def register():
     )
 
 
+# Purpose - Validate registration details and create a new standard user account.
+# Input - POST request containing user registration form data.
+# Output - New user record in the database or registration form with validation errors.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-16
 @auth_bp.route("/register", methods=["POST"])
 def register_post():
     ensure_login_security_columns()
@@ -869,6 +1014,11 @@ def register_post():
     return redirect(url_for("auth.login"))
 
 
+# Purpose - Display the password reset page and remember where the user should return after reset.
+# Input - GET request with optional source parameter.
+# Output - Rendered password reset page with session return target updated.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-20
 @auth_bp.route("/password_reset", methods=["GET"])
 def password_reset():
     source = request.args.get("source", "").strip().lower()
@@ -881,6 +1031,11 @@ def password_reset():
     return render_template("password_reset.html")
 
 
+# Purpose - Allow a signed-in user to change their password after validating the current password and policy rules.
+# Input - GET or POST request from the change password page.
+# Output - Rendered change password page or redirect response after successful update.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-22
 @auth_bp.route("/change_password", methods=["GET", "POST"])
 def change_password():
     if "user_id" not in session:
@@ -996,6 +1151,11 @@ def change_password():
     )
 
 
+# Purpose - Clear the active user session and sign the user out of the system.
+# Input - Current Flask session.
+# Output - Redirect response to the main dashboard after logout.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-23
 @auth_bp.route("/logout")
 def logout():
     session.clear()

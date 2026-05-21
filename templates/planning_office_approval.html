@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the Planning Office approval page for submitting the first officer/planning office decision.
+Input - Planning application details, applicant name, workflow status, site visit status, flash messages, approval letter upload, and review action routes.
+Output - Planning Office review page with decision form, approval letter upload, submitted letter access, Deputy Director navigation, and back navigation.
+Author - Mora Mudalige Thenuk Sandul
+Date - 2026-05-06
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +23,7 @@
         <main class="main-content">
             <div class="page-shell">
 
+                <!-- Displays Flask flash messages after Planning Office review actions. -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         <div class="flash-wrap">
@@ -26,6 +34,7 @@
                     {% endif %}
                 {% endwith %}
 
+                <!-- Page heading showing the application, applicant, workflow, and site visit status. -->
                 <section class="topbar">
                     <div class="topbar-left">
                         <span class="page-kicker">Planning Office Approval</span>
@@ -43,9 +52,11 @@
                     </div>
                 </section>
 
+                <!-- Main layout with Planning Office decision form and next-stage navigation actions. -->
                 <section class="approval-page-grid">
                     <div class="left-column">
 
+                        <!-- First Officer / Planning Office decision form with optional approval letter upload. -->
                         <div class="card">
                             <div class="card-header">
                                 <h2 class="card-title">First Officer / Planning Office Decision</h2>
@@ -99,6 +110,7 @@
                             </div>
                         </div>
 
+                        <!-- Shows the uploaded Planning Office approval letter after it has been submitted. -->
                         {% if application['planning_office_letter_path'] %}
                         <div class="card">
                             <div class="card-header">
@@ -125,6 +137,7 @@
                     </div>
 
                     <div class="right-column">
+                        <!-- Opens Deputy Director review after the Planning Office decision is completed. -->
                         {% if application['planning_office_decision'] in ['Approved', 'Rejected'] %}
                         <div class="action-card highlight-card">
                             <div class="action-card-top">
@@ -145,6 +158,7 @@
                         </div>
                         {% endif %}
 
+                        <!-- Navigation card for returning to the main application review page. -->
                         <div class="action-card">
                             <h3>Back to Main Review</h3>
                             <p>Return to the main planning application detail page.</p>

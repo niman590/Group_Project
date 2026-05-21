@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the public Permit and Approval Status information page.
+Input - Flask/Jinja dashboard route and static dashboard stylesheet.
+Output - Simple information page explaining permit/application tracking features with a back link to the dashboard.
+Author - Niman Nethmika Rathnayake
+Date - 2026-05-03
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,12 +17,14 @@
 
 <body>
     <div class="info-page">
+        <!-- Main heading and description for the public permit and approval status service. -->
         <h1>Permit and Approval Status</h1>
         <p>
             This service helps applicants track the latest updates on submitted permits and planning approval requests.
             It provides visibility into current progress, decisions, and review status.
         </p>
 
+        <!-- Feature list explaining what users can track through the permit and approval status service. -->
         <h3>Main Features</h3>
         <ul>
             <li>Track submitted applications</li>
@@ -24,6 +33,7 @@
             <li>Stay informed with latest updates</li>
         </ul>
 
+        <!-- Navigation link back to the public dashboard page. -->
         <a href="{{ url_for('main.dashboard') }}">← Back to Dashboard</a>
     </div>
 </body>

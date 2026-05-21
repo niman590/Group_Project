@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the citizen planning approval progress page for tracking one submitted application.
+Input - Planning application details, requested documents, admin notes, notifications, workflow history, attachments, and decision PDF path.
+Output - Application progress page with workflow status, summary details, requested document uploads, admin comments, notifications, activity history, uploaded files, and final decision PDF access.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-05-05
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +23,7 @@
         <main class="planning-view-main">
             <div class="planning-view-page">
 
+                <!-- Page hero showing the selected application number, status, workflow stage, and submitted date. -->
                 <section class="view-hero reveal-up">
                     <div class="view-hero-copy">
                         <span class="view-kicker">Planning Approval</span>
@@ -42,6 +50,7 @@
                     </div>
                 </section>
 
+                <!-- Displays Flask flash messages after document upload or application actions. -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         <div class="flash-wrap reveal-up">
@@ -52,6 +61,7 @@
                     {% endif %}
                 {% endwith %}
 
+                <!-- Visual workflow progress strip for the citizen to track each approval stage. -->
                 <section class="progress-panel reveal-up">
                     <div class="section-head">
                         <div>
@@ -97,6 +107,7 @@
                 <section class="view-grid">
                     <div class="view-left">
 
+                        <!-- Summary panel showing the current review state and stage decisions for this application. -->
                         <div class="panel reveal-up">
                             <div class="panel-header">
                                 <div>
@@ -159,6 +170,7 @@
                             </div>
                         </div>
 
+                        <!-- Requested document panel where users upload files requested by admin reviewers. -->
                         <div class="panel reveal-up">
                             <div class="panel-header">
                                 <div>
@@ -169,6 +181,7 @@
 
                             <div class="request-stack">
                                 {% for item in requested_documents %}
+                                <!-- Each requested document card expands to show the message, upload status, and upload form. -->
                                 <article class="request-card {% if item['uploaded_file_name'] %}uploaded{% endif %}" data-request-card>
                                     <button class="request-toggle" type="button">
                                         <div class="request-toggle-left">
@@ -228,6 +241,7 @@
                                     </div>
                                 </article>
                                 {% else %}
+                                <!-- Empty state shown when there are no additional document requests. -->
                                 <div class="empty-card">
                                     <i class="fa-regular fa-folder-open"></i>
                                     <h3>No requested documents right now</h3>
@@ -241,6 +255,7 @@
 
                     <div class="view-right">
 
+                        <!-- Admin notes panel showing comments and decisions from each review level. -->
                         <div class="panel reveal-up admin-notes-panel">
                             <div class="panel-header">
                                 <div>
@@ -387,6 +402,7 @@
                             </div>
                         </div>
 
+                        <!-- Recent notifications panel showing latest messages linked to this application. -->
                         <div class="panel reveal-up">
                             <div class="panel-header">
                                 <div>
@@ -421,6 +437,7 @@
                             </div>
                         </div>
 
+                        <!-- Workflow activity timeline showing latest recorded review actions. -->
                         <div class="panel reveal-up">
                             <div class="panel-header">
                                 <div>
@@ -450,6 +467,7 @@
                             </div>
                         </div>
 
+                        <!-- Uploaded file list showing supporting documents already submitted with the application. -->
                         <div class="panel reveal-up">
                             <div class="panel-header">
                                 <div>
@@ -475,6 +493,7 @@
                             </div>
                         </div>
 
+                        <!-- Final decision PDF panel shown only after a decision document is generated. -->
                         {% if application['decision_pdf_path'] %}
                         <div class="panel reveal-up">
                             <div class="panel-header">

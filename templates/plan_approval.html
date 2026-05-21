@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the 12-step Planning Approval Application form for citizens to submit planning/building approval requests.
+Input - User sidebar, planning application form fields, GIS map address picker, file uploads, draft/save controls, and form validation JavaScript.
+Output - Multi-step planning approval form with applicant details, land/clearance/development information, supporting documents, review summary, draft saving, GIS map selection, and final submission.
+Author - Mora Mudalige Thenuk Sandul
+Date - 2026-05-04
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -21,6 +28,7 @@
         <main class="main-content">
             <div class="approval-page">
                 <div class="approval-shell">
+                    <!-- Page heading for the citizen planning approval application form. -->
                     <header class="page-header">
                         <div>
                             <p class="eyebrow">Civic Plan</p>
@@ -31,6 +39,7 @@
                         <div class="header-badge">Standard Application</div>
                     </header>
 
+                    <!-- Progress tracker showing current step, autosave state, progress bar, and step hint. -->
                     <div class="progress-wrap">
                         <div class="progress-top">
                             <div class="step-pill" id="stepPill">Step 1</div>
@@ -47,7 +56,9 @@
                         </div>
                     </div>
 
+                    <!-- Main 12-step planning approval application form. -->
                     <form id="planApprovalForm" class="approval-form" novalidate>
+                        <!-- Step 1 collects proposed development summary, land ownership, and proposed building use. -->
                         <section class="form-step active" data-step="1">
                             <h2>1. Summary of Proposed Development</h2>
 
@@ -157,6 +168,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 2 collects applicant and optional second owner details with GIS address selection. -->
                         <section class="form-step" data-step="2">
                             <h2>2. Applicant Details</h2>
 
@@ -241,6 +253,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 3 records technical service providers and ownership confirmation. -->
                         <section class="form-step" data-step="3">
                             <h2>3. Technical Service Providers & Ownership Confirmation</h2>
 
@@ -272,6 +285,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 4 records land owner details when the applicant is not the land owner. -->
                         <section class="form-step" data-step="4">
                             <h2>4. Land Owner Details</h2>
 
@@ -313,6 +327,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 5 collects clearance reference numbers and dates from relevant authorities. -->
                         <section class="form-step" data-step="5">
                             <h2>5. Clearances & Reference Details</h2>
 
@@ -427,6 +442,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 6 records existing/proposed usage, zoning, and site access measurements. -->
                         <section class="form-step" data-step="6">
                             <h2>6. Usage, Access & Site Details</h2>
 
@@ -464,6 +480,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 7 collects boundary distances, number of floors, and total building height. -->
                         <section class="form-step" data-step="7">
                             <h2>7. Distances, Building Height & Floor Area</h2>
 
@@ -501,6 +518,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 8 collects plot coverage, FAR, utility estimates, and development notes. -->
                         <section class="form-step" data-step="8">
                             <h2>8. Development Details</h2>
 
@@ -534,6 +552,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 9 records existing/proposed housing units and proposed car parking bays. -->
                         <section class="form-step" data-step="9">
                             <h2>9. Housing Units & Parking</h2>
 
@@ -561,6 +580,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 10 records submitted plan types and special compliance attachments checklist. -->
                         <section class="form-step" data-step="10">
                             <h2>10. Submitted Plans & Special Compliance</h2>
 
@@ -578,6 +598,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 11 collects required and optional PDF supporting documents. -->
                         <section class="form-step" data-step="11">
                             <h2>11. Attachments & Supporting Documents</h2>
 
@@ -614,6 +635,7 @@
                             <div class="file-preview-box" id="filePreviewBox">No files selected yet.</div>
                         </section>
 
+                        <!-- Step 12 gives the final review summary before application submission. -->
                         <section class="form-step" data-step="12">
                             <h2>12. Final Review & Submit</h2>
 
@@ -631,6 +653,7 @@
                             </div>
                         </section>
 
+                        <!-- Bottom navigation controls for moving steps, saving drafts, and submitting the application. -->
                         <div class="form-actions">
                             <button type="button" class="nav-btn secondary-btn" id="prevBtn">Previous</button>
 
@@ -648,6 +671,7 @@
         </main>
     </div>
 
+    <!-- GIS map modal used to select and fill address fields from the map. -->
     <div class="map-modal hidden" id="mapModal">
         <div class="map-modal-backdrop" id="mapModalBackdrop"></div>
         <div class="map-modal-panel">

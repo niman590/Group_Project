@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the admin user management page for managing users, admins, account status, and user deletion.
+Input - Logged-in admin details, user list, account statistics, search query, flash messages, and admin action routes.
+Output - User management dashboard with summary cards, manual admin creation form, searchable user table, role/status actions, delete actions, and employee ID modal.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-04-22
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -16,6 +23,7 @@
         {% include 'partials/admin_sidebar.html' %}
 
         <main class="main-content">
+            <!-- Page heading and logged-in admin account shortcut. -->
             <header class="topbar">
                 <div class="topbar-content">
                     <div class="page-heading">
@@ -38,6 +46,7 @@
                 </a>
             </header>
 
+            <!-- Displays success, error, warning, or information flash messages for admin actions. -->
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
             <div class="flash-messages">
@@ -61,6 +70,7 @@
             {% endif %}
             {% endwith %}
 
+            <!-- Summary cards showing total, admin, active, and inactive account counts. -->
             <section class="stats-section">
                 <div class="section-head">
                     <div>
@@ -117,6 +127,7 @@
                 </div>
             </section>
 
+            <!-- User directory panel with admin creation, search, and account management tools. -->
             <section class="panel">
                 <div class="panel-header panel-header-split">
                     <div>
@@ -145,6 +156,7 @@
                     </div>
                 </div>
 
+                <!-- Manual admin creation form for adding new admin accounts with employee IDs. -->
                 <div class="admin-create-panel">
                     <div class="admin-create-toolbar">
                         <div>
@@ -287,6 +299,7 @@
                     </div>
                 </div>
 
+                <!-- Search form for filtering users by name, NIC, email, employee ID, or user ID. -->
                 <form class="search-form" method="GET" action="{{ url_for('admin.admin_users') }}" id="userSearchForm">
                     <div class="search-input-group">
                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -323,6 +336,7 @@
 
                 <div class="search-result-info live-search-info" id="liveSearchInfo" style="display: none;"></div>
 
+                <!-- User table sorted with admins first and normal users after them. -->
                 <div class="table-wrap">
                     <table class="users-table">
                         <thead>
@@ -344,6 +358,7 @@
                             {% for u in sorted_users %}
                             {% set displayed_id = u['employee_id'] if u['is_admin'] and u['employee_id'] else ('USER-' ~ u['user_id']) %}
 
+                            <!-- Each row stores searchable values for the frontend live search feature. -->
                             <tr class="user-row"
                                 data-name="{{ (u['first_name'] ~ ' ' ~ u['last_name'])|lower }}"
                                 data-nic="{{ (u['nic'] if u['nic'] else '')|lower }}"
@@ -413,6 +428,7 @@
                                         </span>
                                     </div>
                                     {% else %}
+                                    <!-- Action buttons for activating/deactivating, promoting, demoting, and deleting accounts. -->
                                     <div class="action-buttons">
                                         <form action="{{ url_for('admin.toggle_user_status', user_id=u['user_id']) }}"
                                             method="POST">
@@ -458,6 +474,7 @@
                             </tr>
                             {% endfor %}
                             {% else %}
+                            <!-- Empty state shown when no users match the current search or database result. -->
                             <tr id="emptyStateRow">
                                 <td colspan="8" class="no-results">
                                     <div class="empty-state">
@@ -474,6 +491,7 @@
         </main>
     </div>
 
+    <!-- Modal used to collect employee ID before promoting a normal user to admin. -->
     <div class="custom-modal-overlay" id="employeeIdModal">
         <div class="custom-modal-card" role="dialog" aria-modal="true" aria-labelledby="employeeIdModalTitle">
             <div class="custom-modal-header">

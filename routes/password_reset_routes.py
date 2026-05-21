@@ -16,10 +16,20 @@ from email.mime.multipart import MIMEMultipart
 password_reset_bp = Blueprint("password_reset", __name__)
 
 
+# Purpose - Check whether a user or admin is currently logged in during password reset flow.
+# Input - Active Flask session values.
+# Output - True if a user/admin session exists, otherwise False.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-18
 def _is_logged_in_user():
     return session.get("user_id") is not None or session.get("admin_id") is not None
 
 
+# Purpose - Remove temporary OTP and password reset values from the session.
+# Input - Active Flask session containing reset email, OTP, expiry, verification, and failed attempt values.
+# Output - Cleared password reset session state.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-18
 def _clear_password_reset_session():
     session.pop("reset_email", None)
     session.pop("reset_otp", None)
@@ -28,6 +38,11 @@ def _clear_password_reset_session():
     session.pop("otp_failed_attempts", None)
 
 
+# Purpose - Safely read a selected user field from a database row.
+# Input - User database record, field key, and optional default value.
+# Output - String value from the user record, or the default value when unavailable.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-19
 def _get_user_value(user, key, default=""):
     try:
         if key in user.keys() and user[key] is not None:
@@ -38,6 +53,11 @@ def _get_user_value(user, key, default=""):
     return default
 
 
+# Purpose - Prepare basic user profile details after OTP verification.
+# Input - User database record and fallback email address.
+# Output - Dictionary containing profile details for the password reset page.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-19
 def _build_user_profile(user, email=""):
     if not user:
         return {}
@@ -52,6 +72,11 @@ def _build_user_profile(user, email=""):
     }
 
 
+# Purpose - Standardize password and personal information values before comparison.
+# Input - Raw text value such as password, name, email, NIC, phone, or city.
+# Output - Lowercase cleaned text without spaces and common separators.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-20
 def _normalize_password_check_value(value):
     return (
         str(value or "")
@@ -64,6 +89,11 @@ def _normalize_password_check_value(value):
     )
 
 
+# Purpose - Prevent users from creating passwords that contain their personal details.
+# Input - New password and the related user database record.
+# Output - True if personal information is found inside the password, otherwise False.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-20
 def _contains_personal_info(password, user):
     normalized_password = _normalize_password_check_value(password)
 
@@ -124,6 +154,11 @@ def _contains_personal_info(password, user):
     return False
 
 
+# Purpose - Provide password reset page navigation context based on login state.
+# Input - Current password reset return path and active user session.
+# Output - Template context values for back button URL, text, and login state.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-21
 @password_reset_bp.app_context_processor
 def inject_password_reset_context():
     return_to = session.get("password_reset_return_to")
@@ -142,6 +177,11 @@ def inject_password_reset_context():
     }
 
 
+# Purpose - Send the password reset OTP email to the registered user.
+# Input - Recipient email address, user's first name, and generated OTP code.
+# Output - True if the OTP email is sent successfully, otherwise False.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-22
 def send_otp_email(to_email, first_name, otp):
     sender_email = os.getenv("SMTP_EMAIL")
     sender_password = os.getenv("SMTP_PASSWORD")
@@ -234,6 +274,11 @@ This is an automated email from Civic Plan Team.
         return False
 
 
+# Purpose - Generate and send a password reset OTP for a registered email address.
+# Input - JSON request containing the user's email address.
+# Output - JSON response showing whether the OTP request was accepted or failed.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-23
 @password_reset_bp.route("/send-otp", methods=["POST"])
 def send_otp():
     track_api_request_burst(limit=5, minutes=1)
@@ -301,6 +346,11 @@ def send_otp():
     })
 
 
+# Purpose - Verify the OTP entered by the user during password reset.
+# Input - JSON request containing the OTP and session-stored OTP details.
+# Output - JSON response with verification result and user profile details when successful.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-24
 @password_reset_bp.route("/verify-otp", methods=["POST"])
 def verify_otp():
     track_api_request_burst(limit=8, minutes=1)
@@ -425,6 +475,11 @@ def verify_otp():
     })
 
 
+# Purpose - Reset the user's password after successful OTP verification.
+# Input - JSON request containing the new password and verified reset session details.
+# Output - JSON response with password reset status and redirect URL.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-25
 @password_reset_bp.route("/reset-password", methods=["POST"])
 def reset_password():
     track_api_request_burst(limit=5, minutes=1)

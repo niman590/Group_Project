@@ -1,3 +1,10 @@
+<!--
+Purpose - Display all submitted planning applications for admin review and workflow tracking.
+Input - Planning application records, applicant details, workflow status, final committee decision, and admin sidebar.
+Output - Searchable admin application directory with application status, workflow step, final decision, and review action link.
+Author - Mora Mudalige Thenuk Sandul
+Date - 2026-04-18
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,6 +25,7 @@
         {% include 'partials/admin_sidebar.html' %}
 
         <main class="main-content">
+            <!-- Page hero section showing the purpose of the planning applications admin directory. -->
             <section class="page-hero reveal-up">
                 <div class="page-hero-content">
                     <span class="page-kicker">Administration</span>
@@ -36,6 +44,7 @@
                 </div>
             </section>
 
+            <!-- Main panel that lists all planning applications and provides client-side search. -->
             <section class="applications-panel reveal-up">
                 <div class="panel-header panel-header-split">
                     <div>
@@ -54,10 +63,12 @@
                     </div>
                 </div>
 
+                <!-- Shows the number of application rows currently visible after search filtering. -->
                 <div class="table-meta">
                     <span class="table-count" id="visibleCount">{{ applications|length }} visible</span>
                 </div>
 
+                <!-- Table displaying applicant, application, workflow, and decision details for admin review. -->
                 <div class="table-wrap">
                     <table class="applications-table">
                         <thead>
@@ -76,6 +87,7 @@
 
                         <tbody id="applicationsTableBody">
                             {% for app in applications %}
+                            <!-- Each row stores searchable data attributes for the frontend search script. -->
                             <tr class="application-row"
                                 data-id="{{ app['application_id'] }}"
                                 data-applicant="{{ ((app['first_name'] or '') ~ ' ' ~ (app['last_name'] or ''))|lower }}"
@@ -150,6 +162,7 @@
                                 </td>
                             </tr>
                             {% else %}
+                            <!-- Server-side empty state when no application records are available. -->
                             <tr id="emptyRow">
                                 <td colspan="9" class="empty">
                                     <div class="empty-state">
@@ -163,6 +176,7 @@
                     </table>
                 </div>
 
+                <!-- Client-side empty state shown when search filters hide all rows. -->
                 <div class="client-empty-state" id="clientEmptyState" style="display: none;">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <p>No matching applications found for your search.</p>

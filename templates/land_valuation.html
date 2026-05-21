@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the GIS-powered Land Value Prediction page for selecting a land location and estimating property value.
+Input - User sidebar, map search controls, selected GIS coordinates, land/property details, prediction result fields, and PDF download action.
+Output - Land valuation page with interactive map, property detail form, estimated value results, GIS summary, and valuation PDF download button.
+Author - Mora Mudalige Thenuk Sandul
+Date - 2026-04-29
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,6 +54,7 @@
                 <div class="valuation-container">
 
                     <!-- HERO -->
+                    <!-- Page introduction explaining GIS-based land valuation purpose. -->
                     <div class="page-hero reveal-up">
                         <div class="page-hero-copy">
                             <span class="page-kicker">GIS Powered Valuation</span>
@@ -69,6 +77,7 @@
                     <div class="valuation-grid">
 
                         <!-- LEFT FORM CARD -->
+                        <!-- Form panel for selecting GIS location and entering land/property details. -->
                         <div class="form-card reveal-up">
                             <div class="card-header">
                                 <h2>Property Details</h2>
@@ -81,6 +90,7 @@
                             <div id="valuation_message" class="valuation-message"></div>
 
                             <!-- GIS MAP SECTION -->
+                            <!-- Interactive map section for searching, selecting, or using current location. -->
                             <div class="map-section">
                                 <div class="map-header">
                                     <h3>
@@ -113,6 +123,7 @@
 
                                 <div id="valuation_map"></div>
 
+                                <!-- Displays latitude and longitude selected from the map. -->
                                 <div class="selected-location-box">
                                     <div>
                                         <span>Selected Latitude</span>
@@ -125,6 +136,7 @@
                                     </div>
                                 </div>
 
+                                <!-- Displays GIS city matching details calculated from selected coordinates. -->
                                 <div class="gis-info-box">
                                     <div>
                                         <span>Nearest Supported City</span>
@@ -139,6 +151,7 @@
                             </div>
 
                             <!-- LAND DETAILS FORM -->
+                            <!-- Land size and access road details used by the valuation calculation. -->
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="land_size">Land Size</label>
@@ -169,6 +182,7 @@
                                 </div>
                             </div>
 
+                            <!-- Zone type selection used as part of the prediction input. -->
                             <div class="form-group">
                                 <label for="zone_type">Zone Type</label>
                                 <div class="input-wrap">
@@ -184,6 +198,7 @@
                                 </div>
                             </div>
 
+                            <!-- Utility availability inputs used for valuation adjustment. -->
                             <div class="form-row">
                                 <div class="form-group">
                                     <label for="electricity">Electricity</label>
@@ -212,6 +227,7 @@
                                 </div>
                             </div>
 
+                            <!-- Flood risk selection used to adjust land valuation result. -->
                             <div class="form-group">
                                 <label for="flood_risk">Flood Risk</label>
                                 <div class="input-wrap">
@@ -225,6 +241,7 @@
                                 </div>
                             </div>
 
+                            <!-- Action buttons for estimating land value and downloading the generated report. -->
                             <div class="button-stack">
                                 <button
                                     type="button"
@@ -254,6 +271,7 @@
                         </div>
 
                         <!-- RIGHT RESULT CARD -->
+                        <!-- Result panel showing current value, future predictions, price per perch, and selected GIS summary. -->
                         <div class="result-card reveal-up">
                             <div class="card-header">
                                 <h2>Valuation Result</h2>
@@ -282,6 +300,7 @@
                                 <strong class="value" id="price_per_perch">--</strong>
                             </div>
 
+                            <!-- Summary values are filled after a successful land valuation prediction. -->
                             <div class="insight-card">
                                 <div class="insight-item">
                                     <span>Nearest Supported City</span>

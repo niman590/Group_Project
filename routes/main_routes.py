@@ -7,13 +7,21 @@ from flask import Blueprint, render_template, redirect, url_for, request, jsonif
 main_bp = Blueprint("main", __name__)
 
 
-# Redirect root → dashboard
+# Purpose - Redirect visitors from the root URL to the public dashboard page.
+# Input - Request made to the website root route.
+# Output - Redirect response to the main dashboard route.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-01
 @main_bp.route("/")
 def home():
     return redirect(url_for("main.dashboard"))
 
 
-# Public dashboard
+# Purpose - Display the public dashboard page of the Civic Plan website.
+# Input - Public dashboard page request.
+# Output - Rendered dashboard HTML page.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-02
 @main_bp.route("/dashboard")
 def dashboard():
     return render_template("dashboard.html")
@@ -23,19 +31,31 @@ def dashboard():
 # READ MORE ROUTES
 # =========================
 
-# Planning approval details
+# Purpose - Display planning approval service information for public users.
+# Input - Request for the planning approval service details page.
+# Output - Rendered planning approval information page.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-03
 @main_bp.route("/services/planning-approval")
 def planning_approval():
     return render_template("planning_approval.html")
 
 
-# Land record details
+# Purpose - Display land record service information for public users.
+# Input - Request for the land record service details page.
+# Output - Rendered land record information page.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-03
 @main_bp.route("/services/land-record")
 def land_record():
     return render_template("land_record.html")
 
 
-# Permit status details
+# Purpose - Display planning approval progress information for public users.
+# Input - Request for the permit status service details page.
+# Output - Rendered permit status information page.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-04
 @main_bp.route("/services/permit-status")
 def permit_status():
     return render_template("permit_status.html")
@@ -45,6 +65,11 @@ def permit_status():
 # DROP QUESTION EMAIL ROUTE
 # =========================
 
+# Purpose - Receive public user questions from the dashboard and send them to the Civic Plan support email.
+# Input - JSON request containing sender name, email address, and message.
+# Output - JSON success response if the email is sent, or error response if validation/sending fails.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-08
 @main_bp.route("/drop-question", methods=["POST"])
 def drop_question():
     data = request.get_json(silent=True) or {}

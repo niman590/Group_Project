@@ -1100,3 +1100,111 @@ a.btn {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* =========================================================
+   DELETE USER WEB APPLICATION MODAL
+   This replaces the browser confirm popup with an in-page modal.
+========================================================= */
+.delete-user-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: rgba(15, 23, 42, 0.58);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.22s ease, visibility 0.22s ease;
+}
+
+.delete-user-modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.delete-user-modal-card {
+    width: 100%;
+    max-width: 460px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 24px;
+    box-shadow: 0 24px 70px rgba(8, 27, 58, 0.28);
+    transform: translateY(12px) scale(0.98);
+    transition: transform 0.22s ease;
+}
+
+.delete-user-modal-overlay.open .delete-user-modal-card {
+    transform: translateY(0) scale(1);
+}
+
+.delete-user-modal-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: var(--danger-bg);
+    color: var(--danger);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 14px;
+}
+
+.delete-user-modal-kicker {
+    display: inline-block;
+    margin-bottom: 6px;
+    color: var(--danger);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.delete-user-modal-title {
+    margin: 0 0 8px;
+    color: var(--primary);
+    font-size: 1.45rem;
+    line-height: 1.2;
+    font-weight: 900;
+}
+
+.delete-user-modal-message {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 0.94rem;
+    line-height: 1.55;
+}
+
+.delete-user-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+}
+
+.delete-user-modal-actions .btn {
+    min-width: 118px;
+}
+
+@media (max-width: 520px) {
+    .delete-user-modal-card {
+        padding: 20px;
+    }
+
+    .delete-user-modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    .delete-user-modal-actions .btn {
+        width: 100%;
+    }
+}

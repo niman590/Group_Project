@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the admin planning application review page with submitted application details and workflow actions.
+Input - Planning application record, submitted 12-step form data, attachments, requested documents, workflow history, and admin review status values.
+Output - Read-only submitted application preview and staged admin workflow controls for site visit, document review, officer decisions, and final committee decision.
+Author - Mora Mudalige Thenuk Sandul
+Date - 2026-04-17
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +23,7 @@
         <main class="main-content">
             <div class="page-shell">
 
+                <!-- Shows the application number, status, workflow stage, current step, and created date. -->
                 <section class="topbar">
                     <div>
                         <span class="page-kicker">Planning Review</span>
@@ -45,6 +53,7 @@
                     </div>
                 </section>
 
+                <!-- Displays Flask flash messages after admin workflow actions. -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         <div class="flash-wrap">
@@ -56,6 +65,7 @@
                 {% endwith %}
 
                 <!-- SUBMITTED APPLICATION VIEW -->
+                <!-- Provides a read-only 12-step preview of the submitted planning application. -->
                 <section class="submission-view-card">
                     <div class="submission-view-header">
                         <div>
@@ -76,6 +86,7 @@
                         </div>
                     </div>
 
+                    <!-- Step buttons allow admins to jump between submitted application sections. -->
                     <div class="step-jump-grid">
                         <button type="button" class="jump-btn active" data-jump-step="1">1</button>
                         <button type="button" class="jump-btn" data-jump-step="2">2</button>
@@ -93,6 +104,7 @@
 
                     <div class="readonly-form-shell">
 
+                        <!-- Step 1 shows the development summary and selected proposed uses. -->
                         <section class="form-step active" data-step="1">
                             <h3>1. Summary of Proposed Development</h3>
                             <div class="info-grid">
@@ -123,6 +135,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 2 shows applicant and owner contact details. -->
                         <section class="form-step" data-step="2">
                             <h3>2. Applicant Details</h3>
                             <div class="list-stack">
@@ -143,6 +156,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 3 shows technical service provider details and ownership confirmation. -->
                         <section class="form-step" data-step="3">
                             <h3>3. Technical Service Providers & Ownership Confirmation</h3>
                             <div class="info-grid">
@@ -153,6 +167,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 4 shows the land owner details. -->
                         <section class="form-step" data-step="4">
                             <h3>4. Land Owner Details</h3>
                             <div class="info-grid">
@@ -164,6 +179,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 5 shows clearance and reference information. -->
                         <section class="form-step" data-step="5">
                             <h3>5. Clearances & Reference Details</h3>
                             <div class="info-grid">
@@ -178,6 +194,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 6 shows site usage, zoning, and access details. -->
                         <section class="form-step" data-step="6">
                             <h3>6. Usage, Access & Site Details</h3>
                             <div class="info-grid">
@@ -190,6 +207,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 7 shows boundary distances and building measurements. -->
                         <section class="form-step" data-step="7">
                             <h3>7. Distances, Building Height & Floor Area</h3>
                             <div class="info-grid">
@@ -202,6 +220,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 8 shows development metrics and site notes. -->
                         <section class="form-step" data-step="8">
                             <h3>8. Development Details</h3>
                             <div class="info-grid">
@@ -213,6 +232,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 9 shows housing units and parking details. -->
                         <section class="form-step" data-step="9">
                             <h3>9. Housing Units & Parking</h3>
                             <div class="info-grid">
@@ -223,6 +243,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 10 lists submitted plans and compliance-related plan selections. -->
                         <section class="form-step" data-step="10">
                             <h3>10. Submitted Plans & Special Compliance</h3>
                             <div class="tag-list">
@@ -234,6 +255,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 11 provides links to uploaded supporting documents. -->
                         <section class="form-step" data-step="11">
                             <h3>11. Attachments & Supporting Documents</h3>
                             <div class="docs-list">
@@ -254,6 +276,7 @@
                             </div>
                         </section>
 
+                        <!-- Step 12 gives the final administrative snapshot of the application. -->
                         <section class="form-step" data-step="12">
                             <h3>12. Final Review Snapshot</h3>
                             <div class="info-grid">
@@ -268,6 +291,7 @@
                         </section>
                     </div>
 
+                    <!-- Previous and next buttons control the submitted application step preview. -->
                     <div class="form-actions submission-actions">
                         <button type="button" class="btn btn-outline" id="prevBtn">
                             <i class="fa-solid fa-arrow-left"></i>
@@ -282,6 +306,7 @@
                 </section>
 
                 <!-- ADMIN WORKFLOW -->
+                <!-- Provides the staged approval workflow used by admins after reviewing the submission. -->
                 <section class="admin-workflow-shell">
                     <div class="admin-workflow-header">
                         <div>
@@ -291,6 +316,7 @@
                         </div>
                     </div>
 
+                    <!-- Visual workflow progress strip for submitted, site visit, documents, officer, deputy, and committee stages. -->
                     <div class="workflow-strip workflow-strip-locked">
                         <div class="flow-step done">
                             <div class="flow-step-badge">01</div>
@@ -331,6 +357,7 @@
 
                     <div class="admin-stage-stack">
 
+                        <!-- Workflow Step 1 records the site visit status and comments. -->
                         <section class="admin-stage-card stage-open">
                             <div class="admin-stage-top">
                                 <div>
@@ -367,6 +394,7 @@
                             </form>
                         </section>
 
+                        <!-- Workflow Step 2 allows admins to request missing documents or clear document review. -->
                         <section class="admin-stage-card {% if site_visit_done %}stage-open{% else %}stage-locked-card{% endif %}">
                             <div class="admin-stage-top">
                                 <div>
@@ -451,6 +479,7 @@
                             {% endif %}
                         </section>
 
+                        <!-- Workflow Step 3 records the first officer or planning office decision. -->
                         <section class="admin-stage-card {% if docs_done %}stage-open{% else %}stage-locked-card{% endif %}">
                             <div class="admin-stage-top">
                                 <div>
@@ -518,6 +547,7 @@
                             {% endif %}
                         </section>
 
+                        <!-- Workflow Step 4 records the deputy director decision. -->
                         <section class="admin-stage-card {% if first_officer_done %}stage-open{% else %}stage-locked-card{% endif %}">
                             <div class="admin-stage-top">
                                 <div>
@@ -583,6 +613,7 @@
                             {% endif %}
                         </section>
 
+                        <!-- Workflow Step 5 records the final district project committee decision. -->
                         <section class="admin-stage-card {% if deputy_done %}stage-open{% else %}stage-locked-card{% endif %}">
                             <div class="admin-stage-top">
                                 <div>
@@ -648,6 +679,7 @@
                             {% endif %}
                         </section>
 
+                        <!-- Shows past admin workflow actions and comments for this application. -->
                         <div class="card">
                             <div class="card-header">
                                 <h2 class="card-title">Workflow History</h2>

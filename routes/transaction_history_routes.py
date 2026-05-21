@@ -24,6 +24,11 @@ UPLOAD_FOLDER = "static/uploads/history_proofs"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
+# Purpose - Protect citizen transaction-history routes from unauthenticated users.
+# Input - Flask view function requested by a citizen.
+# Output - Wrapped view function, JSON login error, or redirect response.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-16
 def user_login_required(view_func):
     @wraps(view_func)
     def wrapper(*args, **kwargs):
@@ -42,6 +47,11 @@ def user_login_required(view_func):
     return wrapper
 
 
+# Purpose - Protect admin transaction-history actions from non-admin users.
+# Input - Flask view function requested by an admin.
+# Output - Wrapped view function or redirect response when access is denied.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-17
 def admin_login_required(view_func):
     @wraps(view_func)
     def wrapper(*args, **kwargs):
@@ -58,6 +68,11 @@ def admin_login_required(view_func):
     return wrapper
 
 
+# Purpose - Prevent browser caching for transaction-history pages and responses.
+# Input - Flask response object.
+# Output - Response object with no-cache headers added.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-17
 @transaction_history_bp.after_request
 def add_transaction_history_no_cache_headers(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -66,12 +81,22 @@ def add_transaction_history_no_cache_headers(response):
     return response
 
 
+# Purpose - Display the citizen transaction history search page.
+# Input - Logged-in citizen page request.
+# Output - Rendered transaction history page.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-18
 @transaction_history_bp.route("/transaction-history", methods=["GET"])
 @user_login_required
 def transaction_history_page():
     return render_template("transaction_history.html", active_page="transaction_history")
 
 
+# Purpose - Retrieve ownership transaction history using a deed number.
+# Input - JSON request containing the deed number.
+# Output - JSON response with land record details and ownership history, or an error response.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-20
 @transaction_history_bp.route("/get-transaction-history", methods=["POST"])
 @user_login_required
 def get_transaction_history():
@@ -148,6 +173,11 @@ def get_transaction_history():
     })
 
 
+# Purpose - Submit a citizen request to update an existing deed record or request a new deed record.
+# Input - Form data with proposed owner details, transfer details, notes, and optional PDF proof.
+# Output - JSON response confirming the transaction-history request or validation error.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-22
 @transaction_history_bp.route("/request-transaction-history-update", methods=["POST"])
 @user_login_required
 def request_transaction_history_update():
@@ -253,6 +283,11 @@ def request_transaction_history_update():
     return jsonify({"message": response_message})
 
 
+# Purpose - Allow an admin to delete an approved transaction-history update request.
+# Input - Approved transaction update request ID.
+# Output - Redirect response with success or error message.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-24
 @transaction_history_bp.route("/admin/delete-approved-transaction/<int:request_id>", methods=["POST"])
 @admin_login_required
 def delete_approved_transaction(request_id):

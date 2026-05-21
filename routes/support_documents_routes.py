@@ -21,7 +21,17 @@ from database.db_connection import get_connection
 support_documents_bp = Blueprint("support_documents", __name__)
 
 
+# Purpose - Protect support document routes so only signed-in users can access them.
+# Input - Flask view function that requires user login.
+# Output - Wrapped view function or login/API error response when the user is not signed in.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-18
 def user_login_required(view_func):
+    # Purpose - Check the active session before allowing access to the protected view.
+    # Input - Original route arguments and keyword arguments.
+    # Output - Original route response when logged in, otherwise JSON or redirect response.
+    # Author - R.A.D. Akash Dhananjaya Randeniya
+    # Date - 2026-04-18
     @wraps(view_func)
     def wrapper(*args, **kwargs):
         if not session.get("user_id"):
@@ -39,6 +49,11 @@ def user_login_required(view_func):
     return wrapper
 
 
+# Purpose - Prevent cached support document pages from being reused after logout or page refresh.
+# Input - Flask response object created by the support documents blueprint.
+# Output - Response object with no-cache headers added.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-19
 @support_documents_bp.after_request
 def add_support_documents_no_cache_headers(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -47,10 +62,20 @@ def add_support_documents_no_cache_headers(response):
     return response
 
 
+# Purpose - Build the absolute folder path for stored support document PDF files.
+# Input - Current Flask application root path.
+# Output - Full path to the static support_documents folder.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-20
 def get_support_documents_folder():
     return os.path.join(current_app.root_path, "static", "support_documents")
 
 
+# Purpose - Confirm that a requested support PDF exists before displaying or downloading it.
+# Input - PDF filename and readable document name.
+# Output - PDF directory path when the file exists, otherwise a 404 error response.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-20
 def ensure_pdf_exists(filename, friendly_name):
     pdf_directory = get_support_documents_folder()
     pdf_path = os.path.join(pdf_directory, filename)
@@ -61,6 +86,11 @@ def ensure_pdf_exists(filename, friendly_name):
     return pdf_directory
 
 
+# Purpose - Collect support document card details and basic system statistics for the support page.
+# Input - Existing project database tables and configured support document routes.
+# Output - List of support document metadata and dashboard statistics.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-21
 def get_support_documents_data():
     """
     Uses the existing project database only.
@@ -193,6 +223,11 @@ def get_support_documents_data():
     return documents, stats
 
 
+# Purpose - Display citizen-accessible support documents and related system statistics.
+# Input - Signed-in user request for the support documents page.
+# Output - Rendered support documents page with citizen-facing document cards.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-22
 @support_documents_bp.route("/support_documents")
 @support_documents_bp.route("/support-documents")
 @user_login_required
@@ -212,6 +247,11 @@ def support_documents_page():
     )
 
 
+# Purpose - Open the planning approval guidelines PDF inside the browser.
+# Input - Signed-in user request to view the planning guidelines document.
+# Output - Inline PDF response for the planning approval guidelines file.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-23
 @support_documents_bp.route("/support-documents/planning-approval-guidelines/view")
 @user_login_required
 def view_planning_guidelines():
@@ -221,6 +261,11 @@ def view_planning_guidelines():
     return send_from_directory(directory, filename, as_attachment=False)
 
 
+# Purpose - Download the planning approval guidelines PDF for the user.
+# Input - Signed-in user request to download the planning guidelines document.
+# Output - PDF download response for the planning approval guidelines file.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-23
 @support_documents_bp.route("/support-documents/planning-approval-guidelines/download")
 @user_login_required
 def download_planning_guidelines():
@@ -235,6 +280,11 @@ def download_planning_guidelines():
     )
 
 
+# Purpose - Open the required documents checklist PDF inside the browser.
+# Input - Signed-in user request to view the required documents checklist.
+# Output - Inline PDF response for the required documents checklist file.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-24
 @support_documents_bp.route("/support-documents/required-documents-checklist/view")
 @user_login_required
 def view_required_documents_checklist():
@@ -244,6 +294,11 @@ def view_required_documents_checklist():
     return send_from_directory(directory, filename, as_attachment=False)
 
 
+# Purpose - Download the required documents checklist PDF for the user.
+# Input - Signed-in user request to download the required documents checklist.
+# Output - PDF download response for the required documents checklist file.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-24
 @support_documents_bp.route("/support-documents/required-documents-checklist/download")
 @user_login_required
 def download_required_documents_checklist():
@@ -258,6 +313,11 @@ def download_required_documents_checklist():
     )
 
 
+# Purpose - Open the gazettes, rules, and policies PDF inside the browser.
+# Input - Signed-in user request to view gazettes and planning rule documents.
+# Output - Inline PDF response for the gazettes and rules file.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-25
 @support_documents_bp.route("/support-documents/gazettes-and-rules/view")
 @user_login_required
 def view_gazettes_and_rules():
@@ -267,6 +327,11 @@ def view_gazettes_and_rules():
     return send_from_directory(directory, filename, as_attachment=False)
 
 
+# Purpose - Download the gazettes, rules, and policies PDF for the user.
+# Input - Signed-in user request to download gazettes and planning rule documents.
+# Output - PDF download response for the gazettes and rules file.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-25
 @support_documents_bp.route("/support-documents/gazettes-and-rules/download")
 @user_login_required
 def download_gazettes_and_rules():
@@ -281,6 +346,11 @@ def download_gazettes_and_rules():
     )
 
 
+# Purpose - Open the Civic Plan user manual PDF inside the browser.
+# Input - Signed-in user request to view the user manual.
+# Output - Inline PDF response for the Civic Plan user manual file.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-26
 @support_documents_bp.route("/support-documents/user-manual/view")
 @user_login_required
 def view_user_manual():
@@ -298,6 +368,11 @@ def view_user_manual():
     )
 
 
+# Purpose - Download the Civic Plan user manual PDF for the user.
+# Input - Signed-in user request to download the user manual.
+# Output - PDF download response for the Civic Plan user manual file.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-26
 @support_documents_bp.route("/support-documents/user-manual/download")
 @user_login_required
 def download_user_manual():

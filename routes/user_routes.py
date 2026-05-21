@@ -10,6 +10,11 @@ import os
 user_bp = Blueprint("user", __name__)
 
 
+# Purpose - Protect user routes by requiring an active signed-in user session.
+# Input - Flask route function that needs login protection.
+# Output - Wrapped route function or login/error response when the user is not signed in.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-12
 def user_login_required(view_func):
     @wraps(view_func)
     def wrapper(*args, **kwargs):
@@ -42,6 +47,11 @@ def user_login_required(view_func):
 
 
 @user_bp.after_request
+# Purpose - Prevent browser caching for user dashboard and account-related pages.
+# Input - Flask response object returned from a user route.
+# Output - Response object with no-cache headers added.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-12
 def add_user_no_cache_headers(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
@@ -49,6 +59,11 @@ def add_user_no_cache_headers(response):
     return response
 
 
+# Purpose - Retrieve the currently signed-in user from the database using the session user ID.
+# Input - User ID stored in the active Flask session.
+# Output - Current user database record, or None when no user session exists.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-13
 def get_current_user():
     if "user_id" not in session:
         return None
@@ -68,6 +83,11 @@ def get_current_user():
     return user
 
 
+# Purpose - Update Flask session values after user account details are changed.
+# Input - Updated user database record.
+# Output - Refreshed session data for the signed-in user.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-13
 def sync_session_user(user):
     session["user_id"] = user["user_id"]
     session["first_name"] = user["first_name"]
@@ -81,6 +101,11 @@ def sync_session_user(user):
     session["is_admin"] = user["is_admin"]
 
 
+# Purpose - Validate user access and return the active user for protected routes.
+# Input - Current request type and active user session.
+# Output - User record with no redirect, or an authentication error/redirect response.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-14
 def user_required():
     if "user_id" not in session:
         if request.is_json or request.path.startswith("/api/") or request.path.startswith("/notifications"):
@@ -114,6 +139,11 @@ def user_required():
     return user, None
 
 
+# Purpose - Convert stored date-time values into a simple display date.
+# Input - Date, date-time, empty, or invalid value.
+# Output - Date-only text or N/A when no value is available.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-15
 def safe_date(value):
     if not value:
         return "N/A"
@@ -124,6 +154,11 @@ def safe_date(value):
     return value
 
 
+# Purpose - Match application or record statuses with dashboard badge styles.
+# Input - Status text from applications, properties, or records.
+# Output - Badge category name used by the frontend.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-15
 def status_to_badge(status):
     s = (status or "").strip().lower()
 
@@ -139,6 +174,11 @@ def status_to_badge(status):
     return "neutral"
 
 
+# Purpose - Select a simple location-based growth rate for dashboard valuation estimates.
+# Input - Property address or location text.
+# Output - Decimal growth rate for the matching supported area.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-18
 def get_growth_rate_for_location(location_text):
     growth_map = {
         "malabe": 0.08,
@@ -163,6 +203,11 @@ def get_growth_rate_for_location(location_text):
     return 0.08
 
 
+# Purpose - Build short dashboard alerts from the user's planning application statuses.
+# Input - List of planning application records.
+# Output - List of recent alert dictionaries for dashboard display.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-18
 def build_application_alerts(applications):
     alerts = []
 
@@ -196,6 +241,11 @@ def build_application_alerts(applications):
     return alerts[:5]
 
 
+# Purpose - Save uploaded requested-document PDF files safely to the project upload folder.
+# Input - Uploaded file object and target subfolder.
+# Output - Saved file path, or None if the file is missing or not a PDF.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-19
 def save_uploaded_file(file_obj, subfolder="uploads/requested_documents"):
     if not file_obj or not file_obj.filename:
         return None
@@ -217,6 +267,11 @@ def save_uploaded_file(file_obj, subfolder="uploads/requested_documents"):
     return file_path.replace("\\", "/")
 
 
+# Purpose - Retrieve recent user notifications and unread notification count.
+# Input - User ID and optional notification limit.
+# Output - Notification rows and unread notification count.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-20
 def get_notifications_for_user(user_id, limit=10):
     conn = get_connection()
     cursor = conn.cursor()
@@ -248,6 +303,11 @@ def get_notifications_for_user(user_id, limit=10):
     return notifications, unread_count
 
 
+# Purpose - Collect all user dashboard summaries, alerts, records, valuations, and notifications.
+# Input - Signed-in user ID and user database record.
+# Output - Dashboard data dictionary used to render the user dashboard.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-22
 def get_dashboard_data(user_id, user):
     conn = get_connection()
     cursor = conn.cursor()
@@ -513,6 +573,11 @@ def get_dashboard_data(user_id, user):
     }
 
 
+# Purpose - Remove or detach all records connected to a user before deleting their account.
+# Input - Database cursor and user ID.
+# Output - Related user records deleted or safely disconnected from the database.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-24
 def delete_user_related_records(cursor, user_id):
     nullable_updates = [
         (
@@ -723,6 +788,11 @@ def delete_user_related_records(cursor, user_id):
 
 @user_bp.route("/user_dashboard")
 @user_login_required
+# Purpose - Display the signed-in user's main dashboard with system summaries and quick information.
+# Input - Active user session.
+# Output - Rendered user dashboard page.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-25
 def user_dashboard():
     user, redirect_response = user_required()
     if redirect_response:
@@ -747,6 +817,11 @@ def user_dashboard():
 
 @user_bp.route("/all-notifications")
 @user_login_required
+# Purpose - Display all notifications belonging to the signed-in user.
+# Input - Active user session.
+# Output - Rendered all-notifications page with unread count.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-25
 def all_notifications():
     user, redirect_response = user_required()
     if redirect_response:
@@ -790,6 +865,11 @@ def all_notifications():
 
 @user_bp.route("/planning-approval/<int:application_id>")
 @user_login_required
+# Purpose - Display detailed planning approval information for one user-owned application.
+# Input - Application ID from the route and active user session.
+# Output - Rendered planning approval page with attachments and requested documents.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-26
 def planning_approval(application_id):
     user, redirect_response = user_required()
     if redirect_response:
@@ -854,6 +934,11 @@ def planning_approval(application_id):
 
 @user_bp.route("/requested-document/<int:request_id>/upload", methods=["POST"])
 @user_login_required
+# Purpose - Allow a user to upload a requested additional planning document as a PDF.
+# Input - Requested document ID and uploaded PDF file.
+# Output - Updated requested document record, notification entry, and redirect response.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-27
 def upload_requested_document(request_id):
     user, redirect_response = user_required()
     if redirect_response:
@@ -934,6 +1019,11 @@ def upload_requested_document(request_id):
 
 @user_bp.route("/notifications")
 @user_login_required
+# Purpose - Provide user notifications as JSON for the frontend notification panel.
+# Input - Active user session.
+# Output - JSON list of recent notification records.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-28
 def get_notifications():
     user, redirect_response = user_required()
     if redirect_response:
@@ -957,6 +1047,11 @@ def get_notifications():
 
 @user_bp.route("/notifications/<int:notification_id>/read", methods=["POST"])
 @user_login_required
+# Purpose - Mark one selected user notification as read.
+# Input - Notification ID from the route and active user session.
+# Output - JSON success response after updating the notification.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-28
 def mark_notification_read(notification_id):
     user, redirect_response = user_required()
     if redirect_response:
@@ -982,6 +1077,11 @@ def mark_notification_read(notification_id):
 
 @user_bp.route("/notifications/read-all", methods=["POST"])
 @user_login_required
+# Purpose - Mark all notifications for the signed-in user as read.
+# Input - Active user session.
+# Output - JSON success response after updating all user notifications.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-28
 def mark_all_notifications_read():
     user, redirect_response = user_required()
     if redirect_response:
@@ -1007,6 +1107,11 @@ def mark_all_notifications_read():
 
 @user_bp.route("/account", methods=["GET", "POST"])
 @user_login_required
+# Purpose - Display and update the signed-in user's account profile details.
+# Input - GET request for viewing account or POST form data for updating account details.
+# Output - Rendered account page or redirect after a successful update.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-29
 def account():
     user, redirect_response = user_required()
     if redirect_response:
@@ -1087,6 +1192,11 @@ def account():
 
 @user_bp.route("/account/delete", methods=["POST"])
 @user_login_required
+# Purpose - Delete the signed-in user's account and clean related project records.
+# Input - Active user session and account deletion request.
+# Output - Deleted account, cleared session, and redirect to the public dashboard.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-30
 def delete_account():
     user, redirect_response = user_required()
     if redirect_response:

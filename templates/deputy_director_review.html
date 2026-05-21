@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the Deputy Director review page for reviewing Planning Office decisions and recording the Deputy Director decision.
+Input - Planning application details, Planning Office decision/letter, workflow stage, flash messages, and review action routes.
+Output - Deputy Director decision form with approval/rejection comments, Planning Office letter access, committee review navigation, and back navigation.
+Author - Mora Mudalige Thenuk Sandul
+Date - 2026-04-26
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +23,7 @@
         <main class="main-content">
             <div class="page-shell">
 
+                <!-- Displays Flask flash messages after Deputy Director review actions. -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         <div class="flash-wrap">
@@ -26,6 +34,7 @@
                     {% endif %}
                 {% endwith %}
 
+                <!-- Page heading showing the application ID and current workflow context. -->
                 <section class="topbar">
                     <div class="topbar-left">
                         <span class="page-kicker">Deputy Director Review</span>
@@ -41,9 +50,11 @@
                     </div>
                 </section>
 
+                <!-- Main review layout with Planning Office documents, decision form, and navigation actions. -->
                 <section class="review-page-grid">
                     <div class="left-column">
 
+                        <!-- Shows the generated Planning Office or First Officer letter when available. -->
                         {% if application['planning_office_letter_path'] or application['first_officer_letter_path'] %}
                         <div class="card">
                             <div class="card-header">
@@ -68,6 +79,7 @@
                         </div>
                         {% endif %}
 
+                        <!-- Deputy Director decision form for approving or rejecting the application stage. -->
                         <div class="card">
                             <div class="card-header">
                                 <h2 class="card-title">Deputy Director Decision</h2>
@@ -111,6 +123,7 @@
                     </div>
 
                     <div class="right-column">
+                        <!-- Opens the District Project Committee review link after Deputy Director decision is completed. -->
                         {% if application['deputy_director_decision'] in ['Approved', 'Rejected'] %}
                         <div class="action-card highlight-card">
                             <div class="action-card-top">
@@ -131,6 +144,7 @@
                         </div>
                         {% endif %}
 
+                        <!-- Navigation card for returning to the Planning Office review stage. -->
                         <div class="action-card">
                             <h3>Back to Planning Office Page</h3>
                             <p>Return to the previous review stage.</p>

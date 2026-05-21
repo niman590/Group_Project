@@ -42,6 +42,11 @@ SUPPORTED_VALUATION_AREAS = [
 ]
 
 
+# Purpose - Protect land valuation routes so only signed-in users can access them.
+# Input - Route function that requires a valid user session.
+# Output - Wrapped route function, JSON error for API requests, or redirect to login for page requests.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-10
 def user_login_required(view_func):
     @wraps(view_func)
     def wrapper(*args, **kwargs):
@@ -60,6 +65,11 @@ def user_login_required(view_func):
     return wrapper
 
 
+# Purpose - Prevent browsers from caching land valuation pages and API responses.
+# Input - Flask response object after a prediction route is processed.
+# Output - Response object with no-cache headers added.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-10
 @prediction_bp.after_request
 def add_prediction_no_cache_headers(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -68,18 +78,33 @@ def add_prediction_no_cache_headers(response):
     return response
 
 
+# Purpose - Display the signed-in user's land valuation page.
+# Input - User request for the land valuation module.
+# Output - Rendered land valuation HTML page.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-11
 @prediction_bp.route("/land-valuation", methods=["GET"])
 @user_login_required
 def land_valuation_page():
     return render_template("land_valuation.html", active_page="land_valuation")
 
 
+# Purpose - Convert checkbox-style input values into binary values for the valuation model.
+# Input - Boolean, number, or text value from the request form or JSON payload.
+# Output - 1 for enabled/available values, otherwise 0.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-12
 def to_binary(value):
     if value in [1, "1", True, "true", "True", "on", "yes", "Yes"]:
         return 1
     return 0
 
 
+# Purpose - Match user-selected or GIS-detected locations with supported valuation areas.
+# Input - Raw location text.
+# Output - Standard supported area name, original location text, or None when empty.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-12
 def normalize_supported_area(location):
     location = str(location or "").strip()
 
@@ -90,6 +115,11 @@ def normalize_supported_area(location):
     return location or None
 
 
+# Purpose - Validate land valuation inputs submitted through the older manual prediction endpoint.
+# Input - JSON land details including year, land size, road size, location, distance, zone, and utilities.
+# Output - Cleaned valuation input data, or JSON validation error response with status code.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-14
 def validate_old_land_inputs(data):
     try:
         publication_year = int(data.get("publication_year", datetime.now().year))
@@ -137,6 +167,11 @@ def validate_old_land_inputs(data):
     return cleaned_data, None, None
 
 
+# Purpose - Validate GIS-based land valuation inputs and enrich them with nearest-city and address details.
+# Input - JSON land details including latitude, longitude, land size, road size, zone, and utility availability.
+# Output - Cleaned GIS valuation input data, or JSON validation error response with status code.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-16
 def validate_gis_land_inputs(data):
     try:
         publication_year = datetime.now().year
@@ -194,6 +229,11 @@ def validate_gis_land_inputs(data):
     return cleaned_data, None, None
 
 
+# Purpose - Save a user's completed land valuation result into property and value prediction records.
+# Input - User ID, cleaned valuation input data, and model prediction result.
+# Output - Property ID linked to the saved valuation record.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-18
 def save_prediction_for_user(user_id, cleaned_data, result):
     conn = get_connection()
     cursor = conn.cursor()
@@ -267,6 +307,11 @@ def save_prediction_for_user(user_id, cleaned_data, result):
     return property_id
 
 
+# Purpose - Check a map-selected coordinate and return the nearest supported valuation city.
+# Input - JSON request containing latitude and longitude values.
+# Output - JSON response with address, nearest city, and distance details, or error details.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-20
 @prediction_bp.route("/api/valuation/gis-check", methods=["POST"])
 @user_login_required
 def gis_check():
@@ -306,6 +351,11 @@ def gis_check():
         }), 500
 
 
+# Purpose - Generate and save a GIS-based land valuation estimate for the signed-in user.
+# Input - JSON request containing GIS coordinates, land details, zone type, and utility availability.
+# Output - JSON response containing input location, GIS result, and valuation result.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-22
 @prediction_bp.route("/api/valuation/estimate", methods=["POST"])
 @user_login_required
 def estimate_land_value():
@@ -358,6 +408,11 @@ def estimate_land_value():
     }), 200
 
 
+# Purpose - Generate and save a manual land valuation estimate for older prediction requests.
+# Input - JSON request containing manual land details and selected valuation area.
+# Output - JSON response containing the prediction result and saved property details.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-23
 @prediction_bp.route("/predict-land-value", methods=["POST"])
 @user_login_required
 def predict_land():
@@ -394,6 +449,11 @@ def predict_land():
     return jsonify(result)
 
 
+# Purpose - Draw long PDF text across multiple lines without exceeding the page width.
+# Input - PDF canvas, text, position, maximum width, font settings, and line spacing.
+# Output - Updated y-position after drawing the wrapped text.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-25
 def draw_wrapped_text(pdf, text, x, y, max_width, font_name="Helvetica", font_size=10, line_gap=14):
     pdf.setFont(font_name, font_size)
     words = text.split()
@@ -419,6 +479,11 @@ def draw_wrapped_text(pdf, text, x, y, max_width, font_name="Helvetica", font_si
     return y
 
 
+# Purpose - Draw a reusable label and value row inside the land valuation PDF report.
+# Input - PDF canvas, label, value, label/value x-positions, y-position, and row height.
+# Output - Updated y-position for the next PDF row.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-25
 def draw_label_value_row(pdf, label, value, x_label, x_value, y, row_height=22):
     pdf.setFillColor(colors.HexColor("#1f2937"))
     pdf.setFont("Helvetica-Bold", 10.5)
@@ -431,6 +496,11 @@ def draw_label_value_row(pdf, label, value, x_label, x_value, y, row_height=22):
     return y - row_height
 
 
+# Purpose - Draw a highlighted result box for valuation totals in the generated PDF report.
+# Input - PDF canvas, box title, result value, position, size, fill colour, and text colour.
+# Output - Drawn result box on the PDF page.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-25
 def draw_result_box(pdf, title, value, x, y, width, height, fill_color, text_color=colors.white):
     pdf.setFillColor(fill_color)
     pdf.roundRect(x, y - height, width, height, 10, fill=1, stroke=0)
@@ -443,6 +513,11 @@ def draw_result_box(pdf, title, value, x, y, width, height, fill_color, text_col
     pdf.drawString(x + 12, y - 38, value)
 
 
+# Purpose - Generate a downloadable PDF report for a land valuation estimate.
+# Input - JSON valuation request containing manual or GIS-based land details.
+# Output - Downloadable land valuation PDF report file.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-28
 @prediction_bp.route("/download-land-valuation-pdf", methods=["POST"])
 @user_login_required
 def download_land_valuation_pdf():

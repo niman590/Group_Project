@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the District Project Committee final review page for approving or rejecting a planning application.
+Input - Planning application details, Deputy Director decision, Committee decision, flash messages, and final decision routes.
+Output - Final committee review page with approve/reject forms, official remarks fields, status chips, and back navigation.
+Author - Mora Mudalige Thenuk Sandul
+Date - 2026-04-27
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +23,7 @@
         <main class="main-content">
             <div class="page-shell">
 
+                <!-- Displays Flask flash messages after final committee decision actions. -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     {% if messages %}
                         <div class="flash-wrap">
@@ -26,6 +34,7 @@
                     {% endif %}
                 {% endwith %}
 
+                <!-- Page heading showing the application ID and final review stage status. -->
                 <section class="topbar">
                     <div class="topbar-left">
                         <span class="page-kicker">District Project Committee Review</span>
@@ -39,9 +48,11 @@
                     </div>
                 </section>
 
+                <!-- Main final review layout with committee decision forms and navigation. -->
                 <section class="review-page-grid">
                     <div class="left-column">
 
+                        <!-- Final committee decision card containing separate approval and rejection forms. -->
                         <div class="card">
                             <div class="card-header">
                                 <h2 class="card-title">Final Committee Decision</h2>
@@ -50,6 +61,7 @@
                             <div class="card-body">
                                 <div class="decision-stack">
 
+                                    <!-- Approval form used to record the final approved committee decision. -->
                                     <div class="decision-box approve-box">
                                         <h3>Approve Application</h3>
                                         <p>Use this to record the final approval from the District Project Committee.</p>
@@ -73,6 +85,7 @@
                                         </form>
                                     </div>
 
+                                    <!-- Rejection form used to record the final rejected committee decision with a reason. -->
                                     <div class="decision-box reject-box">
                                         <h3>Reject Application</h3>
                                         <p>Use this to record the final rejection and provide the official reason.</p>
@@ -104,6 +117,7 @@
                     </div>
 
                     <div class="right-column">
+                        <!-- Navigation card for returning to the main planning application review page. -->
                         <div class="action-card">
                             <h3>Back to Main Review</h3>
                             <p>Return to the main planning application review page.</p>

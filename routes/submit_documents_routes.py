@@ -13,7 +13,17 @@ from database.security_utils import track_api_request_burst
 submit_documents_bp = Blueprint("submit_documents", __name__)
 
 
+# Purpose - Protect planning submission routes so only signed-in users can access them.
+# Input - Flask view function that needs login protection.
+# Output - Wrapped view function or JSON/redirect response when the user is not logged in.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-15
 def user_login_required(view_func):
+    # Purpose - Check login status before allowing access to the protected route.
+    # Input - Original route arguments and keyword arguments.
+    # Output - Protected route response, login JSON error, or login redirect.
+    # Author - R.A.D. Akash Dhananjaya Randeniya
+    # Date - 2026-04-15
     @wraps(view_func)
     def wrapper(*args, **kwargs):
         if not session.get("user_id"):
@@ -38,6 +48,11 @@ def user_login_required(view_func):
     return wrapper
 
 
+# Purpose - Prevent browser caching for planning submission pages and API responses.
+# Input - Flask response object.
+# Output - Response object with no-cache headers added.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-16
 @submit_documents_bp.after_request
 def add_submit_documents_no_cache_headers(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -53,6 +68,11 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(REQUESTED_DOCS_FOLDER, exist_ok=True)
 
 
+# Purpose - Send an email confirmation after a planning approval application is submitted.
+# Input - Recipient email address and applicant first name.
+# Output - True if the email is sent successfully, otherwise False.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-18
 def send_planning_submission_email(to_email, first_name):
     sender_email = os.getenv("SMTP_EMAIL")
     sender_password = os.getenv("SMTP_PASSWORD")
@@ -154,6 +174,11 @@ This is an automated email from Civic Plan Team.
         return False
 
 
+# Purpose - Find the user's latest draft application or create a new draft record.
+# Input - Logged-in user ID.
+# Output - Draft planning application ID.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-19
 def get_or_create_draft_application(user_id):
     conn = get_connection()
     cursor = conn.cursor()
@@ -181,6 +206,11 @@ def get_or_create_draft_application(user_id):
     return application_id
 
 
+# Purpose - Create a notification for a user about a planning application update.
+# Input - Database cursor, user ID, application ID, notification title, message, and type.
+# Output - New notification record saved in the database.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-20
 def create_user_notification(cursor, user_id, application_id, title, message, notification_type="info"):
     cursor.execute(
         """
@@ -193,6 +223,11 @@ def create_user_notification(cursor, user_id, application_id, title, message, no
     )
 
 
+# Purpose - Convert planning application workflow details into a readable status label.
+# Input - Planning application database row.
+# Output - Readable application status text for display.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-21
 def get_status_label(app):
     status = (app["status"] or "").strip().lower()
     workflow_stage = (app["workflow_stage"] or "").strip().lower()
@@ -248,6 +283,11 @@ def get_status_label(app):
     return status.title() if status else "Pending"
 
 
+# Purpose - Select the CSS badge style that matches an application status label.
+# Input - Readable application status label.
+# Output - CSS badge class name.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-21
 def get_status_badge_class(label):
     label = (label or "").lower()
 
@@ -264,6 +304,11 @@ def get_status_badge_class(label):
     return "badge-secondary"
 
 
+# Purpose - Search map locations using OpenStreetMap for the planning application form.
+# Input - Search query from the request URL.
+# Output - JSON response containing matching location results or an error message.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-22
 @submit_documents_bp.route("/gis-search-location", methods=["GET"])
 @user_login_required
 def gis_search_location():
@@ -312,6 +357,11 @@ def gis_search_location():
         }), 500
 
 
+# Purpose - Convert selected latitude and longitude values into a readable address.
+# Input - Latitude and longitude request parameters.
+# Output - JSON response containing the resolved address or an error message.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-22
 @submit_documents_bp.route("/gis-reverse-geocode", methods=["GET"])
 @user_login_required
 def gis_reverse_geocode():
@@ -354,12 +404,22 @@ def gis_reverse_geocode():
         }), 500
 
 
+# Purpose - Display the planning approval document submission page.
+# Input - Signed-in user page request.
+# Output - Rendered planning approval form page.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-23
 @submit_documents_bp.route("/submit-documents", methods=["GET"])
 @user_login_required
 def submit_documents():
     return render_template("plan_approval.html", active_page="submit_documents")
 
 
+# Purpose - Save one step of the multi-step planning approval draft form.
+# Input - Logged-in user ID, step number, and step data from JSON request.
+# Output - JSON response with save status and application ID.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-24
 @submit_documents_bp.route("/save-planning-draft-step", methods=["POST"])
 @user_login_required
 def save_planning_draft_step():
@@ -577,6 +637,11 @@ def save_planning_draft_step():
     })
 
 
+# Purpose - Save PDF attachments for a draft planning approval application.
+# Input - Uploaded PDF files from the planning application form.
+# Output - JSON response confirming file upload status.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-25
 @submit_documents_bp.route("/save-planning-draft-files", methods=["POST"])
 @user_login_required
 def save_planning_draft_files():
@@ -642,6 +707,11 @@ def save_planning_draft_files():
     return jsonify({"success": True, "message": "Files saved successfully"})
 
 
+# Purpose - Load an existing planning approval draft for editing or continuing the form.
+# Input - Logged-in user ID and optional application ID.
+# Output - JSON response containing saved draft data.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-26
 @submit_documents_bp.route("/get-planning-draft", methods=["GET"])
 @user_login_required
 def get_planning_draft():
@@ -744,6 +814,11 @@ def get_planning_draft():
     return jsonify({"success": True, "draft": draft})
 
 
+# Purpose - Submit the latest draft planning application for official review.
+# Input - Logged-in user ID and saved draft application record.
+# Output - JSON response confirming successful submission.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-04-27
 @submit_documents_bp.route("/submit-planning-application", methods=["POST"])
 @user_login_required
 def submit_planning_application():
@@ -809,6 +884,11 @@ def submit_planning_application():
     })
 
 
+# Purpose - Display all planning applications submitted or drafted by the current user.
+# Input - Logged-in user ID.
+# Output - Rendered My Applications page with status, requested documents, and workflow history.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-04-28
 @submit_documents_bp.route("/my-applications", methods=["GET"])
 @user_login_required
 def my_applications():
@@ -893,6 +973,11 @@ def my_applications():
     )
 
 
+# Purpose - Delete a user's draft planning application and its related draft records.
+# Input - Application ID and logged-in user ID.
+# Output - Redirect response after successful deletion or validation error.
+# Author - Niman Nethmika Rathnayake
+# Date - 2026-04-29
 @submit_documents_bp.route("/my-applications/<int:application_id>/delete-draft", methods=["POST"])
 @user_login_required
 def delete_draft_application(application_id):
@@ -948,6 +1033,11 @@ def delete_draft_application(application_id):
     return redirect(url_for("submit_documents.my_applications"))
 
 
+# Purpose - Upload a PDF document requested by officers for an existing planning application.
+# Input - Requested document ID, logged-in user ID, and uploaded PDF file.
+# Output - Redirect response after saving the requested document.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-01
 @submit_documents_bp.route("/upload-requested-document/<int:requested_doc_id>", methods=["POST"])
 @user_login_required
 def upload_requested_document(requested_doc_id):
@@ -1024,6 +1114,11 @@ def upload_requested_document(requested_doc_id):
     return redirect(url_for("submit_documents.planning_approval", application_id=application_id))
 
 
+# Purpose - Display user notifications and mark them as read.
+# Input - Logged-in user ID.
+# Output - Rendered notifications page with the user's notification records.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-02
 @submit_documents_bp.route("/notifications", methods=["GET"])
 @user_login_required
 def user_notifications():
@@ -1058,6 +1153,11 @@ def user_notifications():
     )
 
 
+# Purpose - Open a saved draft planning application for continued editing.
+# Input - Draft application ID and logged-in user ID.
+# Output - Redirect response to the planning approval form.
+# Author - R.A.D. Akash Dhananjaya Randeniya
+# Date - 2026-05-03
 @submit_documents_bp.route("/edit-planning-draft/<int:application_id>", methods=["GET"])
 @user_login_required
 def edit_planning_draft(application_id):
@@ -1084,6 +1184,11 @@ def edit_planning_draft(application_id):
     return redirect(url_for("submit_documents.submit_documents", application_id=application_id))
 
 
+# Purpose - Allow a user to download the decision PDF for their planning application.
+# Input - Application ID and logged-in user ID.
+# Output - PDF file download response or redirect if unavailable.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-04
 @submit_documents_bp.route("/download-decision-pdf/<int:application_id>", methods=["GET"])
 @user_login_required
 def download_decision_pdf(application_id):
@@ -1110,6 +1215,11 @@ def download_decision_pdf(application_id):
     return send_file(row["decision_pdf_path"], as_attachment=True)
 
 
+# Purpose - Display the detailed planning approval page for one user application.
+# Input - Application ID and logged-in user ID.
+# Output - Rendered planning approval detail page with documents, workflow history, notifications, and admin notes.
+# Author - Mora Mudalige Thenuk Sandul
+# Date - 2026-05-05
 @submit_documents_bp.route("/planning-approval/<int:application_id>", methods=["GET"])
 @user_login_required
 def planning_approval(application_id):
@@ -1118,6 +1228,11 @@ def planning_approval(application_id):
         flash("Please log in first.", "error")
         return redirect(url_for("auth.login"))
 
+    # Purpose - Safely read a value from a database row used in the planning approval detail page.
+    # Input - Database row, field key, and default value.
+    # Output - Field value or the default value.
+    # Author - Niman Nethmika Rathnayake
+    # Date - 2026-05-05
     def get_value(row, key, default=""):
         try:
             if row is not None and hasattr(row, "keys") and key in row.keys():
@@ -1127,9 +1242,19 @@ def planning_approval(application_id):
             pass
         return default
 
+    # Purpose - Standardize optional text values before displaying or comparing them.
+    # Input - Text value.
+    # Output - Trimmed text string.
+    # Author - R.A.D. Akash Dhananjaya Randeniya
+    # Date - 2026-05-05
     def clean(value):
         return (value or "").strip()
 
+    # Purpose - Choose the CSS state for an admin decision label.
+    # Input - Decision text.
+    # Output - CSS decision class name.
+    # Author - R.A.D. Akash Dhananjaya Randeniya
+    # Date - 2026-05-05
     def decision_css(decision):
         decision = clean(decision).lower()
 
@@ -1141,6 +1266,11 @@ def planning_approval(application_id):
 
         return "neutral"
 
+    # Purpose - Add a unique admin or workflow note to the application detail list.
+    # Input - Notes list, duplicate tracker, note title, stage, decision, message, and date.
+    # Output - Updated notes list when the note is valid and unique.
+    # Author - Mora Mudalige Thenuk Sandul
+    # Date - 2026-05-05
     def add_note(notes, seen, title, stage, decision, message, created_at):
         message = clean(message)
 

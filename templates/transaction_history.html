@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the Land Transaction History page for citizens to search ownership history and submit deed update/new deed requests.
+Input - User sidebar, deed number search, ownership update form fields, custom transfer date picker, proof document upload, and transaction history JavaScript.
+Output - Citizen transaction history page with view/update tabs, deed history search, ownership update request form, new deed request support, proof upload, and result message areas.
+Author - Niman Nethmika Rathnayake
+Date - 2026-05-10
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -19,6 +26,7 @@
         <main class="main-content">
             <div class="history-container">
 
+                <!-- Hero section introducing ownership record search and update/new deed request actions. -->
                 <section class="hero-panel">
                     <div class="hero-left">
                         <span class="page-kicker">
@@ -33,6 +41,7 @@
                             and submit update or new deed requests with proof documents.
                         </p>
 
+                        <!-- Tab buttons switch between history search and update/new deed request sections. -->
                         <div class="hero-actions">
                             <button type="button" class="hero-chip active" id="view-tab" onclick="showSection('view')">
                                 <i class="fa-solid fa-clock-rotate-left"></i>
@@ -46,6 +55,7 @@
                         </div>
                     </div>
 
+                    <!-- Quick service summary cards for the transaction history module. -->
                     <div class="hero-right">
                         <div class="metric-card">
                             <div class="metric-icon">
@@ -81,6 +91,7 @@
 
                 <div class="content-grid">
 
+                    <!-- Side information cards explaining available actions and submission guidance. -->
                     <aside class="side-info">
                         <div class="info-card">
                             <div class="info-card-header">
@@ -125,6 +136,7 @@
 
                     <section class="main-panel">
 
+                        <!-- View section where citizens search transaction history by deed number. -->
                         <section id="view-section" class="panel-card animated-panel">
                             <div class="panel-header">
                                 <span class="section-badge">Search Records</span>
@@ -147,6 +159,7 @@
                                 </button>
                             </div>
 
+                            <!-- Search results or empty state are rendered here by JavaScript. -->
                             <div id="history-result" class="result-area">
                                 <div class="empty-state-card">
                                     <div class="empty-state-icon">
@@ -158,6 +171,7 @@
                             </div>
                         </section>
 
+                        <!-- Update section where citizens submit ownership updates or new deed number requests. -->
                         <section id="update-section" class="panel-card animated-panel hidden">
 
                             <div class="panel-header request-header">
@@ -182,6 +196,7 @@
                                 </div>
                             </div>
 
+                            <!-- Transaction update form collects proposed owner details, transfer data, notes, and proof document. -->
                             <form id="updateForm" enctype="multipart/form-data">
 
                                 <div class="form-grid">
@@ -234,6 +249,7 @@
                                         </div>
                                     </div>
 
+                                    <!-- Custom transfer date picker stores the selected value in the hidden date field. -->
                                     <div class="form-group">
                                         <label for="datePickerButton">Transfer Date <span>*</span></label>
 
@@ -283,6 +299,7 @@
                                             placeholder="Add additional notes or supporting explanation..."></textarea>
                                     </div>
 
+                                    <!-- Proof document upload is required so admins can verify the transaction update request. -->
                                     <div class="form-group full-span">
                                         <label for="proof_document">Proof Document <span>*</span></label>
 
@@ -322,6 +339,7 @@
 
                             </form>
 
+                            <!-- Update request response messages are rendered here by JavaScript. -->
                             <div id="update-result" class="result-area"></div>
 
                         </section>

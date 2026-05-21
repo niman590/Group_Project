@@ -1,3 +1,10 @@
+<!--
+Purpose - Display the Civic Plan citizen registration page for creating a secure user account.
+Input - Flask/Jinja routes, form values, flash messages, password policy error, registration form fields, and registration JavaScript.
+Output - Registration page with personal details, NIC, phone, address, date of birth, email, password validation, password strength rules, login link, and back navigation.
+Author - R.A.D. Akash Dhananjaya Randeniya
+Date - 2026-05-08
+-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -14,6 +21,7 @@
     <div class="register-shell">
       <div class="register-container">
 
+        <!-- Left visual panel introducing citizen registration and portal benefits. -->
         <div class="left-side">
           <div class="overlay"></div>
 
@@ -54,6 +62,7 @@
           </div>
         </div>
 
+        <!-- Right form panel containing logo, flash messages, and citizen registration form. -->
         <div class="right-side">
           <div class="form-container">
             <div class="logo-box">
@@ -68,6 +77,7 @@
               <p class="section-title">Registration</p>
             </div>
 
+            <!-- Displays Flask flash messages for registration success, validation errors, or information. -->
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
             <div class="flash-messages">
@@ -90,7 +100,9 @@
             {% endif %}
             {% endwith %}
 
+            <!-- Citizen registration form with validation handled by backend and frontend JavaScript. -->
             <form class="register-form" id="registerForm" method="POST" action="{{ url_for('auth.register_post') }}" novalidate>
+              <!-- First and last name fields for creating the user's account profile. -->
               <div class="form-row two-col">
                 <div class="form-group">
                   <label for="first_name">First Name</label>
@@ -121,6 +133,7 @@
                 </div>
               </div>
 
+              <!-- NIC and phone number fields used for citizen identification and contact details. -->
               <div class="form-row two-col">
                 <div class="form-group">
                   <label for="nic">NIC Number</label>
@@ -157,6 +170,7 @@
                 </div>
               </div>
 
+              <!-- Residential address field for the user's account profile. -->
               <div class="form-group full-width">
                 <label for="address">Residential Address</label>
                 <div class="input-wrap textarea-wrap">
@@ -166,6 +180,7 @@
                 <small class="error-text"></small>
               </div>
 
+              <!-- City and date of birth fields for completing the user profile. -->
               <div class="form-row two-col">
                 <div class="form-group">
                   <label for="city">City</label>
@@ -207,6 +222,7 @@
                 </div>
               </div>
 
+              <!-- Email address used for account login, communication, and password recovery. -->
               <div class="form-row">
                 <div class="form-group">
                   <label for="email">Email Address</label>
@@ -223,6 +239,7 @@
                 </div>
               </div>
 
+              <!-- Password and confirm password fields with show/hide controls and policy validation. -->
               <div class="form-row two-col">
                 <div class="form-group">
                   <label for="password">Password</label>
@@ -255,6 +272,7 @@
                 </div>
               </div>
 
+              <!-- Real-time password strength meter and password rule checklist. -->
               <div class="password-strength-box" id="passwordStrengthBox">
                 <div class="password-strength-top">
                   <span>Password strength</span>
@@ -298,6 +316,7 @@
                 </div>
               </div>
 
+              <!-- Form actions for submitting registration, going to login, or returning back. -->
               <button type="submit" class="register-btn" id="registerSubmitBtn">
                 <span class="btn-text">Register</span>
               </button>
@@ -316,6 +335,7 @@
     </div>
   </div>
 
+  <!-- Sends prefilled date and backend password policy error values to the registration JavaScript. -->
   <script>
     window.prefilledDateOfBirth = "{{ form_values.date_of_birth if form_values is defined else '' }}";
     window.serverPasswordPolicyError = "{{ password_policy_error if password_policy_error is defined else '' }}";
